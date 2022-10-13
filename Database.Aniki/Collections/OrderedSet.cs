@@ -87,21 +87,16 @@ namespace Database.Aniki.Collections
         }
         public bool Remove(T item)
         {
-            LinkedListNode<T> node;
-            bool flag = this.m_Dictionary.TryGetValue(item, out node);
-            bool flag2 = !flag;
-            bool result;
-            if (flag2)
+            if (!m_Dictionary.TryGetValue(item, out LinkedListNode<T> node))
             {
-                result = false;
+                return false;
             }
             else
             {
                 this.m_Dictionary.Remove(item);
                 this.m_LinkedList.Remove(node);
-                result = true;
+                return true;
             }
-            return result;
         }
         public IEnumerator<T> GetEnumerator()
         {
@@ -121,19 +116,16 @@ namespace Database.Aniki.Collections
         }
         public bool Add(T item)
         {
-            bool flag = this.m_Dictionary.ContainsKey(item);
-            bool result;
-            if (flag)
+            if (m_Dictionary.ContainsKey(item))
             {
-                result = false;
+                return false;
             }
             else
             {
-                LinkedListNode<T> value = this.m_LinkedList.AddLast(item);
+                var value = this.m_LinkedList.AddLast(item);
                 this.m_Dictionary.Add(item, value);
-                result = true;
+                return true;
             }
-            return result;
         }
 
         private readonly IDictionary<T, LinkedListNode<T>> m_Dictionary;

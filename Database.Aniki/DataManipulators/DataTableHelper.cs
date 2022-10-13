@@ -19,8 +19,8 @@ namespace Database.Aniki.DataManipulators
                 return null;
             }
 
-            string[][] array = new string[dt.Rows.Count][];
-            int num = 0;
+            var array = new string[dt.Rows.Count][];
+            var num = 0;
             foreach (DataRow row in dt.Rows)
             {
                 array[num] = new string[dt.Columns.Count];
@@ -42,9 +42,9 @@ namespace Database.Aniki.DataManipulators
                 return null;
             }
 
-            string[][] array = new string[dt.Rows.Count][];
-            bool[] array2 = new bool[dt.Columns.Count];
-            int num = 0;
+            var array = new string[dt.Rows.Count][];
+            var array2 = new bool[dt.Columns.Count];
+            var num = 0;
             foreach (DataRow row in dt.Rows)
             {
                 array[num] = new string[dt.Columns.Count];
@@ -96,8 +96,8 @@ namespace Database.Aniki.DataManipulators
                 return null;
             }
 
-            string[][] array = new string[dt.Rows.Count][];
-            int num = 0;
+            var array = new string[dt.Rows.Count][];
+            var num = 0;
             int num2;
             if (removeDuplicates)
             {
@@ -146,7 +146,7 @@ namespace Database.Aniki.DataManipulators
                 return null;
             }
 
-            string[][] array = new string[dt.Rows.Count][];
+            var array = new string[dt.Rows.Count][];
             int num = 0;
             int num2;
             if (removeDuplicates)
@@ -312,7 +312,7 @@ namespace Database.Aniki.DataManipulators
                 return null;
             }
 
-            List<List<string>> list = new List<List<string>>(dt.Rows.Count);
+            var list = new List<List<string>>(dt.Rows.Count);
             foreach (DataRow row in dt.Rows)
             {
                 List<string> list2 = new List<string>(dt.Columns.Count);
@@ -334,7 +334,7 @@ namespace Database.Aniki.DataManipulators
                 return null;
             }
 
-            List<List<string>> list = new List<List<string>>(dt.Rows.Count);
+            var list = new List<List<string>>(dt.Rows.Count);
             bool[] array = new bool[dt.Columns.Count];
             int num = 0;
             foreach (DataRow row in dt.Rows)
@@ -389,7 +389,7 @@ namespace Database.Aniki.DataManipulators
                 return null;
             }
 
-            List<List<string>> list = new List<List<string>>(dt.Rows.Count);
+            var list = new List<List<string>>(dt.Rows.Count);
             if (removeDuplicates)
             {
                 OrderedSet<int> orderedSet = new OrderedSet<int>(keepOnlyColumns);
@@ -433,7 +433,7 @@ namespace Database.Aniki.DataManipulators
                 return null;
             }
 
-            List<List<string>> list = new List<List<string>>(dt.Rows.Count);
+            var list = new List<List<string>>(dt.Rows.Count);
             int num = 0;
             int num2;
             if (removeDuplicates)
