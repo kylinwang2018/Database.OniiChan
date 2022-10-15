@@ -9,11 +9,11 @@ using System.Threading.Tasks;
 
 namespace Database.Aniki.DataManipulators
 {
-    internal static class DataBaseHelper
+    internal static class DatabaseHelper
     {
         public static DbConnection CreateDbConnection(string providerName, string connectionString)
         {
-            if (connectionString != null)
+            if (!string.IsNullOrEmpty(connectionString))
             {
                 var factory = DbProviderFactories.GetFactory(providerName);
                 var dbConnection = factory.CreateConnection();

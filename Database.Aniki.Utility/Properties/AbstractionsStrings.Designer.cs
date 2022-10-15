@@ -8,7 +8,7 @@
 // </auto-generated>
 //------------------------------------------------------------------------------
 
-namespace Database.Aniki.Properties {
+namespace Database.Aniki.Utility.Properties {
     using System;
     
     
@@ -39,7 +39,7 @@ namespace Database.Aniki.Properties {
         internal static global::System.Resources.ResourceManager ResourceManager {
             get {
                 if (object.ReferenceEquals(resourceMan, null)) {
-                    global::System.Resources.ResourceManager temp = new global::System.Resources.ResourceManager("Database.Aniki.Properties.AbstractionsStrings", typeof(AbstractionsStrings).Assembly);
+                    global::System.Resources.ResourceManager temp = new global::System.Resources.ResourceManager("Database.Aniki.Utility.Properties.AbstractionsStrings", typeof(AbstractionsStrings).Assembly);
                     resourceMan = temp;
                 }
                 return resourceMan;

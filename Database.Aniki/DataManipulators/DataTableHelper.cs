@@ -10,7 +10,7 @@ using System.Web;
 
 namespace Database.Aniki.DataManipulators
 {
-    internal static class DataTableHelper
+    public static class DataTableHelper
     {
         public static string[][]? DataTableTo2dArray(DataTable dt)
         {

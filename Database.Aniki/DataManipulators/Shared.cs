@@ -5,7 +5,7 @@ using System.Text;
 
 namespace Database.Aniki.DataManipulators
 {
-    internal class Shared
+    public class Shared
     {
         public static readonly IDictionary<Type, List<PropertyInfo>> _ObjectPropertiesCache = new Dictionary<Type, List<PropertyInfo>>();
     }

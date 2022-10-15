@@ -10,7 +10,7 @@ using NotNullAttribute = System.Diagnostics.CodeAnalysis.NotNullAttribute;
 namespace Database.Aniki.Utilities
 {
     [DebuggerStepThrough]
-    internal static class Check
+    public static class Check
     {
         [ContractAnnotation("value:null => halt")]
         [return: NotNull]
