@@ -10,7 +10,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\Database.Aniki.Utility\Database.Aniki.Utility.csproj" />
     <ProjectReference Include="..\Database.Aniki\Database.Aniki.csproj" />
   </ItemGroup>
 
