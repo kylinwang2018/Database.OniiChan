@@ -817,7 +817,10 @@ namespace Database.Aniki.DataManipulators
             List<string> list = new List<string>(dt.Rows.Count);
             foreach (DataRow row in dt.Rows)
             {
-                list.Add(row[columnNumber].ToString());
+                if (row[columnNumber] != DBNull.Value)
+                    list.Add(row[columnNumber].ToString());
+                else
+                    list.Add(default);
             }
 
             return list;
@@ -827,13 +830,16 @@ namespace Database.Aniki.DataManipulators
         {
             if (columnNumber < 0 || columnNumber > dt.Columns.Count - 1)
             {
-                return new List<T>();
+                return new List<T>() ;
             }
 
-            List<T> list = new List<T>(dt.Rows.Count);
+            var list = new List<T>(dt.Rows.Count);
             foreach (DataRow row in dt.Rows)
             {
-                list.Add((T)row[columnNumber]);
+                if (row[columnNumber] != DBNull.Value)
+                    list.Add((T)row[columnNumber]);
+                else
+                    list.Add(default);
             }
 
             return list;
@@ -849,7 +855,10 @@ namespace Database.Aniki.DataManipulators
             List<string> list = new List<string>(dt.Rows.Count);
             foreach (DataRow row in dt.Rows)
             {
-                list.Add(row[columnName].ToString());
+                if (row[columnName] != DBNull.Value)
+                    list.Add(row[columnName].ToString());
+                else
+                    list.Add(string.Empty);
             }
 
             return list;
@@ -865,7 +874,10 @@ namespace Database.Aniki.DataManipulators
             List<T> list = new List<T>(dt.Rows.Count);
             foreach (DataRow row in dt.Rows)
             {
-                list.Add((T)row[columnName]);
+                if (row[columnName] != DBNull.Value)
+                    list.Add((T)row[columnName]);
+                else
+                    list.Add(default);
             }
 
             return list;

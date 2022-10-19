@@ -1,7 +1,9 @@
 ﻿using Database.Aniki.DataManipulators;
 using Database.Aniki.Exceptions;
+using Database.Aniki.Models;
 using Microsoft.Data.SqlClient;
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Data;
 using System.Reflection;
@@ -11,49 +13,49 @@ namespace Database.Aniki.DataManipulators
 {
     internal static class SqlServerHelper
     {
-        public static List<string> GetColumnToString(SqlCommand cmd, string connectionStringName, int columnIndex = 0)
+        public static Result<List<string>> GetColumnToString(SqlCommand cmd, string connectionString, int columnIndex = 0)
         {
-            return DataTableHelper.DataTableToListString(GetDataTable(cmd, connectionStringName), columnIndex);
+            return DataTableHelper.DataTableToListString(GetDataTable(cmd, connectionString), columnIndex);
         }
 
-        public static List<string> GetColumnToString(SqlCommand cmd, SqlConnection connection, int columnIndex = 0, bool closeWhenComplete = false)
+        public static Result<List<string>> GetColumnToString(SqlCommand cmd, SqlConnection connection, int columnIndex = 0, bool closeWhenComplete = false)
         {
             return DataTableHelper.DataTableToListString(GetDataTable(cmd, connection, closeWhenComplete), columnIndex);
         }
 
-        public static List<string> GetColumnToString(SqlCommand cmd, string connectionStringName, string columnName)
+        public static Result<List<string>> GetColumnToString(SqlCommand cmd, string connectionString, string columnName)
         {
-            return DataTableHelper.DataTableToListString(GetDataTable(cmd, connectionStringName), columnName);
+            return DataTableHelper.DataTableToListString(GetDataTable(cmd, connectionString), columnName);
         }
 
-        public static List<string> GetColumnToString(SqlCommand cmd, SqlConnection connection, string columnName, bool closeWhenComplete = false)
+        public static Result<List<string>> GetColumnToString(SqlCommand cmd, SqlConnection connection, string columnName, bool closeWhenComplete = false)
         {
             return DataTableHelper.DataTableToListString(GetDataTable(cmd, connection, closeWhenComplete), columnName);
         }
 
-        public static List<T> GetColumn<T>(SqlCommand cmd, string connectionStringName, int columnIndex = 0)
+        public static Result<List<T>> GetColumn<T>(SqlCommand cmd, string connectionString, int columnIndex = 0)
         {
-            return DataTableHelper.DataTableToListCast<T>(GetDataTable(cmd, connectionStringName), columnIndex);
+            return DataTableHelper.DataTableToListCast<T>(GetDataTable(cmd, connectionString), columnIndex);
         }
 
-        public static List<T> GetColumn<T>(SqlCommand cmd, SqlConnection connection, int columnIndex = 0, bool closeWhenComplete = false)
+        public static Result<List<T>> GetColumn<T>(SqlCommand cmd, SqlConnection connection, int columnIndex = 0, bool closeWhenComplete = false)
         {
             return DataTableHelper.DataTableToListCast<T>(GetDataTable(cmd, connection, closeWhenComplete), columnIndex);
         }
 
-        public static List<T> GetColumn<T>(SqlCommand cmd, string connectionStringName, string columnName)
+        public static Result<List<T>> GetColumn<T>(SqlCommand cmd, string connectionString, string columnName)
         {
-            return DataTableHelper.DataTableToListCast<T>(GetDataTable(cmd, connectionStringName), columnName);
+            return DataTableHelper.DataTableToListCast<T>(GetDataTable(cmd, connectionString), columnName);
         }
 
-        public static List<T> GetColumn<T>(SqlCommand cmd, SqlConnection connection, string columnName, bool closeWhenComplete = false)
+        public static Result<List<T>> GetColumn<T>(SqlCommand cmd, SqlConnection connection, string columnName, bool closeWhenComplete = false)
         {
             return DataTableHelper.DataTableToListCast<T>(GetDataTable(cmd, connection, closeWhenComplete), columnName);
         }
-        public static DataSet GetDataSet(SqlCommand cmd, string connectionString, string[] tableNames)
+        public static Result<DataSet> GetDataSet(SqlCommand cmd, string connectionString, string[] tableNames)
         {
             var dataSet = new DataSet();
-            DataSet result;
+            var result = new Result<DataSet>();
             using (var sqlConnection = new SqlConnection(connectionString))
             {
                 sqlConnection.Open();
@@ -69,16 +71,19 @@ namespace Database.Aniki.DataManipulators
                 }
                 sqlDataAdapter.Fill(dataSet);
                 sqlTransaction.Commit();
-                result = dataSet;
+                var stats = sqlConnection.RetrieveStatistics();
+                result.Value = dataSet;
+                result.ExecutionTime = (long)stats["ExecutionTime"];
             }
             return result;
         }
 
-        public static DataSet GetDataSet(SqlCommand cmd, SqlConnection connection, string[] tableNames, bool closeWhenComplete = false)
+        public static Result<DataSet> GetDataSet(SqlCommand cmd, SqlConnection connection, string[] tableNames, bool closeWhenComplete = false)
         {
             var dataSet = new DataSet();
             cmd.Connection = connection;
             cmd.CommandTimeout = SQLCommandTimeout;
+            var result = new Result<DataSet>();
             if (connection.State != ConnectionState.Open && connection.State != ConnectionState.Connecting)
             {
                 connection.Close();
@@ -95,75 +100,65 @@ namespace Database.Aniki.DataManipulators
                 }
                 sqlDataAdapter.Fill(dataSet);
                 sqlTransaction.Commit();
+                var stats = connection.RetrieveStatistics();
+                result.Value = dataSet;
+                result.ExecutionTime = (long)stats["ExecutionTime"];
             }
             if (closeWhenComplete)
             {
                 connection.Close();
             }
-            return dataSet;
+            return result;
         }
 
-        public static DataSet GetDataSet(string query, string connectionString, string[] tableNames)
+        public static Result<DataSet> GetDataSet(string query, string connectionString, string[] tableNames)
         {
-            DataSet dataSet;
-            using (var sqlCommand = new SqlCommand(query))
-            {
-                dataSet = GetDataSet(sqlCommand, connectionString, tableNames);
-            }
-            return dataSet;
+            using var sqlCommand = new SqlCommand(query);
+            return GetDataSet(sqlCommand, connectionString, tableNames);
         }
 
-        public static DataSet GetDataSet(string query, string connectionString, string[] tableNames, Array sqlParameters)
+        public static Result<DataSet> GetDataSet(string query, string connectionString, string[] tableNames, Array sqlParameters)
         {
-            DataSet dataSet;
-            using (var sqlCommand = new SqlCommand(query))
+            using var sqlCommand = new SqlCommand(query);
+            if (sqlParameters != null && sqlParameters.Length > 0)
             {
-                if (sqlParameters != null && sqlParameters.Length > 0)
-                {
-                    sqlCommand.Parameters.AddRange(sqlParameters);
-                }
-                dataSet = GetDataSet(sqlCommand, connectionString, tableNames);
+                sqlCommand.Parameters.AddRange(sqlParameters);
             }
-            return dataSet;
+            return GetDataSet(sqlCommand, connectionString, tableNames);
         }
 
-        public static DataSet GetDataSet(string query, string connectionString, string[] tableNames, SqlParameter[] sqlParameters)
+        public static Result<DataSet> GetDataSet(string query, string connectionString, string[] tableNames, SqlParameter[] sqlParameters)
         {
-            DataSet dataSet;
-            using (var sqlCommand = new SqlCommand(query))
+            using var sqlCommand = new SqlCommand(query);
+            if (sqlParameters != null && sqlParameters.Length != 0)
             {
-                if (sqlParameters != null && sqlParameters.Length != 0)
-                {
-                    sqlCommand.Parameters.AddRange(sqlParameters);
-                }
-                dataSet = GetDataSet(sqlCommand, connectionString, tableNames);
+                sqlCommand.Parameters.AddRange(sqlParameters);
             }
-            return dataSet;
+            return GetDataSet(sqlCommand, connectionString, tableNames);
         }
 
-        public static DataTable GetDataTable(SqlCommand cmd, string connectionString)
+        public static Result<DataTable> GetDataTable(SqlCommand cmd, string connectionString)
         {
             var dataTable = new DataTable();
-            DataTable result;
+            var result = new Result<DataTable>();
             using (var sqlConnection = new SqlConnection(connectionString))
             {
-                sqlConnection.Open();
-                using var sqlTransaction = sqlConnection.BeginTransaction();
-                using var sqlDataAdapter = new SqlDataAdapter();
                 cmd.Connection = sqlConnection;
                 cmd.CommandTimeout = SQLCommandTimeout;
-                cmd.Transaction = sqlTransaction;
-                sqlDataAdapter.SelectCommand = cmd;
+                sqlConnection.Open();
+                using var sqlDataAdapter = new SqlDataAdapter(cmd);
                 sqlDataAdapter.Fill(dataTable);
-                sqlTransaction.Commit();
-                result = dataTable;
+                var stats = sqlConnection.RetrieveStatistics();
+                result.Value = dataTable;
+                result.ExecutionTime = (long)stats["ExecutionTime"];
             }
             return result;
         }
 
-        public static DataTable GetDataTable(SqlCommand cmd, SqlConnection connection, bool closeWhenComplete = false)
+        public static Result<DataTable> GetDataTable(SqlCommand cmd, SqlConnection connection, bool closeWhenComplete = false)
         {
             var dataTable = new DataTable();
+            var result = new Result<DataTable>();
             cmd.Connection = connection;
             cmd.CommandTimeout = SQLCommandTimeout;
             if (connection.State != ConnectionState.Open && connection.State != ConnectionState.Connecting)
@@ -179,105 +174,98 @@ namespace Database.Aniki.DataManipulators
                 sqlDataAdapter.Fill(dataTable);
                 sqlTransaction.Commit();
             }
+            var stats = connection.RetrieveStatistics();
+            result.Value = dataTable;
+            result.ExecutionTime = (long)stats["ExecutionTime"];
             if (closeWhenComplete)
             {
                 connection.Close();
             }
-            return dataTable;
+            return result;
         }
 
-        public static DataTable GetDataTable(string query, string connectionString)
+        public static Result<DataTable> GetDataTable(string query, string connectionString)
         {
-            DataTable dataTable;
-            using (var sqlCommand = new SqlCommand(query))
+            using var sqlCommand = new SqlCommand(query);
+            return GetDataTable(sqlCommand, connectionString);
+        }
+
+        public static Result<DataTable> GetDataTable(string query, string connectionString, Array sqlParameters)
+        {
+            using var sqlCommand = new SqlCommand(query);
+            if (sqlParameters != null && sqlParameters.Length > 0)
             {
-                dataTable = GetDataTable(sqlCommand, connectionString);
+                sqlCommand.Parameters.AddRange(sqlParameters);
             }
-            return dataTable;
+            return GetDataTable(sqlCommand, connectionString);
         }
 
-        public static DataTable GetDataTable(string query, string connectionString, Array sqlParameters)
+        public static Result<DataTable> GetDataTable(string query, string connectionString, SqlParameter[] sqlParameters)
         {
-            DataTable dataTable;
-            using (var sqlCommand = new SqlCommand(query))
-            {
-                if (sqlParameters != null && sqlParameters.Length > 0)
-                {
-                    sqlCommand.Parameters.AddRange(sqlParameters);
-                }
-                dataTable = GetDataTable(sqlCommand, connectionString);
-            }
-            return dataTable;
-        }
-
-        public static DataTable GetDataTable(string query, string connectionString, SqlParameter[] sqlParameters)
-        {
-            DataTable dataTable;
             using (var sqlCommand = new SqlCommand(query))
             {
                 if (sqlParameters != null && sqlParameters.Length != 0)
                 {
                     sqlCommand.Parameters.AddRange(sqlParameters);
                 }
-                dataTable = GetDataTable(sqlCommand, connectionString);
+                return GetDataTable(sqlCommand, connectionString);
             }
-            return dataTable;
         }
 
-        public static List<T> GetDataTable<T>(SqlCommand cmd, string connectionString) where T : class, new()
+        public static Result<List<T>> GetDataTable<T>(SqlCommand cmd, string connectionString) where T : class, new()
         {
             return DataTableHelper.DataTableToList<T>(GetDataTable(cmd, connectionString));
         }
 
-        public static List<T> GetDataTable<T>(SqlCommand cmd, SqlConnection connection, bool closeWhenComplete = false) where T : class, new()
+        public static Result<List<T>> GetDataTable<T>(SqlCommand cmd, SqlConnection connection, bool closeWhenComplete = false) where T : class, new()
         {
-            return DataTableHelper.DataTableToList<T>(GetDataTable(cmd, connection, false));
+            return DataTableHelper.DataTableToList<T>(GetDataTable(cmd, connection, closeWhenComplete));
         }
 
-        public static List<T> GetDataTable<T>(string query, string connectionString) where T : class, new()
+        public static Result<List<T>> GetDataTable<T>(string query, string connectionString) where T : class, new()
         {
             return DataTableHelper.DataTableToList<T>(GetDataTable(query, connectionString));
         }
 
-        public static List<T> GetDataTable<T>(string query, string connectionString, Array sqlParameters) where T : class, new()
+        public static Result<List<T>> GetDataTable<T>(string query, string connectionString, Array sqlParameters) where T : class, new()
         {
             return DataTableHelper.DataTableToList<T>(GetDataTable(query, connectionString, sqlParameters));
         }
 
-        public static List<T> GetDataTable<T>(string query, string connectionString, SqlParameter[] sqlParameters) where T : class, new()
+        public static Result<List<T>> GetDataTable<T>(string query, string connectionString, SqlParameter[] sqlParameters) where T : class, new()
         {
             return DataTableHelper.DataTableToList<T>(GetDataTable(query, connectionString, sqlParameters));
         }
 
-        public static T? GetDataRow<T>(SqlCommand cmd, string connectionString) where T : class, new()
+        public static Result<T>? GetDataRow<T>(SqlCommand cmd, string connectionString) where T : class, new()
         {
             return DataTableHelper.DataRowToT<T>(GetDataTable(cmd, connectionString));
         }
 
-        public static T? GetDataRow<T>(SqlCommand cmd, SqlConnection connection, bool closeWhenComplete = false) where T : class, new()
+        public static Result<T>? GetDataRow<T>(SqlCommand cmd, SqlConnection connection, bool closeWhenComplete = false) where T : class, new()
         {
-            return DataTableHelper.DataRowToT<T>(GetDataTable(cmd, connection, false));
+            return DataTableHelper.DataRowToT<T>(GetDataTable(cmd, connection, closeWhenComplete));
         }
 
-        public static T? GetDataRow<T>(string query, string connectionString) where T : class, new()
+        public static Result<T>? GetDataRow<T>(string query, string connectionString) where T : class, new()
         {
             return DataTableHelper.DataRowToT<T>(GetDataTable(query, connectionString));
         }
 
-        public static T? GetDataRow<T>(string query, string connectionString, Array sqlParameters) where T : class, new()
+        public static Result<T>? GetDataRow<T>(string query, string connectionString, Array sqlParameters) where T : class, new()
         {
             return DataTableHelper.DataRowToT<T>(GetDataTable(query, connectionString, sqlParameters));
         }
 
-        public static T? GetDataRow<T>(string query, string connectionString, SqlParameter[] sqlParameters) where T : class, new()
+        public static Result<T>? GetDataRow<T>(string query, string connectionString, SqlParameter[] sqlParameters) where T : class, new()
         {
             return DataTableHelper.DataRowToT<T>(GetDataTable(query, connectionString, sqlParameters));
         }
 
-        public static Dictionary<T, U>? GetDictionary<T, U>(string query, string connectionString)
+        public static Result<Dictionary<T, U>>? GetDictionary<T, U>(string query, string connectionString)
         {
             var dictionary = new Dictionary<T, U>();
-            Dictionary<T, U>? result;
+            var result = new Result<Dictionary<T, U>> ();
             using (var sqlConnection = new SqlConnection(connectionString))
             {
                 sqlConnection.Open();
@@ -293,17 +281,19 @@ namespace Database.Aniki.DataManipulators
                     dictionary.Add((T)sqlDataReader[0], (U)sqlDataReader[1]);
                 }
                 if (dictionary.Count == 0)
-                    result = null;
+                    result.Value = null;
                 else
-                    result = dictionary;
+                    result.Value = dictionary;
+                var stats = sqlConnection.RetrieveStatistics();
+                result.ExecutionTime = (long)stats["ExecutionTime"];
             }
             return result;
         }
 
-        public static Dictionary<T, U>? GetDictionary<T, U>(SqlCommand cmd, string connectionString)
+        public static Result<Dictionary<T, U>>? GetDictionary<T, U>(SqlCommand cmd, string connectionString)
         {
             var dictionary = new Dictionary<T, U>();
-            Dictionary<T, U>? result;
+            var result = new Result<Dictionary<T, U>>();
             using (SqlConnection sqlConnection = new SqlConnection(connectionString))
             {
                 sqlConnection.Open();
@@ -317,17 +307,19 @@ namespace Database.Aniki.DataManipulators
                     dictionary.Add((T)sqlDataReader[0], (U)sqlDataReader[1]);
                 }
                 if (dictionary.Count == 0)
-                    result = null;
+                    result.Value = null;
                 else
-                    result = dictionary;
+                    result.Value = dictionary;
+                var stats = sqlConnection.RetrieveStatistics();
+                result.ExecutionTime = (long)stats["ExecutionTime"];
             }
             return result;
         }
 
-        public static Dictionary<T, U>? GetDictionary<T, U>(string query, string connectionString, int keyColumnIndex, int valueColumnIndex)
+        public static Result<Dictionary<T, U>>? GetDictionary<T, U>(string query, string connectionString, int keyColumnIndex, int valueColumnIndex)
         {
             var dictionary = new Dictionary<T, U>();
-            Dictionary<T, U>? result;
+            var result = new Result<Dictionary<T, U>>();
             using (var sqlConnection = new SqlConnection(connectionString))
             {
                 sqlConnection.Open();
@@ -344,17 +336,19 @@ namespace Database.Aniki.DataManipulators
                     dictionary.Add((T)((object)sqlDataReader[keyColumnIndex]), (U)((object)sqlDataReader[valueColumnIndex]));
                 }
                 if (dictionary.Count == 0)
-                    result = null;
+                    result.Value = null;
                 else
-                    result = dictionary;
+                    result.Value = dictionary;
+                var stats = sqlConnection.RetrieveStatistics();
+                result.ExecutionTime = (long)stats["ExecutionTime"];
             }
             return result;
         }
 
-        public static Dictionary<T, U>? GetDictionary<T, U>(SqlCommand cmd, string connectionString, int keyColumnIndex, int valueColumnIndex)
+        public static Result<Dictionary<T, U>>? GetDictionary<T, U>(SqlCommand cmd, string connectionString, int keyColumnIndex, int valueColumnIndex)
         {
             var dictionary = new Dictionary<T, U>();
-            Dictionary<T, U>? result;
+            var result = new Result<Dictionary<T, U>>();
             using (SqlConnection sqlConnection = new SqlConnection(connectionString))
             {
                 sqlConnection.Open();
@@ -369,17 +363,19 @@ namespace Database.Aniki.DataManipulators
                     dictionary.Add((T)sqlDataReader[keyColumnIndex], (U)sqlDataReader[valueColumnIndex]);
                 }
                 if (dictionary.Count == 0)
-                    result = null;
+                    result.Value = null;
                 else
-                    result = dictionary;
+                    result.Value = dictionary;
+                var stats = sqlConnection.RetrieveStatistics();
+                result.ExecutionTime = (long)stats["ExecutionTime"];
             }
             return result;
         }
 
-        public static Dictionary<string, string>? GetDictionary(string query, string connectionString)
+        public static Result<Dictionary<string, string>>? GetDictionary(string query, string connectionString)
         {
             var dictionary = new Dictionary<string, string>();
-            Dictionary<string, string>? result;
+            var result = new Result<Dictionary<string, string>>();
             using (SqlConnection sqlConnection = new SqlConnection(connectionString))
             {
                 sqlConnection.Open();
@@ -395,17 +391,19 @@ namespace Database.Aniki.DataManipulators
                     dictionary.Add(sqlDataReader[0].ToString(), sqlDataReader[1].ToString());
                 }
                 if (dictionary.Count == 0)
-                    result = null;
+                    result.Value = null;
                 else
-                    result = dictionary;
+                    result.Value = dictionary;
+                var stats = sqlConnection.RetrieveStatistics();
+                result.ExecutionTime = (long)stats["ExecutionTime"];
             }
             return result;
         }
 
-        public static Dictionary<string, string>? GetDictionary(SqlCommand cmd, string connectionString)
+        public static Result<Dictionary<string, string>>? GetDictionary(SqlCommand cmd, string connectionString)
         {
             var dictionary = new Dictionary<string, string>();
-            Dictionary<string, string>? result;
+            var result = new Result<Dictionary<string, string>>();
             using (SqlConnection sqlConnection = new SqlConnection(connectionString))
             {
                 sqlConnection.Open();
@@ -419,17 +417,19 @@ namespace Database.Aniki.DataManipulators
                     dictionary.Add(sqlDataReader[0].ToString(), sqlDataReader[1].ToString());
                 }
                 if (dictionary.Count == 0)
-                    result = null;
+                    result.Value = null;
                 else
-                    result = dictionary;
+                    result.Value = dictionary;
+                var stats = sqlConnection.RetrieveStatistics();
+                result.ExecutionTime = (long)stats["ExecutionTime"];
             }
             return result;
         }
 
-        public static Dictionary<string, string>? GetDictionary(string query, string connectionString, int keyColumnIndex, int valueColumnIndex)
+        public static Result<Dictionary<string, string>>? GetDictionary(string query, string connectionString, int keyColumnIndex, int valueColumnIndex)
         {
             var dictionary = new Dictionary<string, string>();
-            Dictionary<string, string>? result;
+            var result = new Result<Dictionary<string, string>>();
             using (var sqlConnection = new SqlConnection(connectionString))
             {
                 sqlConnection.Open();
@@ -446,17 +446,19 @@ namespace Database.Aniki.DataManipulators
                     dictionary.Add(sqlDataReader[keyColumnIndex].ToString(), sqlDataReader[valueColumnIndex].ToString());
                 }
                 if (dictionary.Count == 0)
-                    result = null;
+                    result.Value = null;
                 else
-                    result = dictionary;
+                    result.Value = dictionary;
+                var stats = sqlConnection.RetrieveStatistics();
+                result.ExecutionTime = (long)stats["ExecutionTime"];
             }
             return result;
         }
 
-        public static Dictionary<string, string>? GetDictionary(SqlCommand cmd, string connectionString, int keyColumnIndex, int valueColumnIndex)
+        public static Result<Dictionary<string, string>>? GetDictionary(SqlCommand cmd, string connectionString, int keyColumnIndex, int valueColumnIndex)
         {
             var dictionary = new Dictionary<string, string>();
-            Dictionary<string, string>? result;
+            var result = new Result<Dictionary<string, string>>();
             using (SqlConnection sqlConnection = new SqlConnection(connectionString))
             {
                 sqlConnection.Open();
@@ -471,17 +473,19 @@ namespace Database.Aniki.DataManipulators
                     dictionary.Add(sqlDataReader[keyColumnIndex].ToString(), sqlDataReader[valueColumnIndex].ToString());
                 }
                 if (dictionary.Count == 0)
-                    result = null;
+                    result.Value = null;
                 else
-                    result = dictionary;
+                    result.Value = dictionary;
+                var stats = sqlConnection.RetrieveStatistics();
+                result.ExecutionTime = (long)stats["ExecutionTime"];
             }
             return result;
         }
 
-        public static Dictionary<T, U>? GetDictionaryOfObjects<T, U>(SqlCommand cmd, string connectionString, int keyColumnIndex) where U : class, new()
+        public static Result<Dictionary<T, U>>? GetDictionaryOfObjects<T, U>(SqlCommand cmd, string connectionString, int keyColumnIndex) where U : class, new()
         {
             var dictionary = new Dictionary<T, U>();
-            Dictionary<T, U>? result;
+            var result = new Result<Dictionary<T, U>>();
             using (var sqlConnection = new SqlConnection(connectionString))
             {
                 sqlConnection.Open();
@@ -524,17 +528,19 @@ namespace Database.Aniki.DataManipulators
                     dictionary.Add((T)sqlDataReader[keyColumnIndex], u);
                 }
                 if (dictionary.Count == 0)
-                    result = null;
+                    result.Value = null;
                 else
-                    result = dictionary;
+                    result.Value = dictionary;
+                var stats = sqlConnection.RetrieveStatistics();
+                result.ExecutionTime = (long)stats["ExecutionTime"];
             }
             return result;
         }
 
-        public static Dictionary<T, U>? GetDictionaryOfObjects<T, U>(SqlCommand cmd, string connectionString, string keyColumnName) where U : class, new()
+        public static Result<Dictionary<T, U>>? GetDictionaryOfObjects<T, U>(SqlCommand cmd, string connectionString, string keyColumnName) where U : class, new()
         {
             var dictionary = new Dictionary<T, U>();
-            Dictionary<T, U>? result;
+            var result = new Result<Dictionary<T, U>>();
             using (var sqlConnection = new SqlConnection(connectionString))
             {
                 sqlConnection.Open();
@@ -577,17 +583,19 @@ namespace Database.Aniki.DataManipulators
                     dictionary.Add((T)sqlDataReader[keyColumnName], u);
                 }
                 if (dictionary.Count == 0)
-                    result = null;
+                    result.Value = null;
                 else
-                    result = dictionary;
+                    result.Value = dictionary;
+                var stats = sqlConnection.RetrieveStatistics();
+                result.ExecutionTime = (long)stats["ExecutionTime"];
             }
             return result;
         }
 
-        public static Dictionary<T, List<U>>? GetDictionaryOfListObjects<T, U>(SqlCommand cmd, string connectionString, int keyColumnIndex) where U : class, new()
+        public static Result<Dictionary<T, List<U>>>? GetDictionaryOfListObjects<T, U>(SqlCommand cmd, string connectionString, int keyColumnIndex) where U : class, new()
         {
             var dictionary = new Dictionary<T, List<U>>();
-            Dictionary<T, List<U>>? result;
+            var result = new Result<Dictionary<T, List<U>>>();
             using (var sqlConnection = new SqlConnection(connectionString))
             {
                 sqlConnection.Open();
@@ -638,17 +646,19 @@ namespace Database.Aniki.DataManipulators
                     }
                 }
                 if (dictionary.Count == 0)
-                    result = null;
+                    result.Value = null;
                 else
-                    result = dictionary;
+                    result.Value = dictionary;
+                var stats = sqlConnection.RetrieveStatistics();
+                result.ExecutionTime = (long)stats["ExecutionTime"];
             }
             return result;
         }
 
-        public static Dictionary<T, List<U>>? GetDictionaryOfListObjects<T, U>(SqlCommand cmd, string connectionString, string keyColumnName) where U : class, new()
+        public static Result<Dictionary<T, List<U>>>? GetDictionaryOfListObjects<T, U>(SqlCommand cmd, string connectionString, string keyColumnName) where U : class, new()
         {
             var dictionary = new Dictionary<T, List<U>>();
-            Dictionary<T, List<U>>? result;
+            var result = new Result<Dictionary<T, List<U>>>();
             using (var sqlConnection = new SqlConnection(connectionString))
             {
                 sqlConnection.Open();
@@ -707,17 +717,19 @@ namespace Database.Aniki.DataManipulators
                     }
                 }
                 if (dictionary.Count == 0)
-                    result = null;
+                    result.Value = null;
                 else
-                    result = dictionary;
+                    result.Value = dictionary;
+                var stats = sqlConnection.RetrieveStatistics();
+                result.ExecutionTime = (long)stats["ExecutionTime"];
             }
             return result;
         }
 
-        public static List<List<string>>? GetListListString(SqlCommand cmd, string connectionString)
+        public static Result<List<List<string>>>? GetListListString(SqlCommand cmd, string connectionString)
         {
             var list = new List<List<string>>();
-            List<List<string>>? result;
+            var result = new Result<List<List<string>>>();
             using (var sqlConnection = new SqlConnection(connectionString))
             {
                 sqlConnection.Open();
@@ -734,19 +746,21 @@ namespace Database.Aniki.DataManipulators
                     list.Add(list2);
                 }
                 if (list.Count == 0)
-                    result = null;
+                    result.Value = null;
                 else
-                    result = list;
+                    result.Value = list;
+                var stats = sqlConnection.RetrieveStatistics();
+                result.ExecutionTime = (long)stats["ExecutionTime"];
             }
             return result;
         }
 
-        public static List<List<string>>? GetListListString(SqlCommand cmd, string connectionString, string dateFormat)
+        public static Result<List<List<string>>>? GetListListString(SqlCommand cmd, string connectionString, string dateFormat)
         {
             var list = new List<List<string>>();
             bool flag = true;
             bool[]? array = null;
-            List<List<string>>? result;
+            var result = new Result<List<List<string>>>();
             using (var sqlConnection = new SqlConnection(connectionString))
             {
                 sqlConnection.Open();
@@ -790,36 +804,30 @@ namespace Database.Aniki.DataManipulators
                     list.Add(list2);
                 }
                 if (list.Count == 0)
-                    result = null;
+                    result.Value = null;
                 else
-                    result = list;
+                    result.Value = list;
+                var stats = sqlConnection.RetrieveStatistics();
+                result.ExecutionTime = (long)stats["ExecutionTime"];
             }
             return result;
         }
 
-        public static List<List<string>>? GetListListString(string query, string connectionString)
+        public static Result<List<List<string>>>? GetListListString(string query, string connectionString)
         {
-            List<List<string>>? listListString;
-            using (var sqlCommand = new SqlCommand(query))
-            {
-                listListString = GetListListString(sqlCommand, connectionString);
-            }
-            return listListString;
+            using var sqlCommand = new SqlCommand(query);
+            return GetListListString(sqlCommand, connectionString);
         }
 
-        public static List<List<string>>? GetListListString(string query, string connectionString, string dateFormat)
+        public static Result<List<List<string>>>? GetListListString(string query, string connectionString, string dateFormat)
         {
-            List<List<string>>? listListString;
-            using (var sqlCommand = new SqlCommand(query))
-            {
-                listListString = GetListListString(sqlCommand, connectionString, dateFormat);
-            }
-            return listListString;
+            using var sqlCommand = new SqlCommand(query);
+            return GetListListString(sqlCommand, connectionString, dateFormat);
         }
 
-        public static object GetScalar(SqlCommand cmd, string connectionString)
+        public static Result<object> GetScalar(SqlCommand cmd, string connectionString)
         {
-            object result;
+            var result = new Result<object>();
             using (var sqlConnection = new SqlConnection(connectionString))
             {
                 sqlConnection.Open();
@@ -829,12 +837,14 @@ namespace Database.Aniki.DataManipulators
                 cmd.Transaction = sqlTransaction;
                 var obj = cmd.ExecuteScalar();
                 sqlTransaction.Commit();
-                result = obj;
+                result.Value = obj;
+                var stats = sqlConnection.RetrieveStatistics();
+                result.ExecutionTime = (long)stats["ExecutionTime"];
             }
             return result;
         }
 
-        public static object GetScalar(SqlCommand cmd, SqlConnection connection, bool closeWhenComplete = false)
+        public static Result<object> GetScalar(SqlCommand cmd, SqlConnection connection, bool closeWhenComplete = false)
         {
             cmd.Connection = connection;
             cmd.CommandTimeout = SQLCommandTimeout;
@@ -857,7 +867,7 @@ namespace Database.Aniki.DataManipulators
             return result;
         }
 
-        public static object GetScalar(string query, string connectionString)
+        public static Result<object> GetScalar(string query, string connectionString)
         {
             object scalar;
             using (var sqlCommand = new SqlCommand(query))
@@ -867,7 +877,7 @@ namespace Database.Aniki.DataManipulators
             return scalar;
         }
 
-        public static object GetScalar(string query, string connectionString, Array sqlParameters)
+        public static Result<object> GetScalar(string query, string connectionString, Array sqlParameters)
         {
             object scalar;
             using (var sqlCommand = new SqlCommand(query))
@@ -881,7 +891,7 @@ namespace Database.Aniki.DataManipulators
             return scalar;
         }
 
-        public static object GetScalar(string query, string connectionString, SqlParameter[] sqlParameters)
+        public static Result<object> GetScalar(string query, string connectionString, SqlParameter[] sqlParameters)
         {
             object scalar;
             using (var sqlCommand = new SqlCommand(query))
@@ -895,7 +905,7 @@ namespace Database.Aniki.DataManipulators
             return scalar;
         }
 
-        public static int ExecuteNonQuery(SqlCommand cmd, string connectionString)
+        public static Result<int> ExecuteNonQuery(SqlCommand cmd, string connectionString)
         {
             int result;
             using (var sqlConnection = new SqlConnection(connectionString))
@@ -912,7 +922,7 @@ namespace Database.Aniki.DataManipulators
             return result;
         }
 
-        public static int ExecuteNonQuery(SqlCommand cmd, SqlConnection connection, bool closeWhenComplete = false)
+        public static Result<int> ExecuteNonQuery(SqlCommand cmd, SqlConnection connection, bool closeWhenComplete = false)
         {
             cmd.Connection = connection;
             cmd.CommandTimeout = SQLCommandTimeout;
@@ -935,7 +945,7 @@ namespace Database.Aniki.DataManipulators
             return result;
         }
 
-        public static int ExecuteNonQuery(string query, string connectionString)
+        public static Result<int> ExecuteNonQuery(string query, string connectionString)
         {
             int result;
             using (SqlCommand sqlCommand = new SqlCommand(query))
@@ -945,7 +955,7 @@ namespace Database.Aniki.DataManipulators
             return result;
         }
 
-        public static int ExecuteNonQuery(string query, string connectionString, Array sqlParameters)
+        public static Result<int> ExecuteNonQuery(string query, string connectionString, Array sqlParameters)
         {
             int result;
             using (var sqlCommand = new SqlCommand(query))
@@ -958,7 +968,7 @@ namespace Database.Aniki.DataManipulators
             }
             return result;
         }
-        public static int ExecuteNonQuery(string query, string connectionString, SqlParameter[] sqlParameters)
+        public static Result<int> ExecuteNonQuery(string query, string connectionString, SqlParameter[] sqlParameters)
         {
             int result;
             using (var sqlCommand = new SqlCommand(query))
@@ -974,5 +984,6 @@ namespace Database.Aniki.DataManipulators
 
 
         public static int SQLCommandTimeout { get; set; } = 180;
+
     }
 }

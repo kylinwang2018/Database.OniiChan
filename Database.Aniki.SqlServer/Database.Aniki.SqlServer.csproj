@@ -7,10 +7,10 @@
 
   <ItemGroup>
     <PackageReference Include="Microsoft.Data.SqlClient" Version="5.0.1" />
+    <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="6.0.2" />
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\Database.Aniki.Utility\Database.Aniki.Utility.csproj" />
     <ProjectReference Include="..\Database.Aniki\Database.Aniki.csproj" />
   </ItemGroup>
 

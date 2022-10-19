@@ -5,11 +5,11 @@ VisualStudioVersion = 17.4.33006.217
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Database.Aniki", "Database.Aniki\Database.Aniki.csproj", "{F9F4BB4C-CCE3-487C-A009-5E0732B9636F}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Database.Aniki.SqlServer", "Database.Aniki.SqlServer\Database.Aniki.SqlServer.csproj", "{D9E49EBA-2A8E-4022-85D6-18A36E6827AF}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Database.Aniki.SqlServer", "Database.Aniki.SqlServer\Database.Aniki.SqlServer.csproj", "{D9E49EBA-2A8E-4022-85D6-18A36E6827AF}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Database.Aniki.PostgreSQL", "Database.Aniki.PostgreSQL\Database.Aniki.PostgreSQL.csproj", "{0A64FBFE-620F-4D38-8602-8F9951046F42}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Database.Aniki.PostgreSQL", "Database.Aniki.PostgreSQL\Database.Aniki.PostgreSQL.csproj", "{0A64FBFE-620F-4D38-8602-8F9951046F42}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Database.Aniki.Utility", "Database.Aniki.Utility\Database.Aniki.Utility.csproj", "{B0465F53-EB54-4989-AB59-152D816F1580}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Database.Aniki.Demo", "Database.Aniki.Demo\Database.Aniki.Demo.csproj", "{274D6B17-714F-4941-9857-589A3B3D6A96}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -29,10 +29,10 @@ Global
 		{0A64FBFE-620F-4D38-8602-8F9951046F42}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{0A64FBFE-620F-4D38-8602-8F9951046F42}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{0A64FBFE-620F-4D38-8602-8F9951046F42}.Release|Any CPU.Build.0 = Release|Any CPU
-		{B0465F53-EB54-4989-AB59-152D816F1580}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{B0465F53-EB54-4989-AB59-152D816F1580}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{B0465F53-EB54-4989-AB59-152D816F1580}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{B0465F53-EB54-4989-AB59-152D816F1580}.Release|Any CPU.Build.0 = Release|Any CPU
+		{274D6B17-714F-4941-9857-589A3B3D6A96}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{274D6B17-714F-4941-9857-589A3B3D6A96}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{274D6B17-714F-4941-9857-589A3B3D6A96}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{274D6B17-714F-4941-9857-589A3B3D6A96}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
