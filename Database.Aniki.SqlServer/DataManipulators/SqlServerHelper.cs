@@ -15,42 +15,82 @@ namespace Database.Aniki.DataManipulators
     {
         public static Result<List<string>> GetColumnToString(SqlCommand cmd, string connectionString, int columnIndex = 0)
         {
-            return DataTableHelper.DataTableToListString(GetDataTable(cmd, connectionString), columnIndex);
+            var datatable = GetDataTable(cmd, connectionString);
+            return new Result<List<string>>
+            {
+                Value = DataTableHelper.DataTableToListString(datatable.Value, columnIndex),
+                ExecutionTime = datatable.ExecutionTime
+            };
         }
 
         public static Result<List<string>> GetColumnToString(SqlCommand cmd, SqlConnection connection, int columnIndex = 0, bool closeWhenComplete = false)
         {
-            return DataTableHelper.DataTableToListString(GetDataTable(cmd, connection, closeWhenComplete), columnIndex);
+            var datatable = GetDataTable(cmd, connection, closeWhenComplete);
+            return new Result<List<string>>
+            {
+                Value = DataTableHelper.DataTableToListString(datatable.Value, columnIndex),
+                ExecutionTime = datatable.ExecutionTime
+            };
         }
 
         public static Result<List<string>> GetColumnToString(SqlCommand cmd, string connectionString, string columnName)
         {
-            return DataTableHelper.DataTableToListString(GetDataTable(cmd, connectionString), columnName);
+            var datatable = GetDataTable(cmd, connectionString);
+            return new Result<List<string>>
+            {
+                Value = DataTableHelper.DataTableToListString(datatable.Value, columnName),
+                ExecutionTime = datatable.ExecutionTime
+            };
         }
 
         public static Result<List<string>> GetColumnToString(SqlCommand cmd, SqlConnection connection, string columnName, bool closeWhenComplete = false)
         {
-            return DataTableHelper.DataTableToListString(GetDataTable(cmd, connection, closeWhenComplete), columnName);
+            var datatable = GetDataTable(cmd, connection, closeWhenComplete);
+            return new Result<List<string>>
+            {
+                Value = DataTableHelper.DataTableToListString(datatable.Value, columnName),
+                ExecutionTime = datatable.ExecutionTime
+            };
         }
 
         public static Result<List<T>> GetColumn<T>(SqlCommand cmd, string connectionString, int columnIndex = 0)
         {
-            return DataTableHelper.DataTableToListCast<T>(GetDataTable(cmd, connectionString), columnIndex);
+            var datatable = GetDataTable(cmd, connectionString);
+            return new Result<List<T>>
+            {
+                Value = DataTableHelper.DataTableToListCast<T>(datatable.Value, columnIndex),
+                ExecutionTime = datatable.ExecutionTime
+            };
         }
 
         public static Result<List<T>> GetColumn<T>(SqlCommand cmd, SqlConnection connection, int columnIndex = 0, bool closeWhenComplete = false)
         {
-            return DataTableHelper.DataTableToListCast<T>(GetDataTable(cmd, connection, closeWhenComplete), columnIndex);
+            var datatable = GetDataTable(cmd, connection, closeWhenComplete);
+            return new Result<List<T>>
+            {
+                Value = DataTableHelper.DataTableToListCast<T>(datatable.Value, columnIndex),
+                ExecutionTime = datatable.ExecutionTime
+            };
         }
 
         public static Result<List<T>> GetColumn<T>(SqlCommand cmd, string connectionString, string columnName)
         {
-            return DataTableHelper.DataTableToListCast<T>(GetDataTable(cmd, connectionString), columnName);
+            var datatable = GetDataTable(cmd, connectionString);
+            return new Result<List<T>>
+            {
+                Value = DataTableHelper.DataTableToListCast<T>(datatable.Value, columnName),
+                ExecutionTime = datatable.ExecutionTime
+            };
         }
 
         public static Result<List<T>> GetColumn<T>(SqlCommand cmd, SqlConnection connection, string columnName, bool closeWhenComplete = false)
         {
-            return DataTableHelper.DataTableToListCast<T>(GetDataTable(cmd, connection, closeWhenComplete), columnName);
+            var datatable = GetDataTable(cmd, connection, closeWhenComplete);
+            return new Result<List<T>>
+            {
+                Value = DataTableHelper.DataTableToListCast<T>(datatable.Value, columnName),
+                ExecutionTime = datatable.ExecutionTime
+            };
         }
         public static Result<DataSet> GetDataSet(SqlCommand cmd, string connectionString, string[] tableNames)
         {
@@ -202,64 +242,112 @@ namespace Database.Aniki.DataManipulators
 
         public static Result<DataTable> GetDataTable(string query, string connectionString, SqlParameter[] sqlParameters)
         {
-            using (var sqlCommand = new SqlCommand(query))
+            using var sqlCommand = new SqlCommand(query);
+            if (sqlParameters != null && sqlParameters.Length != 0)
             {
-                if (sqlParameters != null && sqlParameters.Length != 0)
-                {
-                    sqlCommand.Parameters.AddRange(sqlParameters);
-                }
-                return GetDataTable(sqlCommand, connectionString);
+                sqlCommand.Parameters.AddRange(sqlParameters);
             }
+            return GetDataTable(sqlCommand, connectionString);
         }
 
         public static Result<List<T>> GetDataTable<T>(SqlCommand cmd, string connectionString) where T : class, new()
         {
-            return DataTableHelper.DataTableToList<T>(GetDataTable(cmd, connectionString));
+            var datatable = GetDataTable(cmd, connectionString);
+            return new Result<List<T>>
+            {
+                Value = DataTableHelper.DataTableToList<T>(datatable.Value),
+                ExecutionTime = datatable.ExecutionTime
+            };
         }
 
         public static Result<List<T>> GetDataTable<T>(SqlCommand cmd, SqlConnection connection, bool closeWhenComplete = false) where T : class, new()
         {
-            return DataTableHelper.DataTableToList<T>(GetDataTable(cmd, connection, closeWhenComplete));
+            var datatable = GetDataTable(cmd, connection, closeWhenComplete);
+            return new Result<List<T>>
+            {
+                Value = DataTableHelper.DataTableToList<T>(datatable.Value),
+                ExecutionTime = datatable.ExecutionTime
+            };
         }
 
         public static Result<List<T>> GetDataTable<T>(string query, string connectionString) where T : class, new()
         {
-            return DataTableHelper.DataTableToList<T>(GetDataTable(query, connectionString));
+            var datatable = GetDataTable(query, connectionString);
+            return new Result<List<T>>
+            {
+                Value = DataTableHelper.DataTableToList<T>(datatable.Value),
+                ExecutionTime = datatable.ExecutionTime
+            };
         }
 
         public static Result<List<T>> GetDataTable<T>(string query, string connectionString, Array sqlParameters) where T : class, new()
         {
-            return DataTableHelper.DataTableToList<T>(GetDataTable(query, connectionString, sqlParameters));
+            var datatable = GetDataTable(query, connectionString, sqlParameters);
+            return new Result<List<T>>
+            {
+                Value = DataTableHelper.DataTableToList<T>(datatable.Value),
+                ExecutionTime = datatable.ExecutionTime
+            };
         }
 
         public static Result<List<T>> GetDataTable<T>(string query, string connectionString, SqlParameter[] sqlParameters) where T : class, new()
         {
-            return DataTableHelper.DataTableToList<T>(GetDataTable(query, connectionString, sqlParameters));
+            var datatable = GetDataTable(query, connectionString, sqlParameters);
+            return new Result<List<T>>
+            {
+                Value = DataTableHelper.DataTableToList<T>(datatable.Value),
+                ExecutionTime = datatable.ExecutionTime
+            };
         }
 
-        public static Result<T>? GetDataRow<T>(SqlCommand cmd, string connectionString) where T : class, new()
+        public static Result<T> GetDataRow<T>(SqlCommand cmd, string connectionString) where T : class, new()
         {
-            return DataTableHelper.DataRowToT<T>(GetDataTable(cmd, connectionString));
+            var datatable = GetDataTable(cmd, connectionString);
+            return new Result<T>
+            {
+                Value = DataTableHelper.DataRowToT<T>(datatable.Value),
+                ExecutionTime = datatable.ExecutionTime
+            };
         }
 
         public static Result<T>? GetDataRow<T>(SqlCommand cmd, SqlConnection connection, bool closeWhenComplete = false) where T : class, new()
         {
-            return DataTableHelper.DataRowToT<T>(GetDataTable(cmd, connection, closeWhenComplete));
+            var datatable = GetDataTable(cmd, connection, closeWhenComplete);
+            return new Result<T>
+            {
+                Value = DataTableHelper.DataRowToT<T>(datatable.Value),
+                ExecutionTime = datatable.ExecutionTime
+            };
         }
 
         public static Result<T>? GetDataRow<T>(string query, string connectionString) where T : class, new()
         {
-            return DataTableHelper.DataRowToT<T>(GetDataTable(query, connectionString));
+            var datatable = GetDataTable(query, connectionString);
+            return new Result<T>
+            {
+                Value = DataTableHelper.DataRowToT<T>(datatable.Value),
+                ExecutionTime = datatable.ExecutionTime
+            };
         }
 
         public static Result<T>? GetDataRow<T>(string query, string connectionString, Array sqlParameters) where T : class, new()
         {
-            return DataTableHelper.DataRowToT<T>(GetDataTable(query, connectionString, sqlParameters));
+            var datatable = GetDataTable(query, connectionString, sqlParameters);
+            return new Result<T>
+            {
+                Value = DataTableHelper.DataRowToT<T>(datatable.Value),
+                ExecutionTime = datatable.ExecutionTime
+            };
         }
 
         public static Result<T>? GetDataRow<T>(string query, string connectionString, SqlParameter[] sqlParameters) where T : class, new()
         {
-            return DataTableHelper.DataRowToT<T>(GetDataTable(query, connectionString, sqlParameters));
+            var datatable = GetDataTable(query, connectionString, sqlParameters);
+            return new Result<T>
+            {
+                Value = DataTableHelper.DataRowToT<T>(datatable.Value),
+                ExecutionTime = datatable.ExecutionTime
+            };
         }
 
         public static Result<Dictionary<T, U>>? GetDictionary<T, U>(string query, string connectionString)
@@ -853,13 +941,15 @@ namespace Database.Aniki.DataManipulators
                 connection.Close();
                 connection.Open();
             }
-            object result;
+            var result = new Result<object>();
             using (var sqlTransaction = connection.BeginTransaction())
             {
                 cmd.Transaction = sqlTransaction;
-                result = cmd.ExecuteScalar();
+                result.Value = cmd.ExecuteScalar();
                 sqlTransaction.Commit();
             }
+            var stats = connection.RetrieveStatistics();
+            result.ExecutionTime = (long)stats["ExecutionTime"];
             if (closeWhenComplete)
             {
                 connection.Close();
@@ -869,45 +959,33 @@ namespace Database.Aniki.DataManipulators
 
         public static Result<object> GetScalar(string query, string connectionString)
         {
-            object scalar;
-            using (var sqlCommand = new SqlCommand(query))
-            {
-                scalar = GetScalar(sqlCommand, connectionString);
-            }
-            return scalar;
+            using var sqlCommand = new SqlCommand(query);
+            return GetScalar(sqlCommand, connectionString);
         }
 
         public static Result<object> GetScalar(string query, string connectionString, Array sqlParameters)
         {
-            object scalar;
-            using (var sqlCommand = new SqlCommand(query))
+            using var sqlCommand = new SqlCommand(query);
+            if (sqlParameters != null && sqlParameters.Length > 0)
             {
-                if (sqlParameters != null && sqlParameters.Length > 0)
-                {
-                    sqlCommand.Parameters.AddRange(sqlParameters);
-                }
-                scalar = GetScalar(sqlCommand, connectionString);
+                sqlCommand.Parameters.AddRange(sqlParameters);
             }
-            return scalar;
+            return GetScalar(sqlCommand, connectionString);
         }
 
         public static Result<object> GetScalar(string query, string connectionString, SqlParameter[] sqlParameters)
         {
-            object scalar;
-            using (var sqlCommand = new SqlCommand(query))
+            using var sqlCommand = new SqlCommand(query);
+            if (sqlParameters != null && sqlParameters.Length != 0)
             {
-                if (sqlParameters != null && sqlParameters.Length != 0)
-                {
-                    sqlCommand.Parameters.AddRange(sqlParameters);
-                }
-                scalar = GetScalar(sqlCommand, connectionString);
+                sqlCommand.Parameters.AddRange(sqlParameters);
             }
-            return scalar;
+            return GetScalar(sqlCommand, connectionString);
         }
 
-        public static Result<int> ExecuteNonQuery(SqlCommand cmd, string connectionString)
+        public static StructResult<int> ExecuteNonQuery(SqlCommand cmd, string connectionString)
         {
-            int result;
+            var result = new StructResult<int>();
             using (var sqlConnection = new SqlConnection(connectionString))
             {
                 sqlConnection.Open();
@@ -917,12 +995,14 @@ namespace Database.Aniki.DataManipulators
                 cmd.Transaction = sqlTransaction;
                 int num = cmd.ExecuteNonQuery();
                 sqlTransaction.Commit();
-                result = num;
+                result.Value = num;
+                var stats = sqlConnection.RetrieveStatistics();
+                result.ExecutionTime = (long)stats["ExecutionTime"];
             }
             return result;
         }
 
-        public static Result<int> ExecuteNonQuery(SqlCommand cmd, SqlConnection connection, bool closeWhenComplete = false)
+        public static StructResult<int> ExecuteNonQuery(SqlCommand cmd, SqlConnection connection, bool closeWhenComplete = false)
         {
             cmd.Connection = connection;
             cmd.CommandTimeout = SQLCommandTimeout;
@@ -931,13 +1011,15 @@ namespace Database.Aniki.DataManipulators
                 connection.Close();
                 connection.Open();
             }
-            int result;
+            var result = new StructResult<int>();
             using (var sqlTransaction = connection.BeginTransaction())
             {
                 cmd.Transaction = sqlTransaction;
-                result = cmd.ExecuteNonQuery();
+                result.Value = cmd.ExecuteNonQuery();
                 sqlTransaction.Commit();
             }
+            var stats = connection.RetrieveStatistics();
+            result.ExecutionTime = (long)stats["ExecutionTime"];
             if (closeWhenComplete)
             {
                 connection.Close();
@@ -945,41 +1027,29 @@ namespace Database.Aniki.DataManipulators
             return result;
         }
 
-        public static Result<int> ExecuteNonQuery(string query, string connectionString)
+        public static StructResult<int> ExecuteNonQuery(string query, string connectionString)
         {
-            int result;
-            using (SqlCommand sqlCommand = new SqlCommand(query))
-            {
-                result = ExecuteNonQuery(sqlCommand, connectionString);
-            }
-            return result;
+            using SqlCommand sqlCommand = new SqlCommand(query);
+            return ExecuteNonQuery(sqlCommand, connectionString);
         }
 
-        public static Result<int> ExecuteNonQuery(string query, string connectionString, Array sqlParameters)
+        public static StructResult<int> ExecuteNonQuery(string query, string connectionString, Array sqlParameters)
         {
-            int result;
-            using (var sqlCommand = new SqlCommand(query))
+            using var sqlCommand = new SqlCommand(query);
+            if (sqlParameters != null && sqlParameters.Length > 0)
             {
-                if (sqlParameters != null && sqlParameters.Length > 0)
-                {
-                    sqlCommand.Parameters.AddRange(sqlParameters);
-                }
-                result = ExecuteNonQuery(sqlCommand, connectionString);
+                sqlCommand.Parameters.AddRange(sqlParameters);
             }
-            return result;
+            return ExecuteNonQuery(sqlCommand, connectionString);
         }
-        public static Result<int> ExecuteNonQuery(string query, string connectionString, SqlParameter[] sqlParameters)
+        public static StructResult<int> ExecuteNonQuery(string query, string connectionString, SqlParameter[] sqlParameters)
         {
-            int result;
-            using (var sqlCommand = new SqlCommand(query))
+            using var sqlCommand = new SqlCommand(query);
+            if (sqlParameters != null && sqlParameters.Length != 0)
             {
-                if (sqlParameters != null && sqlParameters.Length != 0)
-                {
-                    sqlCommand.Parameters.AddRange(sqlParameters);
-                }
-                result = ExecuteNonQuery(sqlCommand, connectionString);
+                sqlCommand.Parameters.AddRange(sqlParameters);
             }
-            return result;
+            return ExecuteNonQuery(sqlCommand, connectionString);
         }
 
 

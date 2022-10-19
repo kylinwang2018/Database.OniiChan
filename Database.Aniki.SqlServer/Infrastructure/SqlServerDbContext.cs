@@ -10,7 +10,7 @@ using System.Data;
 
 namespace Database.Aniki
 {
-    public class SqlServerDbContext: ISqlServerDbContext
+    public class SqlServerDbContext
     {
         private readonly IDbContextOptions _options;
         private readonly ILogger<SqlServerDbContext> _logger;

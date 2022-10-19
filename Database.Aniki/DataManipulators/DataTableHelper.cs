@@ -554,7 +554,7 @@ namespace Database.Aniki.DataManipulators
             return JsonConvert.SerializeObject((object)list);
         }
 
-        public static List<T> DataTableToList<T>(DataTable dt) where T : class, new()
+        public static List<T> DataTableToList<T>(DataTable? dt) where T : class, new()
         {
             try
             {
@@ -603,7 +603,7 @@ namespace Database.Aniki.DataManipulators
             }
         }
 
-        public static T? DataRowToT<T>(DataTable dt) where T : class, new()
+        public static T? DataRowToT<T>(DataTable? dt) where T : class, new()
         {
             try
             {
@@ -807,7 +807,7 @@ namespace Database.Aniki.DataManipulators
             }
         }
 
-        public static List<string> DataTableToListString(DataTable dt, int columnNumber = 0)
+        public static List<string> DataTableToListString(DataTable? dt, int columnNumber = 0)
         {
             if (columnNumber < 0 || columnNumber > dt.Columns.Count - 1)
             {
@@ -826,7 +826,7 @@ namespace Database.Aniki.DataManipulators
             return list;
         }
 
-        public static List<T> DataTableToListCast<T>(DataTable dt, int columnNumber = 0)
+        public static List<T> DataTableToListCast<T>(DataTable? dt, int columnNumber = 0)
         {
             if (columnNumber < 0 || columnNumber > dt.Columns.Count - 1)
             {
@@ -845,7 +845,7 @@ namespace Database.Aniki.DataManipulators
             return list;
         }
 
-        public static List<string> DataTableToListString(DataTable dt, string columnName)
+        public static List<string> DataTableToListString(DataTable? dt, string columnName)
         {
             if (!dt.Columns.Contains(columnName))
             {
@@ -864,7 +864,7 @@ namespace Database.Aniki.DataManipulators
             return list;
         }
 
-        public static List<T> DataTableToListCast<T>(DataTable dt, string columnName)
+        public static List<T> DataTableToListCast<T>(DataTable? dt, string columnName)
         {
             if (!dt.Columns.Contains(columnName))
             {
