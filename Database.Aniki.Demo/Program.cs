@@ -6,12 +6,13 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddRazorPages();
 
 builder.Services.AddDbContext(options =>
-{
-    options.ConnectionSting = "Server=192.168.1.26\\SQl2019; Database=CloudNativeCopy; UID=demo; PWD=DemoPassword; MultipleActiveResultSets=true;TrustServerCertificate=true";
-    options.NumberOfTries = 6;
-    options.MaxTimeInterval = 5;
-    options.DbCommandTimeout = 20;
-}).UseSqlServer();
+    {
+        options.ConnectionSting = "Server=192.168.1.26\\SQl2019; Database=CloudNativeCopy; UID=demo; PWD=DemoPassword; MultipleActiveResultSets=true;TrustServerCertificate=true";
+        options.NumberOfTries = 6;
+        options.MaxTimeInterval = 5;
+        options.DbCommandTimeout = 20;
+        options.EnableStatistics = true;
+    }).UseSqlServer();
 
 var app = builder.Build();
 

@@ -27,5 +27,10 @@
         /// Tries n times before throwing an exception
         /// </summary>
         int NumberOfTries { get; set; }
+
+        /// <summary>
+        /// Log database execution time and network travel time
+        /// </summary>
+        bool EnableStatistics { get; set; }
     }
 }

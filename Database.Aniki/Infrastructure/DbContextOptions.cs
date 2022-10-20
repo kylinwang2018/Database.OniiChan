@@ -31,5 +31,10 @@ namespace Database.Aniki
         /// </summary>
         public string ConnectionSting { get; set; } = "";
         public string? DbProviderName { get; set; }
+
+        /// <summary>
+        /// Log database execution time and network travel time
+        /// </summary>
+        public bool EnableStatistics { get; set;}
     }
 }

@@ -6,7 +6,7 @@ using System;
 
 namespace Database.Aniki
 {
-    public partial class SqlServerDbContext : ISqlServerDbContext
+    internal partial class SqlServerDbContext : ISqlServerDbContext
     {
         private readonly IDbContextOptions _options;
         private readonly ILogger<SqlServerDbContext> _logger;
@@ -31,14 +31,22 @@ namespace Database.Aniki
 
         private void LogSqlInfo(SqlCommand sqlCommand, SqlConnection connection)
         {
-            var stats = connection.RetrieveStatistics();
-            var executionTime = (long)stats["ExecutionTime"];
-            var commandNetworkServerTimeInMs = (long)stats["NetworkServerTime"];
-            _logger.LogInformation("Command:\n\t{Command}\nExecution Time: {Time}[ms]\nNetwork Time: {NetworkTime}[ms]",
-                sqlCommand.CommandText,
-                executionTime,
-                commandNetworkServerTimeInMs
-                );
+            if (_options.EnableStatistics)
+            {
+                var stats = connection.RetrieveStatistics();
+                var executionTime = (long)stats["ExecutionTime"];
+                var commandNetworkServerTimeInMs = (long)stats["NetworkServerTime"];
+                _logger.LogInformation("Command:\n\t{Command}\nExecution Time: {Time}[ms]\nNetwork Time: {NetworkTime}[ms]",
+                    sqlCommand.CommandText,
+                    executionTime,
+                    commandNetworkServerTimeInMs
+                    );
+            }
+            else
+                _logger.LogInformation("Command:\n\t{Command}",
+                    sqlCommand.CommandText
+                    );
+
         }
 
         private void LogSqlError(SqlCommand sqlCommand, Exception exception)

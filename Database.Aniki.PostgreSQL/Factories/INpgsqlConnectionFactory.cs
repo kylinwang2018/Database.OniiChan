@@ -1,39 +1,39 @@
-﻿using Microsoft.Data.SqlClient;
+﻿using Npgsql;
 
-namespace Database.Aniki.SqlServer
+namespace Database.Aniki.PostgreSQL
 {
-    public interface ISqlConnectionFactory
+    public interface INpgsqlConnectionFactory
     {
         /// <summary>
         /// Creates a database connection to the specified database.
         /// </summary>
-        /// <returns>A new <see cref="SqlConnection"/> object</returns>
-        SqlConnection CreateConnection();
+        /// <returns>A new <see cref="NpgsqlConnection"/> object</returns>
+        NpgsqlConnection CreateConnection();
 
         /// <summary>
         /// Creates a database connection to the specified database.
         /// </summary>
         /// <param name="connectionString">the connection string that can access the database</param>
-        /// <returns>A new <see cref="SqlConnection"/> object</returns>
-        SqlConnection CreateConnection(string connectionString);
+        /// <returns>A new <see cref="NpgsqlConnection"/> object</returns>
+        NpgsqlConnection CreateConnection(string connectionString);
 
         /// <summary>
         /// Creates a sql command for a sql connection
         /// </summary>
-        /// <returns>A new <see cref="SqlCommand"/> object</returns>
-        SqlCommand CreateCommand();
+        /// <returns>A new <see cref="NpgsqlCommand"/> object</returns>
+        NpgsqlCommand CreateCommand();
 
         /// <summary>
         /// Creates a sql command with specified command text for a sql connection
         /// </summary>
         /// <param name="query">the command text</param>
-        /// <returns>A new <see cref="SqlCommand"/> object</returns>
-        SqlCommand CreateCommand(string query);
+        /// <returns>A new <see cref="NpgsqlCommand"/> object</returns>
+        NpgsqlCommand CreateCommand(string query);
 
         /// <summary>
         /// Creates a sql data adapter for sql connection
         /// </summary>
-        /// <returns>A new <see cref="SqlDataAdapter"/> object</returns>
-        SqlDataAdapter CreateDataAdapter();
+        /// <returns>A new <see cref="NpgsqlDataAdapter"/> object</returns>
+        NpgsqlDataAdapter CreateDataAdapter();
     }
 }

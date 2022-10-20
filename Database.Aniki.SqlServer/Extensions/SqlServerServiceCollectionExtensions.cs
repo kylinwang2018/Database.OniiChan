@@ -19,6 +19,7 @@ namespace Database.Aniki
             // register dbprovider in service collection
             serviceCollection.AddScoped<ISqlServerDbContext, SqlServerDbContext>();
 
+            // register sql factory for create connection, command and dataAdapter
             serviceCollection.AddScoped<ISqlConnectionFactory, SqlConnectionFactory>();
 
             return serviceCollection;

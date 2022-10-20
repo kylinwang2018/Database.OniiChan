@@ -10,7 +10,7 @@ using System.Reflection;
 
 namespace Database.Aniki
 {
-    public partial class SqlServerDbContext : ISqlServerDbContext
+    internal partial class SqlServerDbContext : ISqlServerDbContext
     {
         #region GetColumnToString
         public List<string> GetColumnToString(SqlCommand cmd, int columnIndex = 0)
@@ -44,12 +44,14 @@ namespace Database.Aniki
             var dataTable = new DataTable();
             try
             {
-                using var sqlConnection = new SqlConnection(_options.ConnectionSting);
-                sqlConnection.StatisticsEnabled = true;
+                using var sqlConnection = _connectionFactory.CreateConnection();
+                if (_options.EnableStatistics)
+                    sqlConnection.StatisticsEnabled = true;
                 cmd.Connection = sqlConnection;
                 sqlConnection.RetryLogicProvider = _sqlRetryProvider;
                 sqlConnection.Open();
-                using var sqlDataAdapter = new SqlDataAdapter(cmd);
+                using var sqlDataAdapter = _connectionFactory.CreateDataAdapter();
+                sqlDataAdapter.SelectCommand = cmd;
                 sqlDataAdapter.Fill(dataTable);
 
                 LogSqlInfo(cmd, sqlConnection);
@@ -66,7 +68,9 @@ namespace Database.Aniki
         {
             try
             {
-                connection.StatisticsEnabled = true;
+                if(_options.EnableStatistics)
+                    connection.StatisticsEnabled = true;
+   
                 var dataTable = new DataTable();
                 cmd.Connection = connection;
                 if (connection.State != ConnectionState.Open && connection.State != ConnectionState.Connecting)
@@ -76,7 +80,7 @@ namespace Database.Aniki
                 }
                 using (var sqlTransaction = connection.BeginTransaction())
                 {
-                    using var sqlDataAdapter = new SqlDataAdapter();
+                    using var sqlDataAdapter = _connectionFactory.CreateDataAdapter();
                     cmd.Transaction = sqlTransaction;
                     sqlDataAdapter.SelectCommand = cmd;
                     sqlDataAdapter.Fill(dataTable);
@@ -98,7 +102,8 @@ namespace Database.Aniki
 
         public DataTable GetDataTable(string query, CommandType commandType)
         {
-            using var sqlCommand = new SqlCommand(query);
+            using var sqlCommand = _connectionFactory.CreateCommand();
+            sqlCommand.CommandText = query;
             sqlCommand.CommandType = commandType;
             sqlCommand.CommandTimeout = _options.DbCommandTimeout;
             sqlCommand.RetryLogicProvider = _sqlRetryProvider;
@@ -107,7 +112,8 @@ namespace Database.Aniki
 
         public DataTable GetDataTable(string query, CommandType commandType, Array sqlParameters)
         {
-            using var sqlCommand = new SqlCommand(query);
+            using var sqlCommand = _connectionFactory.CreateCommand();
+            sqlCommand.CommandText = query;
             sqlCommand.CommandType = commandType;
             sqlCommand.CommandTimeout = _options.DbCommandTimeout;
             sqlCommand.RetryLogicProvider = _sqlRetryProvider;
@@ -117,7 +123,8 @@ namespace Database.Aniki
 
         public DataTable GetDataTable(string query, CommandType commandType, SqlParameter[] sqlParameters)
         {
-            using var sqlCommand = new SqlCommand(query);
+            using var sqlCommand = _connectionFactory.CreateCommand();
+            sqlCommand.CommandText = query;
             sqlCommand.CommandType = commandType;
             sqlCommand.CommandTimeout = _options.DbCommandTimeout;
             sqlCommand.RetryLogicProvider = _sqlRetryProvider;
@@ -194,8 +201,9 @@ namespace Database.Aniki
             var dictionary = new Dictionary<T, U>();
             try
             {
-                using var sqlConnection = new SqlConnection(_options.ConnectionSting);
-                sqlConnection.StatisticsEnabled = true;
+                using var sqlConnection = _connectionFactory.CreateConnection();
+                if (_options.EnableStatistics)
+                    sqlConnection.StatisticsEnabled = true;
                 sqlConnection.RetryLogicProvider = _sqlRetryProvider;
                 sqlConnection.Open();
                 using var sqlCommand = sqlConnection.CreateCommand();
@@ -230,8 +238,9 @@ namespace Database.Aniki
             var dictionary = new Dictionary<T, U>();
             try
             {
-                using var sqlConnection = new SqlConnection(_options.ConnectionSting);
-                sqlConnection.StatisticsEnabled = true;
+                using var sqlConnection = _connectionFactory.CreateConnection();
+                if (_options.EnableStatistics)
+                    sqlConnection.StatisticsEnabled = true;
                 sqlConnection.RetryLogicProvider = _sqlRetryProvider;
                 sqlConnection.Open();
                 cmd.Connection = sqlConnection;
@@ -262,11 +271,12 @@ namespace Database.Aniki
 
             try
             {
-                using var sqlConnection = new SqlConnection(_options.ConnectionSting);
-                sqlConnection.StatisticsEnabled = true;
+                using var sqlConnection = _connectionFactory.CreateConnection();
+                if (_options.EnableStatistics)
+                    sqlConnection.StatisticsEnabled = true;
                 sqlConnection.RetryLogicProvider = _sqlRetryProvider;
                 sqlConnection.Open();
-                using var sqlCommand = new SqlCommand();
+                using var sqlCommand = _connectionFactory.CreateCommand();
                 sqlCommand.CommandType = commandType;
                 sqlCommand.Connection = sqlConnection;
                 sqlCommand.CommandTimeout = _options.DbCommandTimeout;
@@ -299,8 +309,9 @@ namespace Database.Aniki
             var dictionary = new Dictionary<T, U>();
             try
             {
-                using var sqlConnection = new SqlConnection(_options.ConnectionSting);
-                sqlConnection.StatisticsEnabled = true;
+                using var sqlConnection = _connectionFactory.CreateConnection();
+                if (_options.EnableStatistics)
+                    sqlConnection.StatisticsEnabled = true;
                 sqlConnection.RetryLogicProvider = _sqlRetryProvider;
                 sqlConnection.Open();
                 cmd.Connection = sqlConnection;
@@ -331,11 +342,12 @@ namespace Database.Aniki
             var dictionary = new Dictionary<string, string>();
             try
             {
-                using SqlConnection sqlConnection = new SqlConnection(_options.ConnectionSting);
-                sqlConnection.StatisticsEnabled = true;
+                using SqlConnection sqlConnection = _connectionFactory.CreateConnection();
+                if (_options.EnableStatistics)
+                    sqlConnection.StatisticsEnabled = true;
                 sqlConnection.RetryLogicProvider = _sqlRetryProvider;
                 sqlConnection.Open();
-                using var sqlCommand = new SqlCommand();
+                using var sqlCommand = _connectionFactory.CreateCommand();
                 sqlCommand.CommandType = commandType;
                 sqlCommand.Connection = sqlConnection;
                 sqlCommand.CommandTimeout = _options.DbCommandTimeout;
@@ -367,8 +379,9 @@ namespace Database.Aniki
             var dictionary = new Dictionary<string, string>();
             try
             {
-                using SqlConnection sqlConnection = new SqlConnection(_options.ConnectionSting);
-                sqlConnection.StatisticsEnabled = true;
+                using var sqlConnection = _connectionFactory.CreateConnection();
+                if (_options.EnableStatistics)
+                    sqlConnection.StatisticsEnabled = true;
                 sqlConnection.RetryLogicProvider = _sqlRetryProvider;
                 sqlConnection.Open();
                 cmd.Connection = sqlConnection;
@@ -398,11 +411,12 @@ namespace Database.Aniki
             var dictionary = new Dictionary<string, string>();
             try
             {
-                using var sqlConnection = new SqlConnection(_options.ConnectionSting);
-                sqlConnection.StatisticsEnabled = true;
+                using var sqlConnection = _connectionFactory.CreateConnection();
+                if (_options.EnableStatistics)
+                    sqlConnection.StatisticsEnabled = true;
                 sqlConnection.RetryLogicProvider = _sqlRetryProvider;
                 sqlConnection.Open();
-                using var sqlCommand = new SqlCommand();
+                using var sqlCommand = _connectionFactory.CreateCommand();
                 sqlCommand.CommandType = commandType;
                 sqlCommand.Connection = sqlConnection;
                 sqlCommand.CommandTimeout = _options.DbCommandTimeout;
@@ -435,8 +449,9 @@ namespace Database.Aniki
             var dictionary = new Dictionary<string, string>();
             try
             {
-                using var sqlConnection = new SqlConnection(_options.ConnectionSting);
-                sqlConnection.StatisticsEnabled = true;
+                using var sqlConnection = _connectionFactory.CreateConnection();
+                if (_options.EnableStatistics)
+                    sqlConnection.StatisticsEnabled = true;
                 sqlConnection.RetryLogicProvider = _sqlRetryProvider;
                 sqlConnection.Open();
                 cmd.Connection = sqlConnection;
@@ -469,8 +484,9 @@ namespace Database.Aniki
             var dictionary = new Dictionary<T, U>();
             try
             {
-                using var sqlConnection = new SqlConnection(_options.ConnectionSting);
-                sqlConnection.StatisticsEnabled = true;
+                using var sqlConnection = _connectionFactory.CreateConnection();
+                if (_options.EnableStatistics)
+                    sqlConnection.StatisticsEnabled = true;
                 sqlConnection.RetryLogicProvider = _sqlRetryProvider;
                 sqlConnection.Open();
                 cmd.Connection = sqlConnection;
@@ -529,12 +545,13 @@ namespace Database.Aniki
             var dictionary = new Dictionary<T, U>();
             try
             {
-                using var sqlConnection = new SqlConnection(_options.ConnectionSting);
-                sqlConnection.StatisticsEnabled = true;
+                using var sqlConnection = _connectionFactory.CreateConnection();
+                if (_options.EnableStatistics)
+                    sqlConnection.StatisticsEnabled = true;
                 sqlConnection.RetryLogicProvider = _sqlRetryProvider;
                 sqlConnection.Open();
                 cmd.Connection = sqlConnection;
-                using SqlDataReader sqlDataReader = cmd.ExecuteReader();
+                using var sqlDataReader = cmd.ExecuteReader();
                 var typeFromHandle = typeof(U);
                 var objectPropertiesCache = Shared._ObjectPropertiesCache;
                 List<PropertyInfo> list;
@@ -589,8 +606,9 @@ namespace Database.Aniki
             var dictionary = new Dictionary<T, List<U>>();
             try
             {
-                using var sqlConnection = new SqlConnection(_options.ConnectionSting);
-                sqlConnection.StatisticsEnabled = true;
+                using var sqlConnection = _connectionFactory.CreateConnection();
+                if (_options.EnableStatistics)
+                    sqlConnection.StatisticsEnabled = true;
                 sqlConnection.RetryLogicProvider = _sqlRetryProvider;
                 sqlConnection.Open();
                 cmd.Connection = sqlConnection;
@@ -657,8 +675,9 @@ namespace Database.Aniki
             var dictionary = new Dictionary<T, List<U>>();
             try
             {
-                using var sqlConnection = new SqlConnection(_options.ConnectionSting);
-                sqlConnection.StatisticsEnabled = true;
+                using var sqlConnection = _connectionFactory.CreateConnection();
+                if (_options.EnableStatistics)
+                    sqlConnection.StatisticsEnabled = true;
                 sqlConnection.RetryLogicProvider = _sqlRetryProvider;
                 sqlConnection.Open();
                 cmd.Connection = sqlConnection;
@@ -735,8 +754,9 @@ namespace Database.Aniki
             var list = new List<List<string>>();
             try
             {
-                using var sqlConnection = new SqlConnection(_options.ConnectionSting);
-                sqlConnection.StatisticsEnabled = true;
+                using var sqlConnection = _connectionFactory.CreateConnection();
+                if (_options.EnableStatistics)
+                    sqlConnection.StatisticsEnabled = true;
                 sqlConnection.RetryLogicProvider = _sqlRetryProvider;
                 sqlConnection.Open();
                 cmd.Connection = sqlConnection;
@@ -771,8 +791,9 @@ namespace Database.Aniki
             bool[]? array = null;
             try
             {
-                using var sqlConnection = new SqlConnection(_options.ConnectionSting);
-                sqlConnection.StatisticsEnabled = true;
+                using var sqlConnection = _connectionFactory.CreateConnection();
+                if (_options.EnableStatistics)
+                    sqlConnection.StatisticsEnabled = true;
                 sqlConnection.RetryLogicProvider = _sqlRetryProvider;
                 sqlConnection.Open();
                 cmd.Connection = sqlConnection;
@@ -829,7 +850,8 @@ namespace Database.Aniki
 
         public List<List<string>>? GetListListString(string query, CommandType commandType)
         {
-            using var sqlCommand = new SqlCommand(query);
+            using var sqlCommand = _connectionFactory.CreateCommand();
+            sqlCommand.CommandText = query;
             sqlCommand.CommandType = commandType;
             sqlCommand.RetryLogicProvider = _sqlRetryProvider;
             sqlCommand.CommandTimeout = _options.DbCommandTimeout;
@@ -838,7 +860,8 @@ namespace Database.Aniki
 
         public List<List<string>>? GetListListString(string query, CommandType commandType, string dateFormat)
         {
-            using var sqlCommand = new SqlCommand(query);
+            using var sqlCommand = _connectionFactory.CreateCommand();
+            sqlCommand.CommandText = query;
             sqlCommand.CommandType = commandType;
             sqlCommand.RetryLogicProvider = _sqlRetryProvider;
             sqlCommand.CommandTimeout = _options.DbCommandTimeout;
@@ -849,7 +872,8 @@ namespace Database.Aniki
         #region GetListOf<T>
         public List<T>? GetListOf<T>(SqlCommand cmd, SqlConnection connection)
         {
-            connection.StatisticsEnabled = true;
+            if (_options.EnableStatistics)
+                connection.StatisticsEnabled = true;
             var list = new List<T>();
             var type = typeof(T);
             cmd.Connection = connection;
@@ -896,8 +920,9 @@ namespace Database.Aniki
 
         public List<T>? GetListOf<T>(SqlCommand cmd)
         {
-            using var sqlConnection = new SqlConnection(_options.ConnectionSting);
-            sqlConnection.StatisticsEnabled = true;
+            using var sqlConnection = _connectionFactory.CreateConnection();
+            if (_options.EnableStatistics)
+                sqlConnection.StatisticsEnabled = true;
             sqlConnection.RetryLogicProvider = _sqlRetryProvider;
             sqlConnection.Open();
             cmd.Connection = sqlConnection;
@@ -906,7 +931,8 @@ namespace Database.Aniki
 
         public List<T>? GetListOf<T>(string query, CommandType commandType)
         {
-            using var sqlCommand = new SqlCommand(query);
+            using var sqlCommand = _connectionFactory.CreateCommand();
+            sqlCommand.CommandText = query;
             sqlCommand.CommandType = commandType;
             sqlCommand.RetryLogicProvider = _sqlRetryProvider;
             sqlCommand.CommandTimeout = _options.DbCommandTimeout;
@@ -915,7 +941,8 @@ namespace Database.Aniki
 
         public List<T>? GetListOf<T>(string query, CommandType commandType, SqlParameter[] sqlParameters)
         {
-            using var sqlCommand = new SqlCommand(query);
+            using var sqlCommand = _connectionFactory.CreateCommand();
+            sqlCommand.CommandText = query;
             sqlCommand.CommandType = commandType;
             sqlCommand.RetryLogicProvider = _sqlRetryProvider;
             sqlCommand.CommandTimeout = _options.DbCommandTimeout;
@@ -930,8 +957,9 @@ namespace Database.Aniki
         {
             try
             {
-                using var sqlConnection = new SqlConnection(_options.ConnectionSting);
-                sqlConnection.StatisticsEnabled = true;
+                using var sqlConnection = _connectionFactory.CreateConnection();
+                if (_options.EnableStatistics)
+                    sqlConnection.StatisticsEnabled = true;
                 sqlConnection.RetryLogicProvider = _sqlRetryProvider;
                 sqlConnection.Open();
                 using var sqlTransaction = sqlConnection.BeginTransaction();
@@ -952,7 +980,8 @@ namespace Database.Aniki
         public object GetScalar(SqlCommand cmd, SqlConnection connection, bool closeWhenComplete = false)
         {
             cmd.Connection = connection;
-            connection.StatisticsEnabled = true;
+            if(_options.EnableStatistics)
+                    connection.StatisticsEnabled = true;
             object result;
             try
             {
@@ -983,7 +1012,8 @@ namespace Database.Aniki
 
         public object GetScalar(string query, CommandType commandType)
         {
-            using var sqlCommand = new SqlCommand(query);
+            using var sqlCommand = _connectionFactory.CreateCommand();
+            sqlCommand.CommandText = query;
             sqlCommand.CommandType = commandType;
             sqlCommand.CommandTimeout = _options.DbCommandTimeout;
             sqlCommand.RetryLogicProvider = _sqlRetryProvider;
@@ -992,7 +1022,8 @@ namespace Database.Aniki
 
         public object GetScalar(string query, CommandType commandType, Array sqlParameters)
         {
-            using var sqlCommand = new SqlCommand(query);
+            using var sqlCommand = _connectionFactory.CreateCommand();
+            sqlCommand.CommandText = query;
             sqlCommand.CommandType = commandType;
             sqlCommand.CommandTimeout = _options.DbCommandTimeout;
             sqlCommand.RetryLogicProvider = _sqlRetryProvider;
@@ -1002,7 +1033,8 @@ namespace Database.Aniki
 
         public object GetScalar(string query, CommandType commandType, SqlParameter[] sqlParameters)
         {
-            using var sqlCommand = new SqlCommand(query);
+            using var sqlCommand = _connectionFactory.CreateCommand();
+            sqlCommand.CommandText = query;
             sqlCommand.CommandType = commandType;
             sqlCommand.CommandTimeout = _options.DbCommandTimeout;
             sqlCommand.RetryLogicProvider = _sqlRetryProvider;
@@ -1017,8 +1049,9 @@ namespace Database.Aniki
             int result;
             try
             {
-                using var sqlConnection = new SqlConnection(_options.ConnectionSting);
-                sqlConnection.StatisticsEnabled = true;
+                using var sqlConnection = _connectionFactory.CreateConnection();
+                if (_options.EnableStatistics)
+                    sqlConnection.StatisticsEnabled = true;
                 sqlConnection.RetryLogicProvider = _sqlRetryProvider;
                 sqlConnection.Open();
                 using var sqlTransaction = sqlConnection.BeginTransaction();
@@ -1044,7 +1077,9 @@ namespace Database.Aniki
             try
             {
                 cmd.Connection = connection;
-                connection.StatisticsEnabled = true;
+                if(_options.EnableStatistics)
+                    connection.StatisticsEnabled = true;
+   
                 if (connection.State != ConnectionState.Open && connection.State != ConnectionState.Connecting)
                 {
                     connection.Close();
@@ -1072,7 +1107,8 @@ namespace Database.Aniki
 
         public int ExecuteNonQuery(string query, CommandType commandType)
         {
-            using SqlCommand sqlCommand = new SqlCommand(query);
+            using var sqlCommand = _connectionFactory.CreateCommand();
+            sqlCommand.CommandText = query;
             sqlCommand.CommandType = commandType;
             sqlCommand.CommandTimeout = _options.DbCommandTimeout;
             sqlCommand.RetryLogicProvider = _sqlRetryProvider;
@@ -1081,7 +1117,8 @@ namespace Database.Aniki
 
         public int ExecuteNonQuery(string query, CommandType commandType, Array sqlParameters)
         {
-            using var sqlCommand = new SqlCommand(query);
+            using var sqlCommand = _connectionFactory.CreateCommand();
+            sqlCommand.CommandText = query;
             sqlCommand.CommandType = commandType;
             sqlCommand.CommandTimeout = _options.DbCommandTimeout;
             sqlCommand.RetryLogicProvider = _sqlRetryProvider;
@@ -1090,7 +1127,8 @@ namespace Database.Aniki
         }
         public int ExecuteNonQuery(string query, CommandType commandType, SqlParameter[] sqlParameters)
         {
-            using var sqlCommand = new SqlCommand(query);
+            using var sqlCommand = _connectionFactory.CreateCommand();
+            sqlCommand.CommandText = query;
             sqlCommand.CommandType = commandType;
             sqlCommand.CommandTimeout = _options.DbCommandTimeout;
             sqlCommand.RetryLogicProvider = _sqlRetryProvider;
@@ -1105,18 +1143,16 @@ namespace Database.Aniki
             SqlConnection? connection = null;
             try
             {
-                connection = new SqlConnection(_options.ConnectionSting) 
-                { 
-                    RetryLogicProvider = _sqlRetryProvider,
-                    StatisticsEnabled = true
-                };
+                connection = _connectionFactory.CreateConnection();
+                connection.RetryLogicProvider = _sqlRetryProvider;
+                if (_options.EnableStatistics)
+                    connection.StatisticsEnabled = true;
                 connection.Open();
-                var cmd = new SqlCommand(query)
-                {
-                    CommandType = commandType,
-                    CommandTimeout = _options.DbCommandTimeout,
-                    RetryLogicProvider = _sqlRetryProvider
-                };
+                var cmd = _connectionFactory.CreateCommand();
+                cmd.CommandText = query;
+                cmd.CommandType = commandType;
+                cmd.CommandTimeout = _options.DbCommandTimeout;
+                cmd.RetryLogicProvider = _sqlRetryProvider;
                 var reader = cmd.ExecuteReader();
                 LogSqlInfo(cmd, connection);
                 return reader;
@@ -1134,11 +1170,10 @@ namespace Database.Aniki
             SqlConnection? connection = null;
             try
             {
-                connection = new SqlConnection(_options.ConnectionSting)
-                {
-                    RetryLogicProvider = _sqlRetryProvider,
-                    StatisticsEnabled = true
-                };
+                connection = _connectionFactory.CreateConnection();
+                connection.RetryLogicProvider = _sqlRetryProvider;
+                if (_options.EnableStatistics)
+                    connection.StatisticsEnabled = true;
                 connection.Open();
 
                 return ExecuteReader(connection, null, commandType, query, sqlParameters);
@@ -1156,11 +1191,10 @@ namespace Database.Aniki
             SqlConnection? connection = null;
             try
             {
-                connection = new SqlConnection(_options.ConnectionSting)
-                {
-                    RetryLogicProvider = _sqlRetryProvider,
-                    StatisticsEnabled = true
-                };
+                connection = _connectionFactory.CreateConnection();
+                connection.RetryLogicProvider = _sqlRetryProvider;
+                if (_options.EnableStatistics)
+                    connection.StatisticsEnabled = true;
                 connection.Open();
                 var reader = cmd.ExecuteReader();
                 LogSqlInfo(cmd, connection);
@@ -1179,7 +1213,9 @@ namespace Database.Aniki
             try
             {
                 cmd.Connection = connection;
-                connection.StatisticsEnabled = true;
+                if(_options.EnableStatistics)
+                    connection.StatisticsEnabled = true;
+   
                 if (connection.State != ConnectionState.Open && connection.State != ConnectionState.Connecting)
                 {
                     connection.Close();
@@ -1200,14 +1236,12 @@ namespace Database.Aniki
         public IDataReader ExecuteReader(SqlConnection connection, SqlTransaction? transaction, CommandType commandType, string commandText, SqlParameter[] commandParameters)
         {
             // Create a command and prepare it for execution
-            var cmd = new SqlCommand
-            {
-                CommandTimeout = _options.DbCommandTimeout,
-                RetryLogicProvider = _sqlRetryProvider,
-                CommandType = commandType,
-                CommandText = commandText,
-                Connection = connection
-            };
+            var cmd = _connectionFactory.CreateCommand();
+            cmd.CommandTimeout = _options.DbCommandTimeout;
+            cmd.RetryLogicProvider = _sqlRetryProvider;
+            cmd.CommandType = commandType;
+            cmd.CommandText = commandText;
+            cmd.Connection = connection;
             cmd.AttachParameters(commandParameters);
             if (transaction != null)
             {
@@ -1222,7 +1256,9 @@ namespace Database.Aniki
                     connection.Close();
                     connection.Open();
                 }
-                connection.StatisticsEnabled = true;
+                if(_options.EnableStatistics)
+                    connection.StatisticsEnabled = true;
+   
                 // Create a reader
                 var reader = cmd.ExecuteReader();
                 LogSqlInfo(cmd, connection);
