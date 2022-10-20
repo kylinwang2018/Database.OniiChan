@@ -46,6 +46,22 @@ namespace Database.Aniki.SqlServer
             return command;
         }
 
+        /// <summary>
+        /// <para>
+        ///     Attach an array of SqlParameters to a SqlCommand.
+        /// </para>
+        /// <para>
+        ///     Assign a value of DbNull to any parameter with a direction of
+        ///     InputOutput and a value of null.  
+        /// </para>
+        /// <para>
+        ///     Prevent default values from being used, but
+        ///     this will be the less common case than an intended pure output parameter (derived as InputOutput)
+        ///     where the user provided no input value.
+        /// </para>
+        /// </summary>
+        /// <param name="command">The command to which the parameters will be added</param>
+        /// <param name="commandParameters">An array of SqlParameters to be added to command</param>
         public static SqlCommand AttachParameters(this SqlCommand command, Array commandParameters)
         {
             if (command == null) throw new ArgumentNullException("command");

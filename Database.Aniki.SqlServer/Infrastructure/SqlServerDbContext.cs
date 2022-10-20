@@ -2,10 +2,7 @@
 using Database.Aniki.Exceptions;
 using Database.Aniki.SqlServer;
 using Microsoft.Data.SqlClient;
-using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Options;
 using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Data;
 using System.Linq;
@@ -13,7 +10,7 @@ using System.Reflection;
 
 namespace Database.Aniki
 {
-    public partial class SqlServerDbContext
+    public partial class SqlServerDbContext : ISqlServerDbContext
     {
         #region GetColumnToString
         public List<string> GetColumnToString(SqlCommand cmd, int columnIndex = 0)
@@ -201,7 +198,7 @@ namespace Database.Aniki
                 sqlConnection.StatisticsEnabled = true;
                 sqlConnection.RetryLogicProvider = _sqlRetryProvider;
                 sqlConnection.Open();
-                using var sqlCommand = new SqlCommand();
+                using var sqlCommand = sqlConnection.CreateCommand();
                 sqlCommand.CommandType = commandType;
                 sqlCommand.Connection = sqlConnection;
                 sqlCommand.CommandTimeout = _options.DbCommandTimeout;

@@ -2,7 +2,14 @@
 {
     public interface IDbContextOptions
     {
+        /// <summary>
+        /// Gets or sets the string used to open a SQL Server database.
+        /// </summary>
         string ConnectionSting { get; set; }
+
+        /// <summary>
+        /// Specifies the wait time before terminating the attempt to execute a query and generating an error.
+        /// </summary>
         int DbCommandTimeout { get; set; }
         string? DbProviderName { get; set; }
 
