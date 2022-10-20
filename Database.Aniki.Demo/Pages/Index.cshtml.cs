@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Database.Aniki.Demo.Models;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.Data.SqlClient;
 using System.Data;
@@ -17,10 +18,9 @@ namespace Database.Aniki.Demo.Pages
             _dbContext = dbContext;
         }
 
-        public void OnGet()
+        public async Task OnGetAsync()
         {
-            using var sqlCommand = new SqlCommand("select * from Ir_Empl");
-            var result = _dbContext.GetColumnToString(sqlCommand, "Username");
+            var result = await _dbContext.GetListOfAsync<User>("select * from ir_empl", CommandType.Text);
             Console.WriteLine(result);
         }
     }

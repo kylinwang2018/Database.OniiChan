@@ -2,47 +2,46 @@
 using Database.Aniki.Exceptions;
 using Database.Aniki.SqlServer;
 using Microsoft.Data.SqlClient;
-using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Options;
 using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Data;
 using System.Linq;
 using System.Reflection;
+using System.Text;
+using System.Threading.Tasks;
 
 namespace Database.Aniki
 {
-    public partial class SqlServerDbContext
+    public partial class SqlServerDbContext : ISqlServerDbContext
     {
         #region GetColumnToString
-        public List<string> GetColumnToString(SqlCommand cmd, int columnIndex = 0)
+        public async Task<List<string>> GetColumnToStringAsync(SqlCommand cmd, int columnIndex = 0)
         {
-            var datatable = GetDataTable(cmd);
+            var datatable = await GetDataTableAsync(cmd);
             return DataTableHelper.DataTableToListString(datatable, columnIndex);
         }
 
-        public List<string> GetColumnToString(SqlCommand cmd, SqlConnection connection, int columnIndex = 0, bool closeWhenComplete = false)
+        public async Task<List<string>> GetColumnToStringAsync(SqlCommand cmd, SqlConnection connection, int columnIndex = 0, bool closeWhenComplete = false)
         {
-            var datatable = GetDataTable(cmd, connection, closeWhenComplete);
+            var datatable = await GetDataTableAsync(cmd, connection, closeWhenComplete);
             return DataTableHelper.DataTableToListString(datatable, columnIndex);
         }
 
-        public List<string> GetColumnToString(SqlCommand cmd, string columnName)
+        public async Task<List<string>> GetColumnToStringAsync(SqlCommand cmd, string columnName)
         {
-            var datatable = GetDataTable(cmd);
+            var datatable = await GetDataTableAsync(cmd);
             return DataTableHelper.DataTableToListString(datatable, columnName);
         }
 
-        public List<string> GetColumnToString(SqlCommand cmd, SqlConnection connection, string columnName, bool closeWhenComplete = false)
+        public async Task<List<string>> GetColumnToStringAsync(SqlCommand cmd, SqlConnection connection, string columnName, bool closeWhenComplete = false)
         {
-            var datatable = GetDataTable(cmd, connection, closeWhenComplete);
+            var datatable = await GetDataTableAsync(cmd, connection, closeWhenComplete);
             return DataTableHelper.DataTableToListString(datatable, columnName);
         }
         #endregion
 
         #region GetDataTable
-        public DataTable GetDataTable(SqlCommand cmd)
+        public async Task<DataTable> GetDataTableAsync(SqlCommand cmd)
         {
             var dataTable = new DataTable();
             try
@@ -51,7 +50,7 @@ namespace Database.Aniki
                 sqlConnection.StatisticsEnabled = true;
                 cmd.Connection = sqlConnection;
                 sqlConnection.RetryLogicProvider = _sqlRetryProvider;
-                sqlConnection.Open();
+                await sqlConnection.OpenAsync();
                 using var sqlDataAdapter = new SqlDataAdapter(cmd);
                 sqlDataAdapter.Fill(dataTable);
 
@@ -65,17 +64,17 @@ namespace Database.Aniki
             return dataTable;
         }
 
-        public DataTable GetDataTable(SqlCommand cmd, SqlConnection connection, bool closeWhenComplete = false)
+        public async Task<DataTable> GetDataTableAsync(SqlCommand cmd, SqlConnection connection, bool closeWhenComplete = false)
         {
             try
             {
-                connection.StatisticsEnabled = true;
                 var dataTable = new DataTable();
+                connection.StatisticsEnabled = true;
                 cmd.Connection = connection;
                 if (connection.State != ConnectionState.Open && connection.State != ConnectionState.Connecting)
                 {
-                    connection.Close();
-                    connection.Open();
+                    await connection.CloseAsync();
+                    await connection.OpenAsync();
                 }
                 using (var sqlTransaction = connection.BeginTransaction())
                 {
@@ -83,12 +82,12 @@ namespace Database.Aniki
                     cmd.Transaction = sqlTransaction;
                     sqlDataAdapter.SelectCommand = cmd;
                     sqlDataAdapter.Fill(dataTable);
-                    sqlTransaction.Commit();
+                    await sqlTransaction.CommitAsync();
                 }
                 LogSqlInfo(cmd, connection);
                 if (closeWhenComplete)
                 {
-                    connection.Close();
+                    await connection.CloseAsync();
                 }
                 return dataTable;
             }
@@ -99,100 +98,100 @@ namespace Database.Aniki
             }
         }
 
-        public DataTable GetDataTable(string query, CommandType commandType)
+        public async Task<DataTable> GetDataTableAsync(string query, CommandType commandType)
         {
             using var sqlCommand = new SqlCommand(query);
             sqlCommand.CommandType = commandType;
             sqlCommand.CommandTimeout = _options.DbCommandTimeout;
             sqlCommand.RetryLogicProvider = _sqlRetryProvider;
-            return GetDataTable(sqlCommand);
+            return await GetDataTableAsync(sqlCommand);
         }
 
-        public DataTable GetDataTable(string query, CommandType commandType, Array sqlParameters)
-        {
-            using var sqlCommand = new SqlCommand(query);
-            sqlCommand.CommandType = commandType;
-            sqlCommand.CommandTimeout = _options.DbCommandTimeout;
-            sqlCommand.RetryLogicProvider = _sqlRetryProvider;
-            sqlCommand.AttachParameters(sqlParameters);
-            return GetDataTable(sqlCommand);
-        }
-
-        public DataTable GetDataTable(string query, CommandType commandType, SqlParameter[] sqlParameters)
+        public async Task<DataTable> GetDataTableAsync(string query, CommandType commandType, Array sqlParameters)
         {
             using var sqlCommand = new SqlCommand(query);
             sqlCommand.CommandType = commandType;
             sqlCommand.CommandTimeout = _options.DbCommandTimeout;
             sqlCommand.RetryLogicProvider = _sqlRetryProvider;
             sqlCommand.AttachParameters(sqlParameters);
-            return GetDataTable(sqlCommand);
+            return await GetDataTableAsync(sqlCommand);
         }
 
-        public List<T> GetDataTable<T>(SqlCommand cmd) where T : class, new()
+        public async Task<DataTable> GetDataTableAsync(string query, CommandType commandType, SqlParameter[] sqlParameters)
         {
-            var datatable = GetDataTable(cmd);
+            using var sqlCommand = new SqlCommand(query);
+            sqlCommand.CommandType = commandType;
+            sqlCommand.CommandTimeout = _options.DbCommandTimeout;
+            sqlCommand.RetryLogicProvider = _sqlRetryProvider;
+            sqlCommand.AttachParameters(sqlParameters);
+            return await GetDataTableAsync(sqlCommand);
+        }
+
+        public async Task<List<T>> GetDataTableAsync<T>(SqlCommand cmd) where T : class, new()
+        {
+            var datatable = await GetDataTableAsync(cmd);
             return DataTableHelper.DataTableToList<T>(datatable);
         }
 
-        public List<T> GetDataTable<T>(SqlCommand cmd, SqlConnection connection, bool closeWhenComplete = false) where T : class, new()
+        public async Task<List<T>> GetDataTableAsync<T>(SqlCommand cmd, SqlConnection connection, bool closeWhenComplete = false) where T : class, new()
         {
-            var datatable = GetDataTable(cmd, connection, closeWhenComplete);
+            var datatable = await GetDataTableAsync(cmd, connection, closeWhenComplete);
             return DataTableHelper.DataTableToList<T>(datatable);
         }
 
-        public List<T> GetDataTable<T>(string query, CommandType commandType) where T : class, new()
+        public async Task<List<T>> GetDataTableAsync<T>(string query, CommandType commandType) where T : class, new()
         {
-            var datatable = GetDataTable(query, commandType);
+            var datatable = await GetDataTableAsync(query, commandType);
             return DataTableHelper.DataTableToList<T>(datatable);
         }
 
-        public List<T> GetDataTable<T>(string query, CommandType commandType, Array sqlParameters) where T : class, new()
+        public async Task<List<T>> GetDataTableAsync<T>(string query, CommandType commandType, Array sqlParameters) where T : class, new()
         {
-            var datatable = GetDataTable(query, commandType, sqlParameters);
+            var datatable = await GetDataTableAsync(query, commandType, sqlParameters);
             return DataTableHelper.DataTableToList<T>(datatable);
         }
 
-        public List<T> GetDataTable<T>(string query, CommandType commandType, SqlParameter[] sqlParameters) where T : class, new()
+        public async Task<List<T>> GetDataTableAsync<T>(string query, CommandType commandType, SqlParameter[] sqlParameters) where T : class, new()
         {
-            var datatable = GetDataTable(query, commandType, sqlParameters);
+            var datatable = await GetDataTableAsync(query, commandType, sqlParameters);
             return DataTableHelper.DataTableToList<T>(datatable);
         }
         #endregion
 
         #region GetDataRow
-        public T? GetDataRow<T>(SqlCommand cmd) where T : class, new()
+        public async Task<T?> GetDataRowAsync<T>(SqlCommand cmd) where T : class, new()
         {
-            var datatable = GetDataTable(cmd);
+            var datatable = await GetDataTableAsync(cmd);
             return DataTableHelper.DataRowToT<T>(datatable);
         }
 
-        public T? GetDataRow<T>(SqlCommand cmd, SqlConnection connection, bool closeWhenComplete = false) where T : class, new()
+        public async Task<T?> GetDataRowAsync<T>(SqlCommand cmd, SqlConnection connection, bool closeWhenComplete = false) where T : class, new()
         {
-            var datatable = GetDataTable(cmd, connection, closeWhenComplete);
+            var datatable = await GetDataTableAsync(cmd, connection, closeWhenComplete);
             return DataTableHelper.DataRowToT<T>(datatable);
         }
 
-        public T? GetDataRow<T>(string query, CommandType commandType) where T : class, new()
+        public async Task<T?> GetDataRowAsync<T>(string query, CommandType commandType) where T : class, new()
         {
-            var datatable = GetDataTable(query, commandType);
+            var datatable = await GetDataTableAsync(query, commandType);
             return DataTableHelper.DataRowToT<T>(datatable);
         }
 
-        public T? GetDataRow<T>(string query, CommandType commandType, Array sqlParameters) where T : class, new()
+        public async Task<T?> GetDataRowAsync<T>(string query, CommandType commandType, Array sqlParameters) where T : class, new()
         {
-            var datatable = GetDataTable(query, commandType, sqlParameters);
+            var datatable = await GetDataTableAsync(query, commandType, sqlParameters);
             return DataTableHelper.DataRowToT<T>(datatable);
         }
 
-        public T? GetDataRow<T>(string query, CommandType commandType, SqlParameter[] sqlParameters) where T : class, new()
+        public async Task<T?> GetDataRowAsync<T>(string query, CommandType commandType, SqlParameter[] sqlParameters) where T : class, new()
         {
-            var datatable = GetDataTable(query, commandType, sqlParameters);
+            var datatable = await GetDataTableAsync(query, commandType, sqlParameters);
             return DataTableHelper.DataRowToT<T>(datatable);
         }
         #endregion
 
         #region GetDictionary
-        public Dictionary<T, U>? GetDictionary<T, U>(string query, CommandType commandType)
+        public async Task<Dictionary<T, U>?> GetDictionaryAsync<T, U>(string query, CommandType commandType)
         {
             var dictionary = new Dictionary<T, U>();
             try
@@ -200,17 +199,17 @@ namespace Database.Aniki
                 using var sqlConnection = new SqlConnection(_options.ConnectionSting);
                 sqlConnection.StatisticsEnabled = true;
                 sqlConnection.RetryLogicProvider = _sqlRetryProvider;
-                sqlConnection.Open();
+                await sqlConnection.OpenAsync();
                 using var sqlCommand = new SqlCommand();
                 sqlCommand.CommandType = commandType;
                 sqlCommand.Connection = sqlConnection;
                 sqlCommand.CommandTimeout = _options.DbCommandTimeout;
                 sqlCommand.RetryLogicProvider = _sqlRetryProvider;
                 sqlCommand.CommandText = query;
-                using var sqlDataReader = sqlCommand.ExecuteReader();
+                using var sqlDataReader = await sqlCommand.ExecuteReaderAsync();
                 if (sqlDataReader.FieldCount < 2)
                     throw new DatabaseException("Query did not return at least two columns of data.");
-                while (sqlDataReader.Read())
+                while (await sqlDataReader.ReadAsync())
                 {
                     dictionary.Add((T)sqlDataReader[0], (U)sqlDataReader[1]);
                 }
@@ -228,7 +227,7 @@ namespace Database.Aniki
                 return dictionary;
         }
 
-        public Dictionary<T, U>? GetDictionary<T, U>(SqlCommand cmd)
+        public async Task<Dictionary<T, U>?> GetDictionaryAsync<T, U>(SqlCommand cmd)
         {
             var dictionary = new Dictionary<T, U>();
             try
@@ -236,12 +235,12 @@ namespace Database.Aniki
                 using var sqlConnection = new SqlConnection(_options.ConnectionSting);
                 sqlConnection.StatisticsEnabled = true;
                 sqlConnection.RetryLogicProvider = _sqlRetryProvider;
-                sqlConnection.Open();
+                await sqlConnection.OpenAsync();
                 cmd.Connection = sqlConnection;
-                using var sqlDataReader = cmd.ExecuteReader();
+                using var sqlDataReader = await cmd.ExecuteReaderAsync();
                 if (sqlDataReader.FieldCount < 2)
                     throw new DatabaseException("Query did not return at least two columns of data.");
-                while (sqlDataReader.Read())
+                while (await sqlDataReader.ReadAsync())
                 {
                     dictionary.Add((T)sqlDataReader[0], (U)sqlDataReader[1]);
                 }
@@ -259,7 +258,7 @@ namespace Database.Aniki
                 return dictionary;
         }
 
-        public Dictionary<T, U>? GetDictionary<T, U>(string query, CommandType commandType, int keyColumnIndex, int valueColumnIndex)
+        public async Task<Dictionary<T, U>?> GetDictionaryAsync<T, U>(string query, CommandType commandType, int keyColumnIndex, int valueColumnIndex)
         {
             var dictionary = new Dictionary<T, U>();
 
@@ -268,18 +267,18 @@ namespace Database.Aniki
                 using var sqlConnection = new SqlConnection(_options.ConnectionSting);
                 sqlConnection.StatisticsEnabled = true;
                 sqlConnection.RetryLogicProvider = _sqlRetryProvider;
-                sqlConnection.Open();
+                await sqlConnection.OpenAsync();
                 using var sqlCommand = new SqlCommand();
                 sqlCommand.CommandType = commandType;
                 sqlCommand.Connection = sqlConnection;
                 sqlCommand.CommandTimeout = _options.DbCommandTimeout;
                 sqlCommand.RetryLogicProvider = _sqlRetryProvider;
                 sqlCommand.CommandText = query;
-                using var sqlDataReader = sqlCommand.ExecuteReader();
+                using var sqlDataReader = await sqlCommand.ExecuteReaderAsync();
                 if (sqlDataReader.FieldCount < 2 &&
                     !(keyColumnIndex == valueColumnIndex && sqlDataReader.FieldCount == 1))
                     throw new DatabaseException("Query did not return at least two columns of data.");
-                while (sqlDataReader.Read())
+                while (await sqlDataReader.ReadAsync())
                 {
                     dictionary.Add((T)((object)sqlDataReader[keyColumnIndex]), (U)((object)sqlDataReader[valueColumnIndex]));
                 }
@@ -297,7 +296,7 @@ namespace Database.Aniki
                 return dictionary;
         }
 
-        public Dictionary<T, U>? GetDictionary<T, U>(SqlCommand cmd, int keyColumnIndex, int valueColumnIndex)
+        public async Task<Dictionary<T, U>?> GetDictionaryAsync<T, U>(SqlCommand cmd, int keyColumnIndex, int valueColumnIndex)
         {
             var dictionary = new Dictionary<T, U>();
             try
@@ -305,13 +304,13 @@ namespace Database.Aniki
                 using var sqlConnection = new SqlConnection(_options.ConnectionSting);
                 sqlConnection.StatisticsEnabled = true;
                 sqlConnection.RetryLogicProvider = _sqlRetryProvider;
-                sqlConnection.Open();
+                await sqlConnection.OpenAsync();
                 cmd.Connection = sqlConnection;
-                using var sqlDataReader = cmd.ExecuteReader();
+                using var sqlDataReader = await cmd.ExecuteReaderAsync();
                 if (sqlDataReader.FieldCount < 2 &&
                     !(keyColumnIndex == valueColumnIndex && sqlDataReader.FieldCount == 1))
                     throw new DatabaseException("Query did not return at least two columns of data.");
-                while (sqlDataReader.Read())
+                while (await sqlDataReader.ReadAsync())
                 {
                     dictionary.Add((T)sqlDataReader[keyColumnIndex], (U)sqlDataReader[valueColumnIndex]);
                 }
@@ -329,7 +328,7 @@ namespace Database.Aniki
                 return dictionary;
         }
 
-        public Dictionary<string, string>? GetDictionary(string query, CommandType commandType)
+        public async Task<Dictionary<string, string>?> GetDictionaryAsync(string query, CommandType commandType)
         {
             var dictionary = new Dictionary<string, string>();
             try
@@ -337,17 +336,17 @@ namespace Database.Aniki
                 using SqlConnection sqlConnection = new SqlConnection(_options.ConnectionSting);
                 sqlConnection.StatisticsEnabled = true;
                 sqlConnection.RetryLogicProvider = _sqlRetryProvider;
-                sqlConnection.Open();
+                await sqlConnection.OpenAsync();
                 using var sqlCommand = new SqlCommand();
                 sqlCommand.CommandType = commandType;
                 sqlCommand.Connection = sqlConnection;
                 sqlCommand.CommandTimeout = _options.DbCommandTimeout;
                 sqlCommand.RetryLogicProvider = _sqlRetryProvider;
                 sqlCommand.CommandText = query;
-                using var sqlDataReader = sqlCommand.ExecuteReader();
+                using var sqlDataReader = await sqlCommand.ExecuteReaderAsync();
                 if (sqlDataReader.FieldCount < 2)
                     throw new DatabaseException("Query did not return at least two columns of data.");
-                while (sqlDataReader.Read())
+                while (await sqlDataReader.ReadAsync())
                 {
                     dictionary.Add(sqlDataReader[0].ToString(), sqlDataReader[1].ToString());
                 }
@@ -365,7 +364,7 @@ namespace Database.Aniki
                 return dictionary;
         }
 
-        public Dictionary<string, string>? GetDictionary(SqlCommand cmd)
+        public async Task<Dictionary<string, string>?> GetDictionaryAsync(SqlCommand cmd)
         {
             var dictionary = new Dictionary<string, string>();
             try
@@ -373,12 +372,12 @@ namespace Database.Aniki
                 using SqlConnection sqlConnection = new SqlConnection(_options.ConnectionSting);
                 sqlConnection.StatisticsEnabled = true;
                 sqlConnection.RetryLogicProvider = _sqlRetryProvider;
-                sqlConnection.Open();
+                await sqlConnection.OpenAsync();
                 cmd.Connection = sqlConnection;
-                using var sqlDataReader = cmd.ExecuteReader();
+                using var sqlDataReader = await cmd.ExecuteReaderAsync();
                 if (sqlDataReader.FieldCount < 2)
                     throw new DatabaseException("Query did not return at least two columns of data.");
-                while (sqlDataReader.Read())
+                while (await sqlDataReader.ReadAsync())
                 {
                     dictionary.Add(sqlDataReader[0].ToString(), sqlDataReader[1].ToString());
                 }
@@ -396,7 +395,7 @@ namespace Database.Aniki
                 return dictionary;
         }
 
-        public Dictionary<string, string>? GetDictionary(string query, CommandType commandType, int keyColumnIndex, int valueColumnIndex)
+        public async Task<Dictionary<string, string>?> GetDictionaryAsync(string query, CommandType commandType, int keyColumnIndex, int valueColumnIndex)
         {
             var dictionary = new Dictionary<string, string>();
             try
@@ -404,18 +403,18 @@ namespace Database.Aniki
                 using var sqlConnection = new SqlConnection(_options.ConnectionSting);
                 sqlConnection.StatisticsEnabled = true;
                 sqlConnection.RetryLogicProvider = _sqlRetryProvider;
-                sqlConnection.Open();
+                await sqlConnection.OpenAsync();
                 using var sqlCommand = new SqlCommand();
                 sqlCommand.CommandType = commandType;
                 sqlCommand.Connection = sqlConnection;
                 sqlCommand.CommandTimeout = _options.DbCommandTimeout;
                 sqlCommand.RetryLogicProvider = _sqlRetryProvider;
                 sqlCommand.CommandText = query;
-                using var sqlDataReader = sqlCommand.ExecuteReader();
+                using var sqlDataReader = await sqlCommand.ExecuteReaderAsync();
                 if (sqlDataReader.FieldCount < 2 &&
                     !(keyColumnIndex == valueColumnIndex && sqlDataReader.FieldCount == 1))
                     throw new DatabaseException("Query did not return at least two columns of data.");
-                while (sqlDataReader.Read())
+                while (await sqlDataReader.ReadAsync())
                 {
                     dictionary.Add(sqlDataReader[keyColumnIndex].ToString(), sqlDataReader[valueColumnIndex].ToString());
                 }
@@ -433,7 +432,7 @@ namespace Database.Aniki
                 return dictionary;
         }
 
-        public Dictionary<string, string>? GetDictionary(SqlCommand cmd, int keyColumnIndex, int valueColumnIndex)
+        public async Task<Dictionary<string, string>?> GetDictionaryAsync(SqlCommand cmd, int keyColumnIndex, int valueColumnIndex)
         {
             var dictionary = new Dictionary<string, string>();
             try
@@ -441,13 +440,13 @@ namespace Database.Aniki
                 using var sqlConnection = new SqlConnection(_options.ConnectionSting);
                 sqlConnection.StatisticsEnabled = true;
                 sqlConnection.RetryLogicProvider = _sqlRetryProvider;
-                sqlConnection.Open();
+                await sqlConnection.OpenAsync();
                 cmd.Connection = sqlConnection;
-                using var sqlDataReader = cmd.ExecuteReader();
+                using var sqlDataReader = await cmd.ExecuteReaderAsync();
                 if (sqlDataReader.FieldCount < 2 &&
                     !(keyColumnIndex == valueColumnIndex && sqlDataReader.FieldCount == 1))
                     throw new DatabaseException("Query did not return at least two columns of data.");
-                while (sqlDataReader.Read())
+                while (await sqlDataReader.ReadAsync())
                 {
                     dictionary.Add(sqlDataReader[keyColumnIndex].ToString(), sqlDataReader[valueColumnIndex].ToString());
                 }
@@ -467,7 +466,7 @@ namespace Database.Aniki
         #endregion
 
         #region GetDictionaryOfObjects
-        public Dictionary<T, U>? GetDictionaryOfObjects<T, U>(SqlCommand cmd, int keyColumnIndex) where U : class, new()
+        public async Task<Dictionary<T, U>?> GetDictionaryOfObjectsAsync<T, U>(SqlCommand cmd, int keyColumnIndex) where U : class, new()
         {
             var dictionary = new Dictionary<T, U>();
             try
@@ -475,9 +474,9 @@ namespace Database.Aniki
                 using var sqlConnection = new SqlConnection(_options.ConnectionSting);
                 sqlConnection.StatisticsEnabled = true;
                 sqlConnection.RetryLogicProvider = _sqlRetryProvider;
-                sqlConnection.Open();
+                await sqlConnection.OpenAsync();
                 cmd.Connection = sqlConnection;
-                using var sqlDataReader = cmd.ExecuteReader();
+                using var sqlDataReader = await cmd.ExecuteReaderAsync();
                 var typeFromHandle = typeof(U);
                 var objectPropertiesCache = Shared._ObjectPropertiesCache;
                 List<PropertyInfo> list;
@@ -490,7 +489,7 @@ namespace Database.Aniki
                         Shared._ObjectPropertiesCache.Add(typeFromHandle, list);
                     }
                 }
-                while (sqlDataReader.Read())
+                while (await sqlDataReader.ReadAsync())
                 {
                     U u = Activator.CreateInstance<U>();
                     foreach (var propertyInfo in list)
@@ -527,7 +526,7 @@ namespace Database.Aniki
                 return dictionary;
         }
 
-        public Dictionary<T, U>? GetDictionaryOfObjects<T, U>(SqlCommand cmd, string keyColumnName) where U : class, new()
+        public async Task<Dictionary<T, U>?> GetDictionaryOfObjectsAsync<T, U>(SqlCommand cmd, string keyColumnName) where U : class, new()
         {
             var dictionary = new Dictionary<T, U>();
             try
@@ -535,9 +534,9 @@ namespace Database.Aniki
                 using var sqlConnection = new SqlConnection(_options.ConnectionSting);
                 sqlConnection.StatisticsEnabled = true;
                 sqlConnection.RetryLogicProvider = _sqlRetryProvider;
-                sqlConnection.Open();
+                await sqlConnection.OpenAsync();
                 cmd.Connection = sqlConnection;
-                using SqlDataReader sqlDataReader = cmd.ExecuteReader();
+                using SqlDataReader sqlDataReader = await cmd.ExecuteReaderAsync();
                 var typeFromHandle = typeof(U);
                 var objectPropertiesCache = Shared._ObjectPropertiesCache;
                 List<PropertyInfo> list;
@@ -550,7 +549,7 @@ namespace Database.Aniki
                         Shared._ObjectPropertiesCache.Add(typeFromHandle, list);
                     }
                 }
-                while (sqlDataReader.Read())
+                while (await sqlDataReader.ReadAsync())
                 {
                     U u = Activator.CreateInstance<U>();
                     foreach (var propertyInfo in list)
@@ -587,7 +586,7 @@ namespace Database.Aniki
                 return dictionary;
         }
 
-        public Dictionary<T, List<U>>? GetDictionaryOfListObjects<T, U>(SqlCommand cmd, int keyColumnIndex) where U : class, new()
+        public async Task<Dictionary<T, List<U>>?> GetDictionaryOfListObjectsAsync<T, U>(SqlCommand cmd, int keyColumnIndex) where U : class, new()
         {
             var dictionary = new Dictionary<T, List<U>>();
             try
@@ -595,9 +594,9 @@ namespace Database.Aniki
                 using var sqlConnection = new SqlConnection(_options.ConnectionSting);
                 sqlConnection.StatisticsEnabled = true;
                 sqlConnection.RetryLogicProvider = _sqlRetryProvider;
-                sqlConnection.Open();
+                await sqlConnection.OpenAsync();
                 cmd.Connection = sqlConnection;
-                using var sqlDataReader = cmd.ExecuteReader();
+                using var sqlDataReader = await cmd.ExecuteReaderAsync();
                 var typeFromHandle = typeof(U);
                 var objectPropertiesCache = Shared._ObjectPropertiesCache;
                 List<PropertyInfo> list;
@@ -610,7 +609,7 @@ namespace Database.Aniki
                         Shared._ObjectPropertiesCache.Add(typeFromHandle, list);
                     }
                 }
-                while (sqlDataReader.Read())
+                while (await sqlDataReader.ReadAsync())
                 {
                     bool flag = false;
                     if (dictionary.TryGetValue((T)((object)sqlDataReader[keyColumnIndex]), out List<U> list2))
@@ -655,7 +654,7 @@ namespace Database.Aniki
                 return dictionary;
         }
 
-        public Dictionary<T, List<U>>? GetDictionaryOfListObjects<T, U>(SqlCommand cmd, string keyColumnName) where U : class, new()
+        public async Task<Dictionary<T, List<U>>?> GetDictionaryOfListObjectsAsync<T, U>(SqlCommand cmd, string keyColumnName) where U : class, new()
         {
             var dictionary = new Dictionary<T, List<U>>();
             try
@@ -663,9 +662,9 @@ namespace Database.Aniki
                 using var sqlConnection = new SqlConnection(_options.ConnectionSting);
                 sqlConnection.StatisticsEnabled = true;
                 sqlConnection.RetryLogicProvider = _sqlRetryProvider;
-                sqlConnection.Open();
+                await sqlConnection.OpenAsync();
                 cmd.Connection = sqlConnection;
-                using var sqlDataReader = cmd.ExecuteReader();
+                using var sqlDataReader = await cmd.ExecuteReaderAsync();
                 var typeFromHandle = typeof(U);
                 var objectPropertiesCache = Shared._ObjectPropertiesCache;
                 List<PropertyInfo> list;
@@ -678,7 +677,7 @@ namespace Database.Aniki
                         Shared._ObjectPropertiesCache.Add(typeFromHandle, list);
                     }
                 }
-                while (sqlDataReader.Read())
+                while (await sqlDataReader.ReadAsync())
                 {
                     var flag = false;
                     if (dictionary.TryGetValue((T)((object)sqlDataReader[keyColumnName]), out List<U> list2))
@@ -733,7 +732,7 @@ namespace Database.Aniki
         #endregion
 
         #region GetListListString
-        public List<List<string>>? GetListListString(SqlCommand cmd)
+        public async Task<List<List<string>>?> GetListListStringAsync(SqlCommand cmd)
         {
             var list = new List<List<string>>();
             try
@@ -741,10 +740,10 @@ namespace Database.Aniki
                 using var sqlConnection = new SqlConnection(_options.ConnectionSting);
                 sqlConnection.StatisticsEnabled = true;
                 sqlConnection.RetryLogicProvider = _sqlRetryProvider;
-                sqlConnection.Open();
+                await sqlConnection.OpenAsync();
                 cmd.Connection = sqlConnection;
-                using var sqlDataReader = cmd.ExecuteReader();
-                while (sqlDataReader.Read())
+                using var sqlDataReader = await cmd.ExecuteReaderAsync();
+                while (await sqlDataReader.ReadAsync())
                 {
                     var list2 = new List<string>();
                     for (int i = 0; i < sqlDataReader.FieldCount; i++)
@@ -767,7 +766,7 @@ namespace Database.Aniki
                 return list;
         }
 
-        public List<List<string>>? GetListListString(SqlCommand cmd, string dateFormat)
+        public async Task<List<List<string>>?> GetListListStringAsync(SqlCommand cmd, string dateFormat)
         {
             var list = new List<List<string>>();
             bool flag = true;
@@ -777,10 +776,10 @@ namespace Database.Aniki
                 using var sqlConnection = new SqlConnection(_options.ConnectionSting);
                 sqlConnection.StatisticsEnabled = true;
                 sqlConnection.RetryLogicProvider = _sqlRetryProvider;
-                sqlConnection.Open();
+                await sqlConnection.OpenAsync();
                 cmd.Connection = sqlConnection;
-                using var sqlDataReader = cmd.ExecuteReader();
-                while (sqlDataReader.Read())
+                using var sqlDataReader = await cmd.ExecuteReaderAsync();
+                while (await sqlDataReader.ReadAsync())
                 {
                     List<string> list2 = new List<string>();
                     if (flag)
@@ -830,27 +829,27 @@ namespace Database.Aniki
                 return list;
         }
 
-        public List<List<string>>? GetListListString(string query, CommandType commandType)
+        public async Task<List<List<string>>?> GetListListStringAsync(string query, CommandType commandType)
         {
             using var sqlCommand = new SqlCommand(query);
             sqlCommand.CommandType = commandType;
             sqlCommand.RetryLogicProvider = _sqlRetryProvider;
             sqlCommand.CommandTimeout = _options.DbCommandTimeout;
-            return GetListListString(sqlCommand);
+            return await GetListListStringAsync(sqlCommand);
         }
 
-        public List<List<string>>? GetListListString(string query, CommandType commandType, string dateFormat)
+        public async Task<List<List<string>>?> GetListListStringAsync(string query, CommandType commandType, string dateFormat)
         {
             using var sqlCommand = new SqlCommand(query);
             sqlCommand.CommandType = commandType;
             sqlCommand.RetryLogicProvider = _sqlRetryProvider;
             sqlCommand.CommandTimeout = _options.DbCommandTimeout;
-            return GetListListString(sqlCommand, dateFormat);
+            return await GetListListStringAsync(sqlCommand, dateFormat);
         }
         #endregion
 
         #region GetListOf<T>
-        public List<T>? GetListOf<T>(SqlCommand cmd, SqlConnection connection)
+        public async Task<List<T>?> GetListOfAsync<T>(SqlCommand cmd, SqlConnection connection)
         {
             connection.StatisticsEnabled = true;
             var list = new List<T>();
@@ -861,11 +860,11 @@ namespace Database.Aniki
             {
                 if (connection.State != ConnectionState.Open && connection.State != ConnectionState.Connecting)
                 {
-                    connection.Close();
-                    connection.Open();
+                    await connection.CloseAsync();
+                    await connection.OpenAsync();
                 }
                 using var sqlDataReader = cmd.ExecuteReader();
-                while (sqlDataReader.Read())
+                while (await sqlDataReader.ReadAsync())
                 {
                     T obj = (T)Activator.CreateInstance(type);
                     foreach (var propertyInfo in type.GetProperties())
@@ -897,51 +896,51 @@ namespace Database.Aniki
             return list;
         }
 
-        public List<T>? GetListOf<T>(SqlCommand cmd)
+        public async Task<List<T>?> GetListOfAsync<T>(SqlCommand cmd)
         {
             using var sqlConnection = new SqlConnection(_options.ConnectionSting);
             sqlConnection.StatisticsEnabled = true;
             sqlConnection.RetryLogicProvider = _sqlRetryProvider;
-            sqlConnection.Open();
+            await sqlConnection.OpenAsync();
             cmd.Connection = sqlConnection;
-            return GetListOf<T>(cmd,sqlConnection);
+            return await GetListOfAsync<T>(cmd, sqlConnection);
         }
 
-        public List<T>? GetListOf<T>(string query, CommandType commandType)
+        public async Task<List<T>?> GetListOfAsync<T>(string query, CommandType commandType)
         {
             using var sqlCommand = new SqlCommand(query);
             sqlCommand.CommandType = commandType;
             sqlCommand.RetryLogicProvider = _sqlRetryProvider;
             sqlCommand.CommandTimeout = _options.DbCommandTimeout;
-            return GetListOf<T>(sqlCommand);
+            return await GetListOfAsync<T>(sqlCommand);
         }
 
-        public List<T>? GetListOf<T>(string query, CommandType commandType, SqlParameter[] sqlParameters)
+        public async Task<List<T>?> GetListOfAsync<T>(string query, CommandType commandType, SqlParameter[] sqlParameters)
         {
             using var sqlCommand = new SqlCommand(query);
             sqlCommand.CommandType = commandType;
             sqlCommand.RetryLogicProvider = _sqlRetryProvider;
             sqlCommand.CommandTimeout = _options.DbCommandTimeout;
             sqlCommand.AttachParameters(sqlParameters);
-            return GetListOf<T>(sqlCommand);
+            return await GetListOfAsync<T>(sqlCommand);
         }
 
         #endregion
 
         #region GetScalar
-        public object GetScalar(SqlCommand cmd)
+        public async Task<object> GetScalarAsync(SqlCommand cmd)
         {
             try
             {
                 using var sqlConnection = new SqlConnection(_options.ConnectionSting);
                 sqlConnection.StatisticsEnabled = true;
                 sqlConnection.RetryLogicProvider = _sqlRetryProvider;
-                sqlConnection.Open();
+                await sqlConnection.OpenAsync();
                 using var sqlTransaction = sqlConnection.BeginTransaction();
                 cmd.Connection = sqlConnection;
                 cmd.Transaction = sqlTransaction;
-                var obj = cmd.ExecuteScalar();
-                sqlTransaction.Commit();
+                var obj = await cmd.ExecuteScalarAsync();
+                await sqlTransaction.CommitAsync();
                 LogSqlInfo(cmd, sqlConnection);
                 return obj;
             }
@@ -952,28 +951,28 @@ namespace Database.Aniki
             }
         }
 
-        public object GetScalar(SqlCommand cmd, SqlConnection connection, bool closeWhenComplete = false)
+        public async Task<object> GetScalarAsync(SqlCommand cmd, SqlConnection connection, bool closeWhenComplete = false)
         {
-            cmd.Connection = connection;
             connection.StatisticsEnabled = true;
+            cmd.Connection = connection;
             object result;
             try
             {
                 if (connection.State != ConnectionState.Open && connection.State != ConnectionState.Connecting)
                 {
-                    connection.Close();
-                    connection.Open();
+                    await connection.CloseAsync();
+                    await connection.OpenAsync();
                 }
                 using (var sqlTransaction = connection.BeginTransaction())
                 {
                     cmd.Transaction = sqlTransaction;
-                    result = cmd.ExecuteScalar();
-                    sqlTransaction.Commit();
+                    result = await cmd.ExecuteScalarAsync();
+                    await sqlTransaction.CommitAsync();
                 }
                 LogSqlInfo(cmd, connection);
                 if (closeWhenComplete)
                 {
-                    connection.Close();
+                    await connection.CloseAsync();
                 }
             }
             catch (Exception ex)
@@ -984,38 +983,38 @@ namespace Database.Aniki
             return result;
         }
 
-        public object GetScalar(string query, CommandType commandType)
+        public async Task<object> GetScalarAsync(string query, CommandType commandType)
         {
             using var sqlCommand = new SqlCommand(query);
             sqlCommand.CommandType = commandType;
             sqlCommand.CommandTimeout = _options.DbCommandTimeout;
             sqlCommand.RetryLogicProvider = _sqlRetryProvider;
-            return GetScalar(sqlCommand);
+            return await GetScalarAsync(sqlCommand);
         }
 
-        public object GetScalar(string query, CommandType commandType, Array sqlParameters)
+        public async Task<object> GetScalarAsync(string query, CommandType commandType, Array sqlParameters)
         {
             using var sqlCommand = new SqlCommand(query);
             sqlCommand.CommandType = commandType;
             sqlCommand.CommandTimeout = _options.DbCommandTimeout;
             sqlCommand.RetryLogicProvider = _sqlRetryProvider;
             sqlCommand.AttachParameters(sqlParameters);
-            return GetScalar(sqlCommand);
+            return await GetScalarAsync(sqlCommand);
         }
 
-        public object GetScalar(string query, CommandType commandType, SqlParameter[] sqlParameters)
+        public async Task<object> GetScalarAsync(string query, CommandType commandType, SqlParameter[] sqlParameters)
         {
             using var sqlCommand = new SqlCommand(query);
             sqlCommand.CommandType = commandType;
             sqlCommand.CommandTimeout = _options.DbCommandTimeout;
             sqlCommand.RetryLogicProvider = _sqlRetryProvider;
             sqlCommand.AttachParameters(sqlParameters);
-            return GetScalar(sqlCommand);
+            return await GetScalarAsync(sqlCommand);
         }
         #endregion
 
         #region ExecuteNonQuery
-        public int ExecuteNonQuery(SqlCommand cmd)
+        public async Task<int> ExecuteNonQueryAsync(SqlCommand cmd)
         {
             int result;
             try
@@ -1023,12 +1022,12 @@ namespace Database.Aniki
                 using var sqlConnection = new SqlConnection(_options.ConnectionSting);
                 sqlConnection.StatisticsEnabled = true;
                 sqlConnection.RetryLogicProvider = _sqlRetryProvider;
-                sqlConnection.Open();
+                await sqlConnection.OpenAsync();
                 using var sqlTransaction = sqlConnection.BeginTransaction();
                 cmd.Connection = sqlConnection;
                 cmd.Transaction = sqlTransaction;
-                int num = cmd.ExecuteNonQuery();
-                sqlTransaction.Commit();
+                int num = await cmd.ExecuteNonQueryAsync();
+                await sqlTransaction.CommitAsync();
                 result = num;
                 LogSqlInfo(cmd, sqlConnection);
             }
@@ -1041,28 +1040,28 @@ namespace Database.Aniki
             return result;
         }
 
-        public int ExecuteNonQuery(SqlCommand cmd, SqlConnection connection, bool closeWhenComplete = false)
+        public async Task<int> ExecuteNonQueryAsync(SqlCommand cmd, SqlConnection connection, bool closeWhenComplete = false)
         {
             int result;
             try
             {
-                cmd.Connection = connection;
                 connection.StatisticsEnabled = true;
+                cmd.Connection = connection;
                 if (connection.State != ConnectionState.Open && connection.State != ConnectionState.Connecting)
                 {
-                    connection.Close();
-                    connection.Open();
+                    await connection.CloseAsync();
+                    await connection.OpenAsync();
                 }
                 using (var sqlTransaction = connection.BeginTransaction())
                 {
                     cmd.Transaction = sqlTransaction;
-                    result = cmd.ExecuteNonQuery();
-                    sqlTransaction.Commit();
+                    result = await cmd.ExecuteNonQueryAsync();
+                    await sqlTransaction.CommitAsync();
                 }
                 LogSqlInfo(cmd, connection);
                 if (closeWhenComplete)
                 {
-                    connection.Close();
+                    await connection.CloseAsync();
                 }
             }
             catch (Exception ex)
@@ -1073,88 +1072,66 @@ namespace Database.Aniki
             return result;
         }
 
-        public int ExecuteNonQuery(string query, CommandType commandType)
+        public async Task<int> ExecuteNonQueryAsync(string query, CommandType commandType)
         {
             using SqlCommand sqlCommand = new SqlCommand(query);
             sqlCommand.CommandType = commandType;
             sqlCommand.CommandTimeout = _options.DbCommandTimeout;
             sqlCommand.RetryLogicProvider = _sqlRetryProvider;
-            return ExecuteNonQuery(sqlCommand);
+            return await ExecuteNonQueryAsync(sqlCommand);
         }
 
-        public int ExecuteNonQuery(string query, CommandType commandType, Array sqlParameters)
+        public async Task<int> ExecuteNonQueryAsync(string query, CommandType commandType, Array sqlParameters)
         {
             using var sqlCommand = new SqlCommand(query);
             sqlCommand.CommandType = commandType;
             sqlCommand.CommandTimeout = _options.DbCommandTimeout;
             sqlCommand.RetryLogicProvider = _sqlRetryProvider;
             sqlCommand.AttachParameters(sqlParameters);
-            return ExecuteNonQuery(sqlCommand);
+            return await ExecuteNonQueryAsync(sqlCommand);
         }
-        public int ExecuteNonQuery(string query, CommandType commandType, SqlParameter[] sqlParameters)
+        public async Task<int> ExecuteNonQueryAsync(string query, CommandType commandType, SqlParameter[] sqlParameters)
         {
             using var sqlCommand = new SqlCommand(query);
             sqlCommand.CommandType = commandType;
             sqlCommand.CommandTimeout = _options.DbCommandTimeout;
             sqlCommand.RetryLogicProvider = _sqlRetryProvider;
             sqlCommand.AttachParameters(sqlParameters);
-            return ExecuteNonQuery(sqlCommand);
+            return await ExecuteNonQueryAsync(sqlCommand);
         }
         #endregion
 
         #region ExecuteReader
-        public IDataReader ExecuteReader(string query, CommandType commandType)
+        public async Task<IDataReader> ExecuteReaderAsync(string query, CommandType commandType)
         {
             SqlConnection? connection = null;
             try
             {
-                connection = new SqlConnection(_options.ConnectionSting) 
-                { 
+                connection = new SqlConnection(_options.ConnectionSting)
+                {
                     RetryLogicProvider = _sqlRetryProvider,
                     StatisticsEnabled = true
                 };
-                connection.Open();
+                await connection.OpenAsync();
                 var cmd = new SqlCommand(query)
                 {
                     CommandType = commandType,
                     CommandTimeout = _options.DbCommandTimeout,
                     RetryLogicProvider = _sqlRetryProvider
                 };
-                var reader = cmd.ExecuteReader();
+                var reader = await cmd.ExecuteReaderAsync();
                 LogSqlInfo(cmd, connection);
                 return reader;
-            }
-            catch(Exception ex)
-            {
-                LogSqlError(query, ex);
-                connection?.Close();
-                throw;
-            }
-        }
-
-        public IDataReader ExecuteReader(string query, CommandType commandType, SqlParameter[] sqlParameters)
-        {
-            SqlConnection? connection = null;
-            try
-            {
-                connection = new SqlConnection(_options.ConnectionSting)
-                {
-                    RetryLogicProvider = _sqlRetryProvider,
-                    StatisticsEnabled = true
-                };
-                connection.Open();
-
-                return ExecuteReader(connection, null, commandType, query, sqlParameters);
             }
             catch (Exception ex)
             {
                 LogSqlError(query, ex);
-                connection?.Close();
+                connection?.CloseAsync();
                 throw;
             }
         }
 
-        public IDataReader ExecuteReader(SqlCommand cmd)
+        public async Task<IDataReader> ExecuteReaderAsync(string query, CommandType commandType, SqlParameter[] sqlParameters)
         {
             SqlConnection? connection = null;
             try
@@ -1164,43 +1141,65 @@ namespace Database.Aniki
                     RetryLogicProvider = _sqlRetryProvider,
                     StatisticsEnabled = true
                 };
-                connection.Open();
-                var reader = cmd.ExecuteReader();
+                await connection.OpenAsync();
+
+                return await ExecuteReaderAsync(connection, null, commandType, query, sqlParameters);
+            }
+            catch (Exception ex)
+            {
+                LogSqlError(query, ex);
+                connection?.CloseAsync();
+                throw;
+            }
+        }
+
+        public async Task<IDataReader> ExecuteReaderAsync(SqlCommand cmd)
+        {
+            SqlConnection? connection = null;
+            try
+            {
+                connection = new SqlConnection(_options.ConnectionSting)
+                {
+                    RetryLogicProvider = _sqlRetryProvider,
+                    StatisticsEnabled = true
+                };
+                await connection.OpenAsync();
+                var reader = await cmd.ExecuteReaderAsync();
                 LogSqlInfo(cmd, connection);
                 return reader;
             }
             catch (Exception ex)
             {
                 LogSqlError(cmd, ex);
-                connection?.Close();
+                connection?.CloseAsync();
                 throw;
             }
         }
 
-        public IDataReader ExecuteReader(SqlCommand cmd, SqlConnection connection)
+        public async Task<IDataReader> ExecuteReaderAsync(SqlCommand cmd, SqlConnection connection)
         {
             try
             {
-                cmd.Connection = connection;
                 connection.StatisticsEnabled = true;
+                cmd.Connection = connection;
                 if (connection.State != ConnectionState.Open && connection.State != ConnectionState.Connecting)
                 {
-                    connection.Close();
-                    connection.Open();
+                    await connection.OpenAsync();
+                    await connection.OpenAsync();
                 }
-                var reader = cmd.ExecuteReader();
+                var reader = await cmd.ExecuteReaderAsync();
                 LogSqlInfo(cmd, connection);
                 return reader;
             }
             catch (Exception ex)
             {
                 LogSqlError(cmd, ex);
-                connection?.Close();
+                connection?.CloseAsync();
                 throw;
             }
         }
 
-        public IDataReader ExecuteReader(SqlConnection connection, SqlTransaction? transaction, CommandType commandType, string commandText, SqlParameter[] commandParameters)
+        public async Task<IDataReader> ExecuteReaderAsync(SqlConnection connection, SqlTransaction? transaction, CommandType commandType, string commandText, SqlParameter[] commandParameters)
         {
             // Create a command and prepare it for execution
             var cmd = new SqlCommand
@@ -1220,21 +1219,22 @@ namespace Database.Aniki
 
             try
             {
+                connection.StatisticsEnabled = true;
                 if (connection.State != ConnectionState.Open && connection.State != ConnectionState.Connecting)
                 {
-                    connection.Close();
-                    connection.Open();
+                    await connection.OpenAsync();
+                    await connection.OpenAsync();
                 }
-                connection.StatisticsEnabled = true;
+
                 // Create a reader
-                var reader = cmd.ExecuteReader();
+                var reader = await cmd.ExecuteReaderAsync();
                 LogSqlInfo(cmd, connection);
                 return reader;
             }
             catch (Exception ex)
             {
                 LogSqlError(commandText, ex);
-                connection?.Close();
+                connection?.CloseAsync();
                 throw;
             }
         }
