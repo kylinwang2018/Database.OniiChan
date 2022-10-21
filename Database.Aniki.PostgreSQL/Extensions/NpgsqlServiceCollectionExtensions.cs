@@ -1,5 +1,6 @@
 ﻿using Database.Aniki.PostgreSQL;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection.Extensions;
 
 namespace Database.Aniki
 {
@@ -17,10 +18,10 @@ namespace Database.Aniki
             this IServiceCollection serviceCollection)
         {
             // register dbprovider in service collection
-            serviceCollection.AddScoped<INpgsqlDbContext, NpgsqlDbContext>();
+            serviceCollection.TryAddScoped<INpgsqlDbContext, NpgsqlDbContext>();
 
             // register sql factory for create connection, command and dataAdapter
-            serviceCollection.AddScoped<INpgsqlConnectionFactory, NpgsqlConnectionFactory>();
+            serviceCollection.TryAddScoped<INpgsqlConnectionFactory, NpgsqlConnectionFactory>();
 
             return serviceCollection;
         }

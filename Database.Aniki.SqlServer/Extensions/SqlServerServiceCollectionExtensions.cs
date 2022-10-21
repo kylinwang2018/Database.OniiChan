@@ -1,5 +1,6 @@
 ﻿using Database.Aniki.SqlServer;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection.Extensions;
 
 namespace Database.Aniki
 {
@@ -17,10 +18,10 @@ namespace Database.Aniki
             this IServiceCollection serviceCollection)
         {
             // register dbprovider in service collection
-            serviceCollection.AddScoped<ISqlServerDbContext, SqlServerDbContext>();
+            serviceCollection.TryAddScoped<ISqlServerDbContext, SqlServerDbContext>();
 
             // register sql factory for create connection, command and dataAdapter
-            serviceCollection.AddScoped<ISqlConnectionFactory, SqlConnectionFactory>();
+            serviceCollection.TryAddScoped<ISqlConnectionFactory, SqlConnectionFactory>();
 
             return serviceCollection;
         }
