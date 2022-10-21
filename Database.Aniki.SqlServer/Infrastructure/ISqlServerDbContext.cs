@@ -28,6 +28,16 @@ namespace Database.Aniki
         Task<IDataReader> ExecuteReaderAsync(SqlConnection connection, SqlTransaction? transaction, CommandType commandType, string commandText, SqlParameter[] commandParameters);
         Task<IDataReader> ExecuteReaderAsync(string query, CommandType commandType);
         Task<IDataReader> ExecuteReaderAsync(string query, CommandType commandType, SqlParameter[] sqlParameters);
+        IDataReader ExecuteReaderSequential(SqlCommand cmd);
+        IDataReader ExecuteReaderSequential(SqlCommand cmd, SqlConnection connection);
+        IDataReader ExecuteReaderSequential(SqlConnection connection, SqlTransaction? transaction, CommandType commandType, string commandText, SqlParameter[] commandParameters);
+        IDataReader ExecuteReaderSequential(string query, CommandType commandType);
+        IDataReader ExecuteReaderSequential(string query, CommandType commandType, SqlParameter[] sqlParameters);
+        Task<IDataReader> ExecuteReaderSequentialAsync(SqlCommand cmd);
+        Task<IDataReader> ExecuteReaderSequentialAsync(SqlCommand cmd, SqlConnection connection);
+        Task<IDataReader> ExecuteReaderSequentialAsync(SqlConnection connection, SqlTransaction? transaction, CommandType commandType, string commandText, SqlParameter[] commandParameters);
+        Task<IDataReader> ExecuteReaderSequentialAsync(string query, CommandType commandType);
+        Task<IDataReader> ExecuteReaderSequentialAsync(string query, CommandType commandType, SqlParameter[] sqlParameters);
         List<string> GetColumnToString(SqlCommand cmd, int columnIndex = 0);
         List<string> GetColumnToString(SqlCommand cmd, SqlConnection connection, int columnIndex = 0, bool closeWhenComplete = false);
         List<string> GetColumnToString(SqlCommand cmd, SqlConnection connection, string columnName, bool closeWhenComplete = false);

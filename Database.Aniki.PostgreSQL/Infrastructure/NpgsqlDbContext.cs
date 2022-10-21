@@ -1,7 +1,7 @@
 ﻿using Database.Aniki.DataManipulators;
 using Database.Aniki.Exceptions;
-using Database.Aniki.SqlServer;
-using Microsoft.Data.SqlClient;
+using Database.Aniki.PostgreSQL;
+using Npgsql;
 using System;
 using System.Collections.Generic;
 using System.Data;
@@ -10,28 +10,28 @@ using System.Reflection;
 
 namespace Database.Aniki
 {
-    internal partial class NpgsqlDbContext : ISqlServerDbContext
+    internal partial class NpgsqlDbContext : INpgsqlDbContext
     {
         #region GetColumnToString
-        public List<string> GetColumnToString(SqlCommand cmd, int columnIndex = 0)
+        public List<string> GetColumnToString(NpgsqlCommand cmd, int columnIndex = 0)
         {
             var datatable = GetDataTable(cmd);
             return DataTableHelper.DataTableToListString(datatable, columnIndex);
         }
 
-        public List<string> GetColumnToString(SqlCommand cmd, SqlConnection connection, int columnIndex = 0, bool closeWhenComplete = false)
+        public List<string> GetColumnToString(NpgsqlCommand cmd, NpgsqlConnection connection, int columnIndex = 0, bool closeWhenComplete = false)
         {
             var datatable = GetDataTable(cmd, connection, closeWhenComplete);
             return DataTableHelper.DataTableToListString(datatable, columnIndex);
         }
 
-        public List<string> GetColumnToString(SqlCommand cmd, string columnName)
+        public List<string> GetColumnToString(NpgsqlCommand cmd, string columnName)
         {
             var datatable = GetDataTable(cmd);
             return DataTableHelper.DataTableToListString(datatable, columnName);
         }
 
-        public List<string> GetColumnToString(SqlCommand cmd, SqlConnection connection, string columnName, bool closeWhenComplete = false)
+        public List<string> GetColumnToString(NpgsqlCommand cmd, NpgsqlConnection connection, string columnName, bool closeWhenComplete = false)
         {
             var datatable = GetDataTable(cmd, connection, closeWhenComplete);
             return DataTableHelper.DataTableToListString(datatable, columnName);
@@ -39,22 +39,19 @@ namespace Database.Aniki
         #endregion
 
         #region GetDataTable
-        public DataTable GetDataTable(SqlCommand cmd)
+        public DataTable GetDataTable(NpgsqlCommand cmd)
         {
             var dataTable = new DataTable();
             try
             {
-                using var sqlConnection = _connectionFactory.CreateConnection();
-                if (_options.EnableStatistics)
-                    sqlConnection.StatisticsEnabled = true;
-                cmd.Connection = sqlConnection;
-                sqlConnection.RetryLogicProvider = _sqlRetryProvider;
-                sqlConnection.Open();
+                using var NpgsqlConnection = _connectionFactory.CreateConnection();
+                cmd.Connection = NpgsqlConnection;
+                NpgsqlConnection.OpenWithRetry(_sqlRetryOption);
                 using var sqlDataAdapter = _connectionFactory.CreateDataAdapter();
                 sqlDataAdapter.SelectCommand = cmd;
                 sqlDataAdapter.Fill(dataTable);
 
-                LogSqlInfo(cmd, sqlConnection);
+                LogSqlInfo(cmd, NpgsqlConnection);
             }
             catch (Exception ex)
             {
@@ -64,19 +61,16 @@ namespace Database.Aniki
             return dataTable;
         }
 
-        public DataTable GetDataTable(SqlCommand cmd, SqlConnection connection, bool closeWhenComplete = false)
+        public DataTable GetDataTable(NpgsqlCommand cmd, NpgsqlConnection connection, bool closeWhenComplete = false)
         {
             try
             {
-                if(_options.EnableStatistics)
-                    connection.StatisticsEnabled = true;
-   
                 var dataTable = new DataTable();
                 cmd.Connection = connection;
                 if (connection.State != ConnectionState.Open && connection.State != ConnectionState.Connecting)
                 {
-                    connection.Close();
-                    connection.Open();
+                    connection.CloseWithRetry(_sqlRetryOption);
+                    connection.OpenWithRetry(_sqlRetryOption);
                 }
                 using (var sqlTransaction = connection.BeginTransaction())
                 {
@@ -89,7 +83,7 @@ namespace Database.Aniki
                 LogSqlInfo(cmd, connection);
                 if (closeWhenComplete)
                 {
-                    connection.Close();
+                    connection.CloseWithRetry(_sqlRetryOption);
                 }
                 return dataTable;
             }
@@ -102,43 +96,40 @@ namespace Database.Aniki
 
         public DataTable GetDataTable(string query, CommandType commandType)
         {
-            using var sqlCommand = _connectionFactory.CreateCommand();
-            sqlCommand.CommandText = query;
-            sqlCommand.CommandType = commandType;
-            sqlCommand.CommandTimeout = _options.DbCommandTimeout;
-            sqlCommand.RetryLogicProvider = _sqlRetryProvider;
-            return GetDataTable(sqlCommand);
+            using var NpgsqlCommand = _connectionFactory.CreateCommand();
+            NpgsqlCommand.CommandText = query;
+            NpgsqlCommand.CommandType = commandType;
+            NpgsqlCommand.CommandTimeout = _options.DbCommandTimeout;
+            return GetDataTable(NpgsqlCommand);
         }
 
-        public DataTable GetDataTable(string query, CommandType commandType, Array sqlParameters)
+        public DataTable GetDataTable(string query, CommandType commandType, Array NpgsqlParameters)
         {
-            using var sqlCommand = _connectionFactory.CreateCommand();
-            sqlCommand.CommandText = query;
-            sqlCommand.CommandType = commandType;
-            sqlCommand.CommandTimeout = _options.DbCommandTimeout;
-            sqlCommand.RetryLogicProvider = _sqlRetryProvider;
-            sqlCommand.AttachParameters(sqlParameters);
-            return GetDataTable(sqlCommand);
+            using var NpgsqlCommand = _connectionFactory.CreateCommand();
+            NpgsqlCommand.CommandText = query;
+            NpgsqlCommand.CommandType = commandType;
+            NpgsqlCommand.CommandTimeout = _options.DbCommandTimeout;
+            NpgsqlCommand.AttachParameters(NpgsqlParameters);
+            return GetDataTable(NpgsqlCommand);
         }
 
-        public DataTable GetDataTable(string query, CommandType commandType, SqlParameter[] sqlParameters)
+        public DataTable GetDataTable(string query, CommandType commandType, NpgsqlParameter[] NpgsqlParameters)
         {
-            using var sqlCommand = _connectionFactory.CreateCommand();
-            sqlCommand.CommandText = query;
-            sqlCommand.CommandType = commandType;
-            sqlCommand.CommandTimeout = _options.DbCommandTimeout;
-            sqlCommand.RetryLogicProvider = _sqlRetryProvider;
-            sqlCommand.AttachParameters(sqlParameters);
-            return GetDataTable(sqlCommand);
+            using var NpgsqlCommand = _connectionFactory.CreateCommand();
+            NpgsqlCommand.CommandText = query;
+            NpgsqlCommand.CommandType = commandType;
+            NpgsqlCommand.CommandTimeout = _options.DbCommandTimeout;
+            NpgsqlCommand.AttachParameters(NpgsqlParameters);
+            return GetDataTable(NpgsqlCommand);
         }
 
-        public List<T> GetDataTable<T>(SqlCommand cmd) where T : class, new()
+        public List<T> GetDataTable<T>(NpgsqlCommand cmd) where T : class, new()
         {
             var datatable = GetDataTable(cmd);
             return DataTableHelper.DataTableToList<T>(datatable);
         }
 
-        public List<T> GetDataTable<T>(SqlCommand cmd, SqlConnection connection, bool closeWhenComplete = false) where T : class, new()
+        public List<T> GetDataTable<T>(NpgsqlCommand cmd, NpgsqlConnection connection, bool closeWhenComplete = false) where T : class, new()
         {
             var datatable = GetDataTable(cmd, connection, closeWhenComplete);
             return DataTableHelper.DataTableToList<T>(datatable);
@@ -150,27 +141,27 @@ namespace Database.Aniki
             return DataTableHelper.DataTableToList<T>(datatable);
         }
 
-        public List<T> GetDataTable<T>(string query, CommandType commandType, Array sqlParameters) where T : class, new()
+        public List<T> GetDataTable<T>(string query, CommandType commandType, Array NpgsqlParameters) where T : class, new()
         {
-            var datatable = GetDataTable(query, commandType, sqlParameters);
+            var datatable = GetDataTable(query, commandType, NpgsqlParameters);
             return DataTableHelper.DataTableToList<T>(datatable);
         }
 
-        public List<T> GetDataTable<T>(string query, CommandType commandType, SqlParameter[] sqlParameters) where T : class, new()
+        public List<T> GetDataTable<T>(string query, CommandType commandType, NpgsqlParameter[] NpgsqlParameters) where T : class, new()
         {
-            var datatable = GetDataTable(query, commandType, sqlParameters);
+            var datatable = GetDataTable(query, commandType, NpgsqlParameters);
             return DataTableHelper.DataTableToList<T>(datatable);
         }
         #endregion
 
         #region GetDataRow
-        public T? GetDataRow<T>(SqlCommand cmd) where T : class, new()
+        public T? GetDataRow<T>(NpgsqlCommand cmd) where T : class, new()
         {
             var datatable = GetDataTable(cmd);
             return DataTableHelper.DataRowToT<T>(datatable);
         }
 
-        public T? GetDataRow<T>(SqlCommand cmd, SqlConnection connection, bool closeWhenComplete = false) where T : class, new()
+        public T? GetDataRow<T>(NpgsqlCommand cmd, NpgsqlConnection connection, bool closeWhenComplete = false) where T : class, new()
         {
             var datatable = GetDataTable(cmd, connection, closeWhenComplete);
             return DataTableHelper.DataRowToT<T>(datatable);
@@ -182,15 +173,15 @@ namespace Database.Aniki
             return DataTableHelper.DataRowToT<T>(datatable);
         }
 
-        public T? GetDataRow<T>(string query, CommandType commandType, Array sqlParameters) where T : class, new()
+        public T? GetDataRow<T>(string query, CommandType commandType, Array NpgsqlParameters) where T : class, new()
         {
-            var datatable = GetDataTable(query, commandType, sqlParameters);
+            var datatable = GetDataTable(query, commandType, NpgsqlParameters);
             return DataTableHelper.DataRowToT<T>(datatable);
         }
 
-        public T? GetDataRow<T>(string query, CommandType commandType, SqlParameter[] sqlParameters) where T : class, new()
+        public T? GetDataRow<T>(string query, CommandType commandType, NpgsqlParameter[] NpgsqlParameters) where T : class, new()
         {
-            var datatable = GetDataTable(query, commandType, sqlParameters);
+            var datatable = GetDataTable(query, commandType, NpgsqlParameters);
             return DataTableHelper.DataRowToT<T>(datatable);
         }
         #endregion
@@ -201,25 +192,21 @@ namespace Database.Aniki
             var dictionary = new Dictionary<T, U>();
             try
             {
-                using var sqlConnection = _connectionFactory.CreateConnection();
-                if (_options.EnableStatistics)
-                    sqlConnection.StatisticsEnabled = true;
-                sqlConnection.RetryLogicProvider = _sqlRetryProvider;
-                sqlConnection.Open();
-                using var sqlCommand = sqlConnection.CreateCommand();
-                sqlCommand.CommandType = commandType;
-                sqlCommand.Connection = sqlConnection;
-                sqlCommand.CommandTimeout = _options.DbCommandTimeout;
-                sqlCommand.RetryLogicProvider = _sqlRetryProvider;
-                sqlCommand.CommandText = query;
-                using var sqlDataReader = sqlCommand.ExecuteReader();
+                using var NpgsqlConnection = _connectionFactory.CreateConnection();
+                NpgsqlConnection.OpenWithRetry(_sqlRetryOption);
+                using var NpgsqlCommand = NpgsqlConnection.CreateCommand();
+                NpgsqlCommand.CommandType = commandType;
+                NpgsqlCommand.Connection = NpgsqlConnection;
+                NpgsqlCommand.CommandTimeout = _options.DbCommandTimeout;
+                NpgsqlCommand.CommandText = query;
+                using var sqlDataReader = NpgsqlCommand.ExecuteReaderWithRetry(_sqlRetryOption);;
                 if (sqlDataReader.FieldCount < 2)
                     throw new DatabaseException("Query did not return at least two columns of data.");
                 while (sqlDataReader.Read())
                 {
                     dictionary.Add((T)sqlDataReader[0], (U)sqlDataReader[1]);
                 }
-                LogSqlInfo(sqlCommand, sqlConnection);
+                LogSqlInfo(NpgsqlCommand, NpgsqlConnection);
             }
             catch (Exception ex)
             {
@@ -233,25 +220,22 @@ namespace Database.Aniki
                 return dictionary;
         }
 
-        public Dictionary<T, U>? GetDictionary<T, U>(SqlCommand cmd)
+        public Dictionary<T, U>? GetDictionary<T, U>(NpgsqlCommand cmd)
         {
             var dictionary = new Dictionary<T, U>();
             try
             {
-                using var sqlConnection = _connectionFactory.CreateConnection();
-                if (_options.EnableStatistics)
-                    sqlConnection.StatisticsEnabled = true;
-                sqlConnection.RetryLogicProvider = _sqlRetryProvider;
-                sqlConnection.Open();
-                cmd.Connection = sqlConnection;
-                using var sqlDataReader = cmd.ExecuteReader();
+                using var NpgsqlConnection = _connectionFactory.CreateConnection();
+                NpgsqlConnection.OpenWithRetry(_sqlRetryOption);
+                cmd.Connection = NpgsqlConnection;
+                using var sqlDataReader = cmd.ExecuteReaderWithRetry(_sqlRetryOption);
                 if (sqlDataReader.FieldCount < 2)
                     throw new DatabaseException("Query did not return at least two columns of data.");
                 while (sqlDataReader.Read())
                 {
                     dictionary.Add((T)sqlDataReader[0], (U)sqlDataReader[1]);
                 }
-                LogSqlInfo(cmd, sqlConnection);
+                LogSqlInfo(cmd, NpgsqlConnection);
             }
             catch (Exception ex)
             {
@@ -271,18 +255,15 @@ namespace Database.Aniki
 
             try
             {
-                using var sqlConnection = _connectionFactory.CreateConnection();
-                if (_options.EnableStatistics)
-                    sqlConnection.StatisticsEnabled = true;
-                sqlConnection.RetryLogicProvider = _sqlRetryProvider;
-                sqlConnection.Open();
-                using var sqlCommand = _connectionFactory.CreateCommand();
-                sqlCommand.CommandType = commandType;
-                sqlCommand.Connection = sqlConnection;
-                sqlCommand.CommandTimeout = _options.DbCommandTimeout;
-                sqlCommand.RetryLogicProvider = _sqlRetryProvider;
-                sqlCommand.CommandText = query;
-                using var sqlDataReader = sqlCommand.ExecuteReader();
+                using var NpgsqlConnection = _connectionFactory.CreateConnection();
+                NpgsqlConnection.OpenWithRetry(_sqlRetryOption);
+                using var NpgsqlCommand = _connectionFactory.CreateCommand();
+                NpgsqlCommand.CommandType = commandType;
+                NpgsqlCommand.Connection = NpgsqlConnection;
+                NpgsqlCommand.CommandTimeout = _options.DbCommandTimeout;
+                
+                NpgsqlCommand.CommandText = query;
+                using var sqlDataReader = NpgsqlCommand.ExecuteReaderWithRetry(_sqlRetryOption);
                 if (sqlDataReader.FieldCount < 2 &&
                     !(keyColumnIndex == valueColumnIndex && sqlDataReader.FieldCount == 1))
                     throw new DatabaseException("Query did not return at least two columns of data.");
@@ -290,7 +271,7 @@ namespace Database.Aniki
                 {
                     dictionary.Add((T)((object)sqlDataReader[keyColumnIndex]), (U)((object)sqlDataReader[valueColumnIndex]));
                 }
-                LogSqlInfo(sqlCommand, sqlConnection);
+                LogSqlInfo(NpgsqlCommand, NpgsqlConnection);
             }
             catch (Exception ex)
             {
@@ -304,18 +285,15 @@ namespace Database.Aniki
                 return dictionary;
         }
 
-        public Dictionary<T, U>? GetDictionary<T, U>(SqlCommand cmd, int keyColumnIndex, int valueColumnIndex)
+        public Dictionary<T, U>? GetDictionary<T, U>(NpgsqlCommand cmd, int keyColumnIndex, int valueColumnIndex)
         {
             var dictionary = new Dictionary<T, U>();
             try
             {
-                using var sqlConnection = _connectionFactory.CreateConnection();
-                if (_options.EnableStatistics)
-                    sqlConnection.StatisticsEnabled = true;
-                sqlConnection.RetryLogicProvider = _sqlRetryProvider;
-                sqlConnection.Open();
-                cmd.Connection = sqlConnection;
-                using var sqlDataReader = cmd.ExecuteReader();
+                using var NpgsqlConnection = _connectionFactory.CreateConnection();
+                NpgsqlConnection.OpenWithRetry(_sqlRetryOption);
+                cmd.Connection = NpgsqlConnection;
+                using var sqlDataReader = cmd.ExecuteReaderWithRetry(_sqlRetryOption);
                 if (sqlDataReader.FieldCount < 2 &&
                     !(keyColumnIndex == valueColumnIndex && sqlDataReader.FieldCount == 1))
                     throw new DatabaseException("Query did not return at least two columns of data.");
@@ -323,7 +301,7 @@ namespace Database.Aniki
                 {
                     dictionary.Add((T)sqlDataReader[keyColumnIndex], (U)sqlDataReader[valueColumnIndex]);
                 }
-                LogSqlInfo(cmd, sqlConnection);
+                LogSqlInfo(cmd, NpgsqlConnection);
             }
             catch (Exception ex)
             {
@@ -342,25 +320,22 @@ namespace Database.Aniki
             var dictionary = new Dictionary<string, string>();
             try
             {
-                using SqlConnection sqlConnection = _connectionFactory.CreateConnection();
-                if (_options.EnableStatistics)
-                    sqlConnection.StatisticsEnabled = true;
-                sqlConnection.RetryLogicProvider = _sqlRetryProvider;
-                sqlConnection.Open();
-                using var sqlCommand = _connectionFactory.CreateCommand();
-                sqlCommand.CommandType = commandType;
-                sqlCommand.Connection = sqlConnection;
-                sqlCommand.CommandTimeout = _options.DbCommandTimeout;
-                sqlCommand.RetryLogicProvider = _sqlRetryProvider;
-                sqlCommand.CommandText = query;
-                using var sqlDataReader = sqlCommand.ExecuteReader();
+                using NpgsqlConnection NpgsqlConnection = _connectionFactory.CreateConnection();
+                NpgsqlConnection.OpenWithRetry(_sqlRetryOption);
+                using var NpgsqlCommand = _connectionFactory.CreateCommand();
+                NpgsqlCommand.CommandType = commandType;
+                NpgsqlCommand.Connection = NpgsqlConnection;
+                NpgsqlCommand.CommandTimeout = _options.DbCommandTimeout;
+                
+                NpgsqlCommand.CommandText = query;
+                using var sqlDataReader = NpgsqlCommand.ExecuteReaderWithRetry(_sqlRetryOption);
                 if (sqlDataReader.FieldCount < 2)
                     throw new DatabaseException("Query did not return at least two columns of data.");
                 while (sqlDataReader.Read())
                 {
                     dictionary.Add(sqlDataReader[0].ToString(), sqlDataReader[1].ToString());
                 }
-                LogSqlInfo(sqlCommand, sqlConnection);
+                LogSqlInfo(NpgsqlCommand, NpgsqlConnection);
             }
             catch (Exception ex)
             {
@@ -374,25 +349,22 @@ namespace Database.Aniki
                 return dictionary;
         }
 
-        public Dictionary<string, string>? GetDictionary(SqlCommand cmd)
+        public Dictionary<string, string>? GetDictionary(NpgsqlCommand cmd)
         {
             var dictionary = new Dictionary<string, string>();
             try
             {
-                using var sqlConnection = _connectionFactory.CreateConnection();
-                if (_options.EnableStatistics)
-                    sqlConnection.StatisticsEnabled = true;
-                sqlConnection.RetryLogicProvider = _sqlRetryProvider;
-                sqlConnection.Open();
-                cmd.Connection = sqlConnection;
-                using var sqlDataReader = cmd.ExecuteReader();
+                using var NpgsqlConnection = _connectionFactory.CreateConnection();
+                NpgsqlConnection.OpenWithRetry(_sqlRetryOption);
+                cmd.Connection = NpgsqlConnection;
+                using var sqlDataReader = cmd.ExecuteReaderWithRetry(_sqlRetryOption);
                 if (sqlDataReader.FieldCount < 2)
                     throw new DatabaseException("Query did not return at least two columns of data.");
                 while (sqlDataReader.Read())
                 {
                     dictionary.Add(sqlDataReader[0].ToString(), sqlDataReader[1].ToString());
                 }
-                LogSqlInfo(cmd, sqlConnection);
+                LogSqlInfo(cmd, NpgsqlConnection);
             }
             catch (Exception ex)
             {
@@ -411,18 +383,15 @@ namespace Database.Aniki
             var dictionary = new Dictionary<string, string>();
             try
             {
-                using var sqlConnection = _connectionFactory.CreateConnection();
-                if (_options.EnableStatistics)
-                    sqlConnection.StatisticsEnabled = true;
-                sqlConnection.RetryLogicProvider = _sqlRetryProvider;
-                sqlConnection.Open();
-                using var sqlCommand = _connectionFactory.CreateCommand();
-                sqlCommand.CommandType = commandType;
-                sqlCommand.Connection = sqlConnection;
-                sqlCommand.CommandTimeout = _options.DbCommandTimeout;
-                sqlCommand.RetryLogicProvider = _sqlRetryProvider;
-                sqlCommand.CommandText = query;
-                using var sqlDataReader = sqlCommand.ExecuteReader();
+                using var NpgsqlConnection = _connectionFactory.CreateConnection();
+                NpgsqlConnection.OpenWithRetry(_sqlRetryOption);
+                using var NpgsqlCommand = _connectionFactory.CreateCommand();
+                NpgsqlCommand.CommandType = commandType;
+                NpgsqlCommand.Connection = NpgsqlConnection;
+                NpgsqlCommand.CommandTimeout = _options.DbCommandTimeout;
+                
+                NpgsqlCommand.CommandText = query;
+                using var sqlDataReader = NpgsqlCommand.ExecuteReaderWithRetry(_sqlRetryOption);
                 if (sqlDataReader.FieldCount < 2 &&
                     !(keyColumnIndex == valueColumnIndex && sqlDataReader.FieldCount == 1))
                     throw new DatabaseException("Query did not return at least two columns of data.");
@@ -430,7 +399,7 @@ namespace Database.Aniki
                 {
                     dictionary.Add(sqlDataReader[keyColumnIndex].ToString(), sqlDataReader[valueColumnIndex].ToString());
                 }
-                LogSqlInfo(sqlCommand, sqlConnection);
+                LogSqlInfo(NpgsqlCommand, NpgsqlConnection);
             }
             catch (Exception ex)
             {
@@ -444,18 +413,15 @@ namespace Database.Aniki
                 return dictionary;
         }
 
-        public Dictionary<string, string>? GetDictionary(SqlCommand cmd, int keyColumnIndex, int valueColumnIndex)
+        public Dictionary<string, string>? GetDictionary(NpgsqlCommand cmd, int keyColumnIndex, int valueColumnIndex)
         {
             var dictionary = new Dictionary<string, string>();
             try
             {
-                using var sqlConnection = _connectionFactory.CreateConnection();
-                if (_options.EnableStatistics)
-                    sqlConnection.StatisticsEnabled = true;
-                sqlConnection.RetryLogicProvider = _sqlRetryProvider;
-                sqlConnection.Open();
-                cmd.Connection = sqlConnection;
-                using var sqlDataReader = cmd.ExecuteReader();
+                using var NpgsqlConnection = _connectionFactory.CreateConnection();
+                NpgsqlConnection.OpenWithRetry(_sqlRetryOption);
+                cmd.Connection = NpgsqlConnection;
+                using var sqlDataReader = cmd.ExecuteReaderWithRetry(_sqlRetryOption);
                 if (sqlDataReader.FieldCount < 2 &&
                     !(keyColumnIndex == valueColumnIndex && sqlDataReader.FieldCount == 1))
                     throw new DatabaseException("Query did not return at least two columns of data.");
@@ -463,7 +429,7 @@ namespace Database.Aniki
                 {
                     dictionary.Add(sqlDataReader[keyColumnIndex].ToString(), sqlDataReader[valueColumnIndex].ToString());
                 }
-                LogSqlInfo(cmd, sqlConnection);
+                LogSqlInfo(cmd, NpgsqlConnection);
             }
             catch (Exception ex)
             {
@@ -479,18 +445,15 @@ namespace Database.Aniki
         #endregion
 
         #region GetDictionaryOfObjects
-        public Dictionary<T, U>? GetDictionaryOfObjects<T, U>(SqlCommand cmd, int keyColumnIndex) where U : class, new()
+        public Dictionary<T, U>? GetDictionaryOfObjects<T, U>(NpgsqlCommand cmd, int keyColumnIndex) where U : class, new()
         {
             var dictionary = new Dictionary<T, U>();
             try
             {
-                using var sqlConnection = _connectionFactory.CreateConnection();
-                if (_options.EnableStatistics)
-                    sqlConnection.StatisticsEnabled = true;
-                sqlConnection.RetryLogicProvider = _sqlRetryProvider;
-                sqlConnection.Open();
-                cmd.Connection = sqlConnection;
-                using var sqlDataReader = cmd.ExecuteReader();
+                using var NpgsqlConnection = _connectionFactory.CreateConnection();
+                NpgsqlConnection.OpenWithRetry(_sqlRetryOption);
+                cmd.Connection = NpgsqlConnection;
+                using var sqlDataReader = cmd.ExecuteReaderWithRetry(_sqlRetryOption);
                 var typeFromHandle = typeof(U);
                 var objectPropertiesCache = Shared._ObjectPropertiesCache;
                 List<PropertyInfo> list;
@@ -526,7 +489,7 @@ namespace Database.Aniki
                     }
                     dictionary.Add((T)sqlDataReader[keyColumnIndex], u);
                 }
-                LogSqlInfo(cmd, sqlConnection);
+                LogSqlInfo(cmd, NpgsqlConnection);
             }
             catch (Exception ex)
             {
@@ -540,18 +503,15 @@ namespace Database.Aniki
                 return dictionary;
         }
 
-        public Dictionary<T, U>? GetDictionaryOfObjects<T, U>(SqlCommand cmd, string keyColumnName) where U : class, new()
+        public Dictionary<T, U>? GetDictionaryOfObjects<T, U>(NpgsqlCommand cmd, string keyColumnName) where U : class, new()
         {
             var dictionary = new Dictionary<T, U>();
             try
             {
-                using var sqlConnection = _connectionFactory.CreateConnection();
-                if (_options.EnableStatistics)
-                    sqlConnection.StatisticsEnabled = true;
-                sqlConnection.RetryLogicProvider = _sqlRetryProvider;
-                sqlConnection.Open();
-                cmd.Connection = sqlConnection;
-                using var sqlDataReader = cmd.ExecuteReader();
+                using var NpgsqlConnection = _connectionFactory.CreateConnection();
+                NpgsqlConnection.OpenWithRetry(_sqlRetryOption);
+                cmd.Connection = NpgsqlConnection;
+                using var sqlDataReader = cmd.ExecuteReaderWithRetry(_sqlRetryOption);
                 var typeFromHandle = typeof(U);
                 var objectPropertiesCache = Shared._ObjectPropertiesCache;
                 List<PropertyInfo> list;
@@ -587,7 +547,7 @@ namespace Database.Aniki
                     }
                     dictionary.Add((T)sqlDataReader[keyColumnName], u);
                 }
-                LogSqlInfo(cmd, sqlConnection);
+                LogSqlInfo(cmd, NpgsqlConnection);
             }
             catch (Exception ex)
             {
@@ -601,18 +561,15 @@ namespace Database.Aniki
                 return dictionary;
         }
 
-        public Dictionary<T, List<U>>? GetDictionaryOfListObjects<T, U>(SqlCommand cmd, int keyColumnIndex) where U : class, new()
+        public Dictionary<T, List<U>>? GetDictionaryOfListObjects<T, U>(NpgsqlCommand cmd, int keyColumnIndex) where U : class, new()
         {
             var dictionary = new Dictionary<T, List<U>>();
             try
             {
-                using var sqlConnection = _connectionFactory.CreateConnection();
-                if (_options.EnableStatistics)
-                    sqlConnection.StatisticsEnabled = true;
-                sqlConnection.RetryLogicProvider = _sqlRetryProvider;
-                sqlConnection.Open();
-                cmd.Connection = sqlConnection;
-                using var sqlDataReader = cmd.ExecuteReader();
+                using var NpgsqlConnection = _connectionFactory.CreateConnection();
+                NpgsqlConnection.OpenWithRetry(_sqlRetryOption);
+                cmd.Connection = NpgsqlConnection;
+                using var sqlDataReader = cmd.ExecuteReaderWithRetry(_sqlRetryOption);
                 var typeFromHandle = typeof(U);
                 var objectPropertiesCache = Shared._ObjectPropertiesCache;
                 List<PropertyInfo> list;
@@ -656,7 +613,7 @@ namespace Database.Aniki
                         dictionary.Add((T)sqlDataReader[keyColumnIndex], list2);
                     }
                 }
-                LogSqlInfo(cmd, sqlConnection);
+                LogSqlInfo(cmd, NpgsqlConnection);
             }
             catch (Exception ex)
             {
@@ -670,18 +627,15 @@ namespace Database.Aniki
                 return dictionary;
         }
 
-        public Dictionary<T, List<U>>? GetDictionaryOfListObjects<T, U>(SqlCommand cmd, string keyColumnName) where U : class, new()
+        public Dictionary<T, List<U>>? GetDictionaryOfListObjects<T, U>(NpgsqlCommand cmd, string keyColumnName) where U : class, new()
         {
             var dictionary = new Dictionary<T, List<U>>();
             try
             {
-                using var sqlConnection = _connectionFactory.CreateConnection();
-                if (_options.EnableStatistics)
-                    sqlConnection.StatisticsEnabled = true;
-                sqlConnection.RetryLogicProvider = _sqlRetryProvider;
-                sqlConnection.Open();
-                cmd.Connection = sqlConnection;
-                using var sqlDataReader = cmd.ExecuteReader();
+                using var NpgsqlConnection = _connectionFactory.CreateConnection();
+                NpgsqlConnection.OpenWithRetry(_sqlRetryOption);
+                cmd.Connection = NpgsqlConnection;
+                using var sqlDataReader = cmd.ExecuteReaderWithRetry(_sqlRetryOption);
                 var typeFromHandle = typeof(U);
                 var objectPropertiesCache = Shared._ObjectPropertiesCache;
                 List<PropertyInfo> list;
@@ -733,7 +687,7 @@ namespace Database.Aniki
                         dictionary.Add((T)((object)sqlDataReader[keyColumnName]), list2);
                     }
                 }
-                LogSqlInfo(cmd, sqlConnection);
+                LogSqlInfo(cmd, NpgsqlConnection);
             }
             catch (Exception ex)
             {
@@ -749,18 +703,15 @@ namespace Database.Aniki
         #endregion
 
         #region GetListListString
-        public List<List<string>>? GetListListString(SqlCommand cmd)
+        public List<List<string>>? GetListListString(NpgsqlCommand cmd)
         {
             var list = new List<List<string>>();
             try
             {
-                using var sqlConnection = _connectionFactory.CreateConnection();
-                if (_options.EnableStatistics)
-                    sqlConnection.StatisticsEnabled = true;
-                sqlConnection.RetryLogicProvider = _sqlRetryProvider;
-                sqlConnection.Open();
-                cmd.Connection = sqlConnection;
-                using var sqlDataReader = cmd.ExecuteReader();
+                using var NpgsqlConnection = _connectionFactory.CreateConnection();
+                NpgsqlConnection.OpenWithRetry(_sqlRetryOption);
+                cmd.Connection = NpgsqlConnection;
+                using var sqlDataReader = cmd.ExecuteReaderWithRetry(_sqlRetryOption);
                 while (sqlDataReader.Read())
                 {
                     var list2 = new List<string>();
@@ -770,7 +721,7 @@ namespace Database.Aniki
                     }
                     list.Add(list2);
                 }
-                LogSqlInfo(cmd, sqlConnection);
+                LogSqlInfo(cmd, NpgsqlConnection);
             }
             catch (Exception ex)
             {
@@ -784,20 +735,17 @@ namespace Database.Aniki
                 return list;
         }
 
-        public List<List<string>>? GetListListString(SqlCommand cmd, string dateFormat)
+        public List<List<string>>? GetListListString(NpgsqlCommand cmd, string dateFormat)
         {
             var list = new List<List<string>>();
             bool flag = true;
             bool[]? array = null;
             try
             {
-                using var sqlConnection = _connectionFactory.CreateConnection();
-                if (_options.EnableStatistics)
-                    sqlConnection.StatisticsEnabled = true;
-                sqlConnection.RetryLogicProvider = _sqlRetryProvider;
-                sqlConnection.Open();
-                cmd.Connection = sqlConnection;
-                using var sqlDataReader = cmd.ExecuteReader();
+                using var NpgsqlConnection = _connectionFactory.CreateConnection();
+                NpgsqlConnection.OpenWithRetry(_sqlRetryOption);
+                cmd.Connection = NpgsqlConnection;
+                using var sqlDataReader = cmd.ExecuteReaderWithRetry(_sqlRetryOption);
                 while (sqlDataReader.Read())
                 {
                     List<string> list2 = new List<string>();
@@ -834,7 +782,7 @@ namespace Database.Aniki
                     }
                     list.Add(list2);
                 }
-                LogSqlInfo(cmd, sqlConnection);
+                LogSqlInfo(cmd, NpgsqlConnection);
             }
             catch (Exception ex)
             {
@@ -850,42 +798,37 @@ namespace Database.Aniki
 
         public List<List<string>>? GetListListString(string query, CommandType commandType)
         {
-            using var sqlCommand = _connectionFactory.CreateCommand();
-            sqlCommand.CommandText = query;
-            sqlCommand.CommandType = commandType;
-            sqlCommand.RetryLogicProvider = _sqlRetryProvider;
-            sqlCommand.CommandTimeout = _options.DbCommandTimeout;
-            return GetListListString(sqlCommand);
+            using var NpgsqlCommand = _connectionFactory.CreateCommand();
+            NpgsqlCommand.CommandText = query;
+            NpgsqlCommand.CommandType = commandType;
+            NpgsqlCommand.CommandTimeout = _options.DbCommandTimeout;
+            return GetListListString(NpgsqlCommand);
         }
 
         public List<List<string>>? GetListListString(string query, CommandType commandType, string dateFormat)
         {
-            using var sqlCommand = _connectionFactory.CreateCommand();
-            sqlCommand.CommandText = query;
-            sqlCommand.CommandType = commandType;
-            sqlCommand.RetryLogicProvider = _sqlRetryProvider;
-            sqlCommand.CommandTimeout = _options.DbCommandTimeout;
-            return GetListListString(sqlCommand, dateFormat);
+            using var NpgsqlCommand = _connectionFactory.CreateCommand();
+            NpgsqlCommand.CommandText = query;
+            NpgsqlCommand.CommandType = commandType;
+            NpgsqlCommand.CommandTimeout = _options.DbCommandTimeout;
+            return GetListListString(NpgsqlCommand, dateFormat);
         }
         #endregion
 
         #region GetListOf<T>
-        public List<T>? GetListOf<T>(SqlCommand cmd, SqlConnection connection)
+        public List<T>? GetListOf<T>(NpgsqlCommand cmd, NpgsqlConnection connection)
         {
-            if (_options.EnableStatistics)
-                connection.StatisticsEnabled = true;
             var list = new List<T>();
             var type = typeof(T);
             cmd.Connection = connection;
-
             try
             {
                 if (connection.State != ConnectionState.Open && connection.State != ConnectionState.Connecting)
                 {
-                    connection.Close();
-                    connection.Open();
+                    connection.CloseWithRetry(_sqlRetryOption);
+                    connection.OpenWithRetry(_sqlRetryOption);
                 }
-                using var sqlDataReader = cmd.ExecuteReader();
+                using var sqlDataReader = cmd.ExecuteReaderWithRetry(_sqlRetryOption);
                 while (sqlDataReader.Read())
                 {
                     T obj = (T)Activator.CreateInstance(type);
@@ -918,56 +861,48 @@ namespace Database.Aniki
             return list;
         }
 
-        public List<T>? GetListOf<T>(SqlCommand cmd)
+        public List<T>? GetListOf<T>(NpgsqlCommand cmd)
         {
-            using var sqlConnection = _connectionFactory.CreateConnection();
-            if (_options.EnableStatistics)
-                sqlConnection.StatisticsEnabled = true;
-            sqlConnection.RetryLogicProvider = _sqlRetryProvider;
-            sqlConnection.Open();
-            cmd.Connection = sqlConnection;
-            return GetListOf<T>(cmd,sqlConnection);
+            using var NpgsqlConnection = _connectionFactory.CreateConnection();
+            NpgsqlConnection.OpenWithRetry(_sqlRetryOption);
+            cmd.Connection = NpgsqlConnection;
+            return GetListOf<T>(cmd,NpgsqlConnection);
         }
 
         public List<T>? GetListOf<T>(string query, CommandType commandType)
         {
-            using var sqlCommand = _connectionFactory.CreateCommand();
-            sqlCommand.CommandText = query;
-            sqlCommand.CommandType = commandType;
-            sqlCommand.RetryLogicProvider = _sqlRetryProvider;
-            sqlCommand.CommandTimeout = _options.DbCommandTimeout;
-            return GetListOf<T>(sqlCommand);
+            using var NpgsqlCommand = _connectionFactory.CreateCommand();
+            NpgsqlCommand.CommandText = query;
+            NpgsqlCommand.CommandType = commandType;
+            NpgsqlCommand.CommandTimeout = _options.DbCommandTimeout;
+            return GetListOf<T>(NpgsqlCommand);
         }
 
-        public List<T>? GetListOf<T>(string query, CommandType commandType, SqlParameter[] sqlParameters)
+        public List<T>? GetListOf<T>(string query, CommandType commandType, NpgsqlParameter[] NpgsqlParameters)
         {
-            using var sqlCommand = _connectionFactory.CreateCommand();
-            sqlCommand.CommandText = query;
-            sqlCommand.CommandType = commandType;
-            sqlCommand.RetryLogicProvider = _sqlRetryProvider;
-            sqlCommand.CommandTimeout = _options.DbCommandTimeout;
-            sqlCommand.AttachParameters(sqlParameters);
-            return GetListOf<T>(sqlCommand);
+            using var NpgsqlCommand = _connectionFactory.CreateCommand();
+            NpgsqlCommand.CommandText = query;
+            NpgsqlCommand.CommandType = commandType;
+            NpgsqlCommand.CommandTimeout = _options.DbCommandTimeout;
+            NpgsqlCommand.AttachParameters(NpgsqlParameters);
+            return GetListOf<T>(NpgsqlCommand);
         }
 
         #endregion
 
         #region GetScalar
-        public object GetScalar(SqlCommand cmd)
+        public object? GetScalar(NpgsqlCommand cmd)
         {
             try
             {
-                using var sqlConnection = _connectionFactory.CreateConnection();
-                if (_options.EnableStatistics)
-                    sqlConnection.StatisticsEnabled = true;
-                sqlConnection.RetryLogicProvider = _sqlRetryProvider;
-                sqlConnection.Open();
-                using var sqlTransaction = sqlConnection.BeginTransaction();
-                cmd.Connection = sqlConnection;
+                using var NpgsqlConnection = _connectionFactory.CreateConnection();
+                NpgsqlConnection.OpenWithRetry(_sqlRetryOption);
+                using var sqlTransaction = NpgsqlConnection.BeginTransaction();
+                cmd.Connection = NpgsqlConnection;
                 cmd.Transaction = sqlTransaction;
-                var obj = cmd.ExecuteScalar();
+                var obj = cmd.ExecuteScalarWithRetry(_sqlRetryOption);
                 sqlTransaction.Commit();
-                LogSqlInfo(cmd, sqlConnection);
+                LogSqlInfo(cmd, NpgsqlConnection);
                 return obj;
             }
             catch (Exception ex)
@@ -977,29 +912,27 @@ namespace Database.Aniki
             }
         }
 
-        public object GetScalar(SqlCommand cmd, SqlConnection connection, bool closeWhenComplete = false)
+        public object GetScalar(NpgsqlCommand cmd, NpgsqlConnection connection, bool closeWhenComplete = false)
         {
             cmd.Connection = connection;
-            if(_options.EnableStatistics)
-                    connection.StatisticsEnabled = true;
             object result;
             try
             {
                 if (connection.State != ConnectionState.Open && connection.State != ConnectionState.Connecting)
                 {
-                    connection.Close();
-                    connection.Open();
+                    connection.CloseWithRetry(_sqlRetryOption);
+                    connection.OpenWithRetry(_sqlRetryOption);
                 }
                 using (var sqlTransaction = connection.BeginTransaction())
                 {
                     cmd.Transaction = sqlTransaction;
-                    result = cmd.ExecuteScalar();
+                    result = cmd.ExecuteScalarWithRetry(_sqlRetryOption);
                     sqlTransaction.Commit();
                 }
                 LogSqlInfo(cmd, connection);
                 if (closeWhenComplete)
                 {
-                    connection.Close();
+                    connection.CloseWithRetry(_sqlRetryOption);
                 }
             }
             catch (Exception ex)
@@ -1010,57 +943,54 @@ namespace Database.Aniki
             return result;
         }
 
-        public object GetScalar(string query, CommandType commandType)
+        public object? GetScalar(string query, CommandType commandType)
         {
-            using var sqlCommand = _connectionFactory.CreateCommand();
-            sqlCommand.CommandText = query;
-            sqlCommand.CommandType = commandType;
-            sqlCommand.CommandTimeout = _options.DbCommandTimeout;
-            sqlCommand.RetryLogicProvider = _sqlRetryProvider;
-            return GetScalar(sqlCommand);
+            using var NpgsqlCommand = _connectionFactory.CreateCommand();
+            NpgsqlCommand.CommandText = query;
+            NpgsqlCommand.CommandType = commandType;
+            NpgsqlCommand.CommandTimeout = _options.DbCommandTimeout;
+            
+            return GetScalar(NpgsqlCommand);
         }
 
-        public object GetScalar(string query, CommandType commandType, Array sqlParameters)
+        public object? GetScalar(string query, CommandType commandType, Array NpgsqlParameters)
         {
-            using var sqlCommand = _connectionFactory.CreateCommand();
-            sqlCommand.CommandText = query;
-            sqlCommand.CommandType = commandType;
-            sqlCommand.CommandTimeout = _options.DbCommandTimeout;
-            sqlCommand.RetryLogicProvider = _sqlRetryProvider;
-            sqlCommand.AttachParameters(sqlParameters);
-            return GetScalar(sqlCommand);
+            using var NpgsqlCommand = _connectionFactory.CreateCommand();
+            NpgsqlCommand.CommandText = query;
+            NpgsqlCommand.CommandType = commandType;
+            NpgsqlCommand.CommandTimeout = _options.DbCommandTimeout;
+            
+            NpgsqlCommand.AttachParameters(NpgsqlParameters);
+            return GetScalar(NpgsqlCommand);
         }
 
-        public object GetScalar(string query, CommandType commandType, SqlParameter[] sqlParameters)
+        public object? GetScalar(string query, CommandType commandType, NpgsqlParameter[] NpgsqlParameters)
         {
-            using var sqlCommand = _connectionFactory.CreateCommand();
-            sqlCommand.CommandText = query;
-            sqlCommand.CommandType = commandType;
-            sqlCommand.CommandTimeout = _options.DbCommandTimeout;
-            sqlCommand.RetryLogicProvider = _sqlRetryProvider;
-            sqlCommand.AttachParameters(sqlParameters);
-            return GetScalar(sqlCommand);
+            using var NpgsqlCommand = _connectionFactory.CreateCommand();
+            NpgsqlCommand.CommandText = query;
+            NpgsqlCommand.CommandType = commandType;
+            NpgsqlCommand.CommandTimeout = _options.DbCommandTimeout;
+            
+            NpgsqlCommand.AttachParameters(NpgsqlParameters);
+            return GetScalar(NpgsqlCommand);
         }
         #endregion
 
         #region ExecuteNonQuery
-        public int ExecuteNonQuery(SqlCommand cmd)
+        public int ExecuteNonQuery(NpgsqlCommand cmd)
         {
             int result;
             try
             {
-                using var sqlConnection = _connectionFactory.CreateConnection();
-                if (_options.EnableStatistics)
-                    sqlConnection.StatisticsEnabled = true;
-                sqlConnection.RetryLogicProvider = _sqlRetryProvider;
-                sqlConnection.Open();
-                using var sqlTransaction = sqlConnection.BeginTransaction();
-                cmd.Connection = sqlConnection;
+                using var NpgsqlConnection = _connectionFactory.CreateConnection();
+                NpgsqlConnection.OpenWithRetry(_sqlRetryOption);
+                using var sqlTransaction = NpgsqlConnection.BeginTransaction();
+                cmd.Connection = NpgsqlConnection;
                 cmd.Transaction = sqlTransaction;
-                int num = cmd.ExecuteNonQuery();
+                int num = cmd.ExecuteNonQueryWithRetry(_sqlRetryOption);
                 sqlTransaction.Commit();
                 result = num;
-                LogSqlInfo(cmd, sqlConnection);
+                LogSqlInfo(cmd, NpgsqlConnection);
             }
             catch (Exception ex)
             {
@@ -1071,30 +1001,27 @@ namespace Database.Aniki
             return result;
         }
 
-        public int ExecuteNonQuery(SqlCommand cmd, SqlConnection connection, bool closeWhenComplete = false)
+        public int ExecuteNonQuery(NpgsqlCommand cmd, NpgsqlConnection connection, bool closeWhenComplete = false)
         {
             int result;
             try
             {
                 cmd.Connection = connection;
-                if(_options.EnableStatistics)
-                    connection.StatisticsEnabled = true;
-   
                 if (connection.State != ConnectionState.Open && connection.State != ConnectionState.Connecting)
                 {
-                    connection.Close();
-                    connection.Open();
+                    connection.CloseWithRetry(_sqlRetryOption);
+                    connection.OpenWithRetry(_sqlRetryOption);
                 }
                 using (var sqlTransaction = connection.BeginTransaction())
                 {
                     cmd.Transaction = sqlTransaction;
-                    result = cmd.ExecuteNonQuery();
+                    result = cmd.ExecuteNonQueryWithRetry(_sqlRetryOption);
                     sqlTransaction.Commit();
                 }
                 LogSqlInfo(cmd, connection);
                 if (closeWhenComplete)
                 {
-                    connection.Close();
+                    connection.CloseWithRetry(_sqlRetryOption);
                 }
             }
             catch (Exception ex)
@@ -1107,138 +1034,121 @@ namespace Database.Aniki
 
         public int ExecuteNonQuery(string query, CommandType commandType)
         {
-            using var sqlCommand = _connectionFactory.CreateCommand();
-            sqlCommand.CommandText = query;
-            sqlCommand.CommandType = commandType;
-            sqlCommand.CommandTimeout = _options.DbCommandTimeout;
-            sqlCommand.RetryLogicProvider = _sqlRetryProvider;
-            return ExecuteNonQuery(sqlCommand);
+            using var NpgsqlCommand = _connectionFactory.CreateCommand();
+            NpgsqlCommand.CommandText = query;
+            NpgsqlCommand.CommandType = commandType;
+            NpgsqlCommand.CommandTimeout = _options.DbCommandTimeout;
+            return ExecuteNonQuery(NpgsqlCommand);
         }
 
-        public int ExecuteNonQuery(string query, CommandType commandType, Array sqlParameters)
+        public int ExecuteNonQuery(string query, CommandType commandType, Array NpgsqlParameters)
         {
-            using var sqlCommand = _connectionFactory.CreateCommand();
-            sqlCommand.CommandText = query;
-            sqlCommand.CommandType = commandType;
-            sqlCommand.CommandTimeout = _options.DbCommandTimeout;
-            sqlCommand.RetryLogicProvider = _sqlRetryProvider;
-            sqlCommand.AttachParameters(sqlParameters);
-            return ExecuteNonQuery(sqlCommand);
+            using var NpgsqlCommand = _connectionFactory.CreateCommand();
+            NpgsqlCommand.CommandText = query;
+            NpgsqlCommand.CommandType = commandType;
+            NpgsqlCommand.CommandTimeout = _options.DbCommandTimeout;
+            NpgsqlCommand.AttachParameters(NpgsqlParameters);
+            return ExecuteNonQuery(NpgsqlCommand);
         }
-        public int ExecuteNonQuery(string query, CommandType commandType, SqlParameter[] sqlParameters)
+        public int ExecuteNonQuery(string query, CommandType commandType, NpgsqlParameter[] NpgsqlParameters)
         {
-            using var sqlCommand = _connectionFactory.CreateCommand();
-            sqlCommand.CommandText = query;
-            sqlCommand.CommandType = commandType;
-            sqlCommand.CommandTimeout = _options.DbCommandTimeout;
-            sqlCommand.RetryLogicProvider = _sqlRetryProvider;
-            sqlCommand.AttachParameters(sqlParameters);
-            return ExecuteNonQuery(sqlCommand);
+            using var NpgsqlCommand = _connectionFactory.CreateCommand();
+            NpgsqlCommand.CommandText = query;
+            NpgsqlCommand.CommandType = commandType;
+            NpgsqlCommand.CommandTimeout = _options.DbCommandTimeout;
+            NpgsqlCommand.AttachParameters(NpgsqlParameters);
+            return ExecuteNonQuery(NpgsqlCommand);
         }
         #endregion
 
         #region ExecuteReader
         public IDataReader ExecuteReader(string query, CommandType commandType)
         {
-            SqlConnection? connection = null;
+            NpgsqlConnection? connection = null;
             try
             {
                 connection = _connectionFactory.CreateConnection();
-                connection.RetryLogicProvider = _sqlRetryProvider;
-                if (_options.EnableStatistics)
-                    connection.StatisticsEnabled = true;
-                connection.Open();
+                connection.OpenWithRetry(_sqlRetryOption);
                 var cmd = _connectionFactory.CreateCommand();
                 cmd.CommandText = query;
                 cmd.CommandType = commandType;
                 cmd.CommandTimeout = _options.DbCommandTimeout;
-                cmd.RetryLogicProvider = _sqlRetryProvider;
-                var reader = cmd.ExecuteReader();
+                var reader = cmd.ExecuteReaderWithRetry(_sqlRetryOption);
                 LogSqlInfo(cmd, connection);
                 return reader;
             }
             catch(Exception ex)
             {
                 LogSqlError(query, ex);
-                connection?.Close();
+                connection?.CloseWithRetry(_sqlRetryOption);
                 throw;
             }
         }
 
-        public IDataReader ExecuteReader(string query, CommandType commandType, SqlParameter[] sqlParameters)
+        public IDataReader ExecuteReader(string query, CommandType commandType, NpgsqlParameter[] NpgsqlParameters)
         {
-            SqlConnection? connection = null;
+            NpgsqlConnection? connection = null;
             try
             {
                 connection = _connectionFactory.CreateConnection();
-                connection.RetryLogicProvider = _sqlRetryProvider;
-                if (_options.EnableStatistics)
-                    connection.StatisticsEnabled = true;
-                connection.Open();
-
-                return ExecuteReader(connection, null, commandType, query, sqlParameters);
+                connection.OpenWithRetry(_sqlRetryOption);
+                return ExecuteReader(connection, null, commandType, query, NpgsqlParameters);
             }
             catch (Exception ex)
             {
                 LogSqlError(query, ex);
-                connection?.Close();
+                connection?.CloseWithRetry(_sqlRetryOption);
                 throw;
             }
         }
 
-        public IDataReader ExecuteReader(SqlCommand cmd)
+        public IDataReader ExecuteReader(NpgsqlCommand cmd)
         {
-            SqlConnection? connection = null;
+            NpgsqlConnection? connection = null;
             try
             {
                 connection = _connectionFactory.CreateConnection();
-                connection.RetryLogicProvider = _sqlRetryProvider;
-                if (_options.EnableStatistics)
-                    connection.StatisticsEnabled = true;
-                connection.Open();
-                var reader = cmd.ExecuteReader();
+                connection.OpenWithRetry(_sqlRetryOption);
+                var reader = cmd.ExecuteReaderWithRetry(_sqlRetryOption);
                 LogSqlInfo(cmd, connection);
                 return reader;
             }
             catch (Exception ex)
             {
                 LogSqlError(cmd, ex);
-                connection?.Close();
+                connection?.CloseWithRetry(_sqlRetryOption);
                 throw;
             }
         }
 
-        public IDataReader ExecuteReader(SqlCommand cmd, SqlConnection connection)
+        public IDataReader ExecuteReader(NpgsqlCommand cmd, NpgsqlConnection connection)
         {
             try
             {
                 cmd.Connection = connection;
-                if(_options.EnableStatistics)
-                    connection.StatisticsEnabled = true;
-   
                 if (connection.State != ConnectionState.Open && connection.State != ConnectionState.Connecting)
                 {
-                    connection.Close();
-                    connection.Open();
+                    connection.CloseWithRetry(_sqlRetryOption);
+                    connection.OpenWithRetry(_sqlRetryOption);
                 }
-                var reader = cmd.ExecuteReader();
+                var reader = cmd.ExecuteReaderWithRetry(_sqlRetryOption);
                 LogSqlInfo(cmd, connection);
                 return reader;
             }
             catch (Exception ex)
             {
                 LogSqlError(cmd, ex);
-                connection?.Close();
+                connection?.CloseWithRetry(_sqlRetryOption);
                 throw;
             }
         }
 
-        public IDataReader ExecuteReader(SqlConnection connection, SqlTransaction? transaction, CommandType commandType, string commandText, SqlParameter[] commandParameters)
+        public IDataReader ExecuteReader(NpgsqlConnection connection, NpgsqlTransaction? transaction, CommandType commandType, string commandText, NpgsqlParameter[] commandParameters)
         {
             // Create a command and prepare it for execution
             var cmd = _connectionFactory.CreateCommand();
             cmd.CommandTimeout = _options.DbCommandTimeout;
-            cmd.RetryLogicProvider = _sqlRetryProvider;
+            
             cmd.CommandType = commandType;
             cmd.CommandText = commandText;
             cmd.Connection = connection;
@@ -1253,21 +1163,139 @@ namespace Database.Aniki
             {
                 if (connection.State != ConnectionState.Open && connection.State != ConnectionState.Connecting)
                 {
-                    connection.Close();
-                    connection.Open();
+                    connection.CloseWithRetry(_sqlRetryOption);
+                    connection.OpenWithRetry(_sqlRetryOption);
                 }
-                if(_options.EnableStatistics)
-                    connection.StatisticsEnabled = true;
-   
                 // Create a reader
-                var reader = cmd.ExecuteReader();
+                var reader = cmd.ExecuteReaderWithRetry(_sqlRetryOption);
                 LogSqlInfo(cmd, connection);
                 return reader;
             }
             catch (Exception ex)
             {
                 LogSqlError(commandText, ex);
-                connection?.Close();
+                connection?.CloseWithRetry(_sqlRetryOption);
+                throw;
+            }
+        }
+        #endregion
+
+        #region ExecuteReaderSequential
+        public IDataReader ExecuteReaderSequential(string query, CommandType commandType)
+        {
+            NpgsqlConnection? connection = null;
+            try
+            {
+                connection = _connectionFactory.CreateConnection();
+                connection.OpenWithRetry(_sqlRetryOption);
+                var cmd = _connectionFactory.CreateCommand();
+                cmd.CommandText = query;
+                cmd.CommandType = commandType;
+                cmd.CommandTimeout = _options.DbCommandTimeout;
+
+                var reader = cmd.ExecuteReaderSequentialWithRetry(_sqlRetryOption);
+                LogSqlInfo(cmd, connection);
+                return reader;
+            }
+            catch (Exception ex)
+            {
+                LogSqlError(query, ex);
+                connection?.CloseWithRetry(_sqlRetryOption);
+                throw;
+            }
+        }
+
+        public IDataReader ExecuteReaderSequential(string query, CommandType commandType, NpgsqlParameter[] NpgsqlParameters)
+        {
+            NpgsqlConnection? connection = null;
+            try
+            {
+                connection = _connectionFactory.CreateConnection();
+                connection.OpenWithRetry(_sqlRetryOption);
+                return ExecuteReader(connection, null, commandType, query, NpgsqlParameters);
+            }
+            catch (Exception ex)
+            {
+                LogSqlError(query, ex);
+                connection?.CloseWithRetry(_sqlRetryOption);
+                throw;
+            }
+        }
+
+        public IDataReader ExecuteReaderSequential(NpgsqlCommand cmd)
+        {
+            NpgsqlConnection? connection = null;
+            try
+            {
+                connection = _connectionFactory.CreateConnection();
+                connection.OpenWithRetry(_sqlRetryOption);
+                var reader = cmd.ExecuteReaderSequentialWithRetry(_sqlRetryOption);
+                LogSqlInfo(cmd, connection);
+                return reader;
+            }
+            catch (Exception ex)
+            {
+                LogSqlError(cmd, ex);
+                connection?.CloseWithRetry(_sqlRetryOption);
+                throw;
+            }
+        }
+
+        public IDataReader ExecuteReaderSequential(NpgsqlCommand cmd, NpgsqlConnection connection)
+        {
+            try
+            {
+                cmd.Connection = connection;
+                if (connection.State != ConnectionState.Open && connection.State != ConnectionState.Connecting)
+                {
+                    connection.CloseWithRetry(_sqlRetryOption);
+                    connection.OpenWithRetry(_sqlRetryOption);
+                }
+                var reader = cmd.ExecuteReaderSequentialWithRetry(_sqlRetryOption);
+                LogSqlInfo(cmd, connection);
+                return reader;
+            }
+            catch (Exception ex)
+            {
+                LogSqlError(cmd, ex);
+                connection?.CloseWithRetry(_sqlRetryOption);
+                throw;
+            }
+        }
+
+        public IDataReader ExecuteReaderSequential(NpgsqlConnection connection, NpgsqlTransaction? transaction, CommandType commandType, string commandText, NpgsqlParameter[] commandParameters)
+        {
+            // Create a command and prepare it for execution
+            var cmd = _connectionFactory.CreateCommand();
+            cmd.CommandTimeout = _options.DbCommandTimeout;
+
+            cmd.CommandType = commandType;
+            cmd.CommandText = commandText;
+            cmd.Connection = connection;
+            cmd.AttachParameters(commandParameters);
+            if (transaction != null)
+            {
+                if (transaction.Connection == null) throw new ArgumentException("The transaction was rollbacked or commited, please provide an open transaction.", nameof(transaction));
+                cmd.Transaction = transaction;
+            }
+
+            try
+            {
+                if (connection.State != ConnectionState.Open && connection.State != ConnectionState.Connecting)
+                {
+                    connection.CloseWithRetry(_sqlRetryOption);
+                    connection.OpenWithRetry(_sqlRetryOption);
+                }
+
+                // Create a reader
+                var reader = cmd.ExecuteReaderSequentialWithRetry(_sqlRetryOption);
+                LogSqlInfo(cmd, connection);
+                return reader;
+            }
+            catch (Exception ex)
+            {
+                LogSqlError(commandText, ex);
+                connection?.CloseWithRetry(_sqlRetryOption);
                 throw;
             }
         }

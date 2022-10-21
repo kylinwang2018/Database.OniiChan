@@ -1272,5 +1272,141 @@ namespace Database.Aniki
             }
         }
         #endregion
+
+        #region ExecuteReaderSequential
+        public IDataReader ExecuteReaderSequential(string query, CommandType commandType)
+        {
+            SqlConnection? connection = null;
+            try
+            {
+                connection = _connectionFactory.CreateConnection();
+                connection.RetryLogicProvider = _sqlRetryProvider;
+                if (_options.EnableStatistics)
+                    connection.StatisticsEnabled = true;
+                connection.Open();
+                var cmd = _connectionFactory.CreateCommand();
+                cmd.CommandText = query;
+                cmd.CommandType = commandType;
+                cmd.CommandTimeout = _options.DbCommandTimeout;
+                cmd.RetryLogicProvider = _sqlRetryProvider;
+                var reader = cmd.ExecuteReader(CommandBehavior.SequentialAccess);
+                LogSqlInfo(cmd, connection);
+                return reader;
+            }
+            catch (Exception ex)
+            {
+                LogSqlError(query, ex);
+                connection?.Close();
+                throw;
+            }
+        }
+
+        public IDataReader ExecuteReaderSequential(string query, CommandType commandType, SqlParameter[] sqlParameters)
+        {
+            SqlConnection? connection = null;
+            try
+            {
+                connection = _connectionFactory.CreateConnection();
+                connection.RetryLogicProvider = _sqlRetryProvider;
+                if (_options.EnableStatistics)
+                    connection.StatisticsEnabled = true;
+                connection.Open();
+
+                return ExecuteReaderSequential(connection, null, commandType, query, sqlParameters);
+            }
+            catch (Exception ex)
+            {
+                LogSqlError(query, ex);
+                connection?.Close();
+                throw;
+            }
+        }
+
+        public IDataReader ExecuteReaderSequential(SqlCommand cmd)
+        {
+            SqlConnection? connection = null;
+            try
+            {
+                connection = _connectionFactory.CreateConnection();
+                connection.RetryLogicProvider = _sqlRetryProvider;
+                if (_options.EnableStatistics)
+                    connection.StatisticsEnabled = true;
+                connection.Open();
+                var reader = cmd.ExecuteReader(CommandBehavior.SequentialAccess);
+                LogSqlInfo(cmd, connection);
+                return reader;
+            }
+            catch (Exception ex)
+            {
+                LogSqlError(cmd, ex);
+                connection?.Close();
+                throw;
+            }
+        }
+
+        public IDataReader ExecuteReaderSequential(SqlCommand cmd, SqlConnection connection)
+        {
+            try
+            {
+                cmd.Connection = connection;
+                if (_options.EnableStatistics)
+                    connection.StatisticsEnabled = true;
+
+                if (connection.State != ConnectionState.Open && connection.State != ConnectionState.Connecting)
+                {
+                    connection.Close();
+                    connection.Open();
+                }
+                var reader = cmd.ExecuteReader(CommandBehavior.SequentialAccess);
+                LogSqlInfo(cmd, connection);
+                return reader;
+            }
+            catch (Exception ex)
+            {
+                LogSqlError(cmd, ex);
+                connection?.Close();
+                throw;
+            }
+        }
+
+        public IDataReader ExecuteReaderSequential(SqlConnection connection, SqlTransaction? transaction, CommandType commandType, string commandText, SqlParameter[] commandParameters)
+        {
+            // Create a command and prepare it for execution
+            var cmd = _connectionFactory.CreateCommand();
+            cmd.CommandTimeout = _options.DbCommandTimeout;
+            cmd.RetryLogicProvider = _sqlRetryProvider;
+            cmd.CommandType = commandType;
+            cmd.CommandText = commandText;
+            cmd.Connection = connection;
+            cmd.AttachParameters(commandParameters);
+            if (transaction != null)
+            {
+                if (transaction.Connection == null) throw new ArgumentException("The transaction was rollbacked or commited, please provide an open transaction.", nameof(transaction));
+                cmd.Transaction = transaction;
+            }
+
+            try
+            {
+                if (connection.State != ConnectionState.Open && connection.State != ConnectionState.Connecting)
+                {
+                    connection.Close();
+                    connection.Open();
+                }
+                if (_options.EnableStatistics)
+                    connection.StatisticsEnabled = true;
+
+                // Create a reader
+                var reader = cmd.ExecuteReader(CommandBehavior.SequentialAccess);
+                LogSqlInfo(cmd, connection);
+                return reader;
+            }
+            catch (Exception ex)
+            {
+                LogSqlError(commandText, ex);
+                connection?.Close();
+                throw;
+            }
+        }
+        #endregion
     }
 }

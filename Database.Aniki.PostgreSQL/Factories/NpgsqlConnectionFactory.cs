@@ -36,6 +36,5 @@ namespace Database.Aniki.PostgreSQL
         {
             return new NpgsqlDataAdapter();
         }
-    {
     }
 }
