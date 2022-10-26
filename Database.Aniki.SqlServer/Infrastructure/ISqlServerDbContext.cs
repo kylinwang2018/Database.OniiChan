@@ -8,109 +8,36 @@ namespace Database.Aniki
 {
     public interface ISqlServerDbContext
     {
-        /// <summary>
-        /// Executes a Transact-SQL statement against a new connection and returns the number of rows affected.
-        /// </summary>
-        /// <param name="cmd">A <see cref="SqlCommand"/> object that contain the sql text</param>
-        /// <returns>The number of rows affected</returns>
         int ExecuteNonQuery(SqlCommand cmd);
-
-        /// <summary>
-        /// Executes a Transact-SQL statement against the connection and returns the number of rows affected.
-        /// </summary>
-        /// <param name="cmd">A <see cref="SqlCommand"/> object that contain the sql text</param>
-        /// <param name="connection">The connection will execute that command</param>
-        /// <param name="closeWhenComplete">Close the connection when it is true</param>
-        /// <returns>The number of rows affected</returns>
         int ExecuteNonQuery(SqlCommand cmd, SqlConnection connection, bool closeWhenComplete = false);
-
-        /// <summary>
-        /// Executes a Transact-SQL statement against a new connection and returns the number of rows affected.
-        /// </summary>
-        /// <param name="query">The sql command in plain text</param>
-        /// <param name="commandType">Determine the type of the command, whether is Text or StoredProcedure</param>
-        /// <returns>The number of rows affected</returns>
         int ExecuteNonQuery(string query, CommandType commandType);
-
-        /// <summary>
-        /// Executes a Transact-SQL statement with parameters against a new connection and returns the number of rows affected.
-        /// </summary>
-        /// <param name="query">The sql command in plain text</param>
-        /// <param name="commandType">Determine the type of the command, whether is Text or StoredProcedure</param>
-        /// <param name="sqlParameters">The parameters</param>
-        /// <returns>The number of rows affected</returns>
         int ExecuteNonQuery(string query, CommandType commandType, Array sqlParameters);
-
-        /// <summary>
-        /// Executes a Transact-SQL statement with parameters against a new connection and returns the number of rows affected.
-        /// </summary>
-        /// <param name="query">The sql command in plain text</param>
-        /// <param name="commandType">Determine the type of the command, whether is Text or StoredProcedure</param>
-        /// <param name="sqlParameters">The parameters</param>
-        /// <returns>The number of rows affected</returns>
-        int ExecuteNonQuery(string query, CommandType commandType, SqlParameter[] sqlParameters);
-
-        /// <summary>
-        /// Executes a Transact-SQL statement against a new connection and returns the number of rows affected.
-        /// </summary>
-        /// <param name="cmd">A <see cref="SqlCommand"/> object that contain the sql text</param>
-        /// <returns>The number of rows affected</returns>
+        int ExecuteNonQuery(string query, CommandType commandType, params SqlParameter[] sqlParameters);
         Task<int> ExecuteNonQueryAsync(SqlCommand cmd);
-
-        /// <summary>
-        /// Executes a Transact-SQL statement against the connection and returns the number of rows affected.
-        /// </summary>
-        /// <param name="cmd">A <see cref="SqlCommand"/> object that contain the sql text</param>
-        /// <param name="connection">The connection will execute that command</param>
-        /// <param name="closeWhenComplete">Close the connection when it is true</param>
-        /// <returns>The number of rows affected</returns>
         Task<int> ExecuteNonQueryAsync(SqlCommand cmd, SqlConnection connection, bool closeWhenComplete = false);
-
-        /// <summary>
-        /// Executes a Transact-SQL statement against a new connection and returns the number of rows affected.
-        /// </summary>
-        /// <param name="query">The sql command in plain text</param>
-        /// <param name="commandType">Determine the type of the command, whether is Text or StoredProcedure</param>
-        /// <returns>The number of rows affected</returns>
         Task<int> ExecuteNonQueryAsync(string query, CommandType commandType);
-
-        /// <summary>
-        /// Executes a Transact-SQL statement with parameters against a new connection and returns the number of rows affected.
-        /// </summary>
-        /// <param name="query">The sql command in plain text</param>
-        /// <param name="commandType">Determine the type of the command, whether is Text or StoredProcedure</param>
-        /// <param name="sqlParameters">The parameters</param>
-        /// <returns>The number of rows affected</returns>
         Task<int> ExecuteNonQueryAsync(string query, CommandType commandType, Array sqlParameters);
-
-        /// <summary>
-        /// Executes a Transact-SQL statement with parameters against a new connection and returns the number of rows affected.
-        /// </summary>
-        /// <param name="query">The sql command in plain text</param>
-        /// <param name="commandType">Determine the type of the command, whether is Text or StoredProcedure</param>
-        /// <param name="sqlParameters">The parameters</param>
-        /// <returns>The number of rows affected</returns>
-        Task<int> ExecuteNonQueryAsync(string query, CommandType commandType, SqlParameter[] sqlParameters);
-        IDataReader ExecuteReader(SqlCommand cmd);
-        IDataReader ExecuteReader(SqlCommand cmd, SqlConnection connection);
-        IDataReader ExecuteReader(SqlConnection connection, SqlTransaction? transaction, CommandType commandType, string commandText, SqlParameter[] commandParameters);
-        IDataReader ExecuteReader(string query, CommandType commandType);
-        IDataReader ExecuteReader(string query, CommandType commandType, SqlParameter[] sqlParameters);
-        Task<IDataReader> ExecuteReaderAsync(SqlCommand cmd);
-        Task<IDataReader> ExecuteReaderAsync(SqlCommand cmd, SqlConnection connection);
-        Task<IDataReader> ExecuteReaderAsync(SqlConnection connection, SqlTransaction? transaction, CommandType commandType, string commandText, SqlParameter[] commandParameters);
-        Task<IDataReader> ExecuteReaderAsync(string query, CommandType commandType);
-        Task<IDataReader> ExecuteReaderAsync(string query, CommandType commandType, SqlParameter[] sqlParameters);
-        IDataReader ExecuteReaderSequential(SqlCommand cmd);
-        IDataReader ExecuteReaderSequential(SqlCommand cmd, SqlConnection connection);
-        IDataReader ExecuteReaderSequential(SqlConnection connection, SqlTransaction? transaction, CommandType commandType, string commandText, SqlParameter[] commandParameters);
-        IDataReader ExecuteReaderSequential(string query, CommandType commandType);
-        IDataReader ExecuteReaderSequential(string query, CommandType commandType, SqlParameter[] sqlParameters);
-        Task<IDataReader> ExecuteReaderSequentialAsync(SqlCommand cmd);
-        Task<IDataReader> ExecuteReaderSequentialAsync(SqlCommand cmd, SqlConnection connection);
-        Task<IDataReader> ExecuteReaderSequentialAsync(SqlConnection connection, SqlTransaction? transaction, CommandType commandType, string commandText, SqlParameter[] commandParameters);
-        Task<IDataReader> ExecuteReaderSequentialAsync(string query, CommandType commandType);
-        Task<IDataReader> ExecuteReaderSequentialAsync(string query, CommandType commandType, SqlParameter[] sqlParameters);
+        Task<int> ExecuteNonQueryAsync(string query, CommandType commandType, params SqlParameter[] sqlParameters);
+        SqlDataReader ExecuteReader(SqlCommand cmd);
+        SqlDataReader ExecuteReader(SqlCommand cmd, SqlConnection connection);
+        SqlDataReader ExecuteReader(SqlConnection connection, SqlTransaction? transaction, CommandType commandType, string commandText, params SqlParameter[] commandParameters);
+        SqlDataReader ExecuteReader(string query, CommandType commandType);
+        SqlDataReader ExecuteReader(string query, CommandType commandType, params SqlParameter[] sqlParameters);
+        Task<SqlDataReader> ExecuteReaderAsync(SqlCommand cmd);
+        Task<SqlDataReader> ExecuteReaderAsync(SqlCommand cmd, SqlConnection connection);
+        Task<SqlDataReader> ExecuteReaderAsync(SqlConnection connection, SqlTransaction? transaction, CommandType commandType, string commandText, params SqlParameter[] commandParameters);
+        Task<SqlDataReader> ExecuteReaderAsync(string query, CommandType commandType);
+        Task<SqlDataReader> ExecuteReaderAsync(string query, CommandType commandType, params SqlParameter[] sqlParameters);
+        SqlDataReader ExecuteReaderSequential(SqlCommand cmd);
+        SqlDataReader ExecuteReaderSequential(SqlCommand cmd, SqlConnection connection);
+        SqlDataReader ExecuteReaderSequential(SqlConnection connection, SqlTransaction? transaction, CommandType commandType, string commandText, params SqlParameter[] commandParameters);
+        SqlDataReader ExecuteReaderSequential(string query, CommandType commandType);
+        SqlDataReader ExecuteReaderSequential(string query, CommandType commandType, params SqlParameter[] sqlParameters);
+        Task<SqlDataReader> ExecuteReaderSequentialAsync(SqlCommand cmd);
+        Task<SqlDataReader> ExecuteReaderSequentialAsync(SqlCommand cmd, SqlConnection connection);
+        Task<SqlDataReader> ExecuteReaderSequentialAsync(SqlConnection connection, SqlTransaction? transaction, CommandType commandType, string commandText, params SqlParameter[] commandParameters);
+        Task<SqlDataReader> ExecuteReaderSequentialAsync(string query, CommandType commandType);
+        Task<SqlDataReader> ExecuteReaderSequentialAsync(string query, CommandType commandType, params SqlParameter[] sqlParameters);
         List<string> GetColumnToString(SqlCommand cmd, int columnIndex = 0);
         List<string> GetColumnToString(SqlCommand cmd, SqlConnection connection, int columnIndex = 0, bool closeWhenComplete = false);
         List<string> GetColumnToString(SqlCommand cmd, SqlConnection connection, string columnName, bool closeWhenComplete = false);
@@ -123,32 +50,32 @@ namespace Database.Aniki
         T? GetDataRow<T>(SqlCommand cmd, SqlConnection connection, bool closeWhenComplete = false) where T : class, new();
         T? GetDataRow<T>(string query, CommandType commandType) where T : class, new();
         T? GetDataRow<T>(string query, CommandType commandType, Array sqlParameters) where T : class, new();
-        T? GetDataRow<T>(string query, CommandType commandType, SqlParameter[] sqlParameters) where T : class, new();
+        T? GetDataRow<T>(string query, CommandType commandType, params SqlParameter[] sqlParameters) where T : class, new();
         Task<T?> GetDataRowAsync<T>(SqlCommand cmd) where T : class, new();
         Task<T?> GetDataRowAsync<T>(SqlCommand cmd, SqlConnection connection, bool closeWhenComplete = false) where T : class, new();
         Task<T?> GetDataRowAsync<T>(string query, CommandType commandType) where T : class, new();
         Task<T?> GetDataRowAsync<T>(string query, CommandType commandType, Array sqlParameters) where T : class, new();
-        Task<T?> GetDataRowAsync<T>(string query, CommandType commandType, SqlParameter[] sqlParameters) where T : class, new();
+        Task<T?> GetDataRowAsync<T>(string query, CommandType commandType, params SqlParameter[] sqlParameters) where T : class, new();
         DataTable GetDataTable(SqlCommand cmd);
         DataTable GetDataTable(SqlCommand cmd, SqlConnection connection, bool closeWhenComplete = false);
         DataTable GetDataTable(string query, CommandType commandType);
         DataTable GetDataTable(string query, CommandType commandType, Array sqlParameters);
-        DataTable GetDataTable(string query, CommandType commandType, SqlParameter[] sqlParameters);
+        DataTable GetDataTable(string query, CommandType commandType, params SqlParameter[] sqlParameters);
         List<T> GetDataTable<T>(SqlCommand cmd) where T : class, new();
         List<T> GetDataTable<T>(SqlCommand cmd, SqlConnection connection, bool closeWhenComplete = false) where T : class, new();
         List<T> GetDataTable<T>(string query, CommandType commandType) where T : class, new();
         List<T> GetDataTable<T>(string query, CommandType commandType, Array sqlParameters) where T : class, new();
-        List<T> GetDataTable<T>(string query, CommandType commandType, SqlParameter[] sqlParameters) where T : class, new();
+        List<T> GetDataTable<T>(string query, CommandType commandType, params SqlParameter[] sqlParameters) where T : class, new();
         Task<DataTable> GetDataTableAsync(SqlCommand cmd);
         Task<DataTable> GetDataTableAsync(SqlCommand cmd, SqlConnection connection, bool closeWhenComplete = false);
         Task<DataTable> GetDataTableAsync(string query, CommandType commandType);
         Task<DataTable> GetDataTableAsync(string query, CommandType commandType, Array sqlParameters);
-        Task<DataTable> GetDataTableAsync(string query, CommandType commandType, SqlParameter[] sqlParameters);
+        Task<DataTable> GetDataTableAsync(string query, CommandType commandType, params SqlParameter[] sqlParameters);
         Task<List<T>> GetDataTableAsync<T>(SqlCommand cmd) where T : class, new();
         Task<List<T>> GetDataTableAsync<T>(SqlCommand cmd, SqlConnection connection, bool closeWhenComplete = false) where T : class, new();
         Task<List<T>> GetDataTableAsync<T>(string query, CommandType commandType) where T : class, new();
         Task<List<T>> GetDataTableAsync<T>(string query, CommandType commandType, Array sqlParameters) where T : class, new();
-        Task<List<T>> GetDataTableAsync<T>(string query, CommandType commandType, SqlParameter[] sqlParameters) where T : class, new();
+        Task<List<T>> GetDataTableAsync<T>(string query, CommandType commandType, params SqlParameter[] sqlParameters) where T : class, new();
         Dictionary<string, string>? GetDictionary(SqlCommand cmd);
         Dictionary<string, string>? GetDictionary(SqlCommand cmd, int keyColumnIndex, int valueColumnIndex);
         Dictionary<string, string>? GetDictionary(string query, CommandType commandType);
@@ -184,20 +111,20 @@ namespace Database.Aniki
         List<T>? GetListOf<T>(SqlCommand cmd);
         List<T>? GetListOf<T>(SqlCommand cmd, SqlConnection connection);
         List<T>? GetListOf<T>(string query, CommandType commandType);
-        List<T>? GetListOf<T>(string query, CommandType commandType, SqlParameter[] sqlParameters);
+        List<T>? GetListOf<T>(string query, CommandType commandType, params SqlParameter[] sqlParameters);
         Task<List<T>?> GetListOfAsync<T>(SqlCommand cmd);
         Task<List<T>?> GetListOfAsync<T>(SqlCommand cmd, SqlConnection connection);
         Task<List<T>?> GetListOfAsync<T>(string query, CommandType commandType);
-        Task<List<T>?> GetListOfAsync<T>(string query, CommandType commandType, SqlParameter[] sqlParameters);
+        Task<List<T>?> GetListOfAsync<T>(string query, CommandType commandType, params SqlParameter[] sqlParameters);
         object GetScalar(SqlCommand cmd);
         object GetScalar(SqlCommand cmd, SqlConnection connection, bool closeWhenComplete = false);
         object GetScalar(string query, CommandType commandType);
         object GetScalar(string query, CommandType commandType, Array sqlParameters);
-        object GetScalar(string query, CommandType commandType, SqlParameter[] sqlParameters);
+        object GetScalar(string query, CommandType commandType, params SqlParameter[] sqlParameters);
         Task<object> GetScalarAsync(SqlCommand cmd);
         Task<object> GetScalarAsync(SqlCommand cmd, SqlConnection connection, bool closeWhenComplete = false);
         Task<object> GetScalarAsync(string query, CommandType commandType);
         Task<object> GetScalarAsync(string query, CommandType commandType, Array sqlParameters);
-        Task<object> GetScalarAsync(string query, CommandType commandType, SqlParameter[] sqlParameters);
+        Task<object> GetScalarAsync(string query, CommandType commandType, params SqlParameter[] sqlParameters);
     }
 }

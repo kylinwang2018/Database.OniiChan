@@ -113,7 +113,7 @@ namespace Database.Aniki
             return GetDataTable(NpgsqlCommand);
         }
 
-        public DataTable GetDataTable(string query, CommandType commandType, NpgsqlParameter[] NpgsqlParameters)
+        public DataTable GetDataTable(string query, CommandType commandType, params NpgsqlParameter[] NpgsqlParameters)
         {
             using var NpgsqlCommand = _connectionFactory.CreateCommand();
             NpgsqlCommand.CommandText = query;
@@ -147,7 +147,7 @@ namespace Database.Aniki
             return DataTableHelper.DataTableToList<T>(datatable);
         }
 
-        public List<T> GetDataTable<T>(string query, CommandType commandType, NpgsqlParameter[] NpgsqlParameters) where T : class, new()
+        public List<T> GetDataTable<T>(string query, CommandType commandType, params NpgsqlParameter[] NpgsqlParameters) where T : class, new()
         {
             var datatable = GetDataTable(query, commandType, NpgsqlParameters);
             return DataTableHelper.DataTableToList<T>(datatable);
@@ -179,7 +179,7 @@ namespace Database.Aniki
             return DataTableHelper.DataRowToT<T>(datatable);
         }
 
-        public T? GetDataRow<T>(string query, CommandType commandType, NpgsqlParameter[] NpgsqlParameters) where T : class, new()
+        public T? GetDataRow<T>(string query, CommandType commandType, params NpgsqlParameter[] NpgsqlParameters) where T : class, new()
         {
             var datatable = GetDataTable(query, commandType, NpgsqlParameters);
             return DataTableHelper.DataRowToT<T>(datatable);
@@ -199,7 +199,7 @@ namespace Database.Aniki
                 NpgsqlCommand.Connection = NpgsqlConnection;
                 NpgsqlCommand.CommandTimeout = _options.DbCommandTimeout;
                 NpgsqlCommand.CommandText = query;
-                using var sqlDataReader = NpgsqlCommand.ExecuteReaderWithRetry(_sqlRetryOption);;
+                using var sqlDataReader = NpgsqlCommand.ExecuteReaderWithRetry(_sqlRetryOption); ;
                 if (sqlDataReader.FieldCount < 2)
                     throw new DatabaseException("Query did not return at least two columns of data.");
                 while (sqlDataReader.Read())
@@ -261,7 +261,7 @@ namespace Database.Aniki
                 NpgsqlCommand.CommandType = commandType;
                 NpgsqlCommand.Connection = NpgsqlConnection;
                 NpgsqlCommand.CommandTimeout = _options.DbCommandTimeout;
-                
+
                 NpgsqlCommand.CommandText = query;
                 using var sqlDataReader = NpgsqlCommand.ExecuteReaderWithRetry(_sqlRetryOption);
                 if (sqlDataReader.FieldCount < 2 &&
@@ -326,7 +326,7 @@ namespace Database.Aniki
                 NpgsqlCommand.CommandType = commandType;
                 NpgsqlCommand.Connection = NpgsqlConnection;
                 NpgsqlCommand.CommandTimeout = _options.DbCommandTimeout;
-                
+
                 NpgsqlCommand.CommandText = query;
                 using var sqlDataReader = NpgsqlCommand.ExecuteReaderWithRetry(_sqlRetryOption);
                 if (sqlDataReader.FieldCount < 2)
@@ -389,7 +389,7 @@ namespace Database.Aniki
                 NpgsqlCommand.CommandType = commandType;
                 NpgsqlCommand.Connection = NpgsqlConnection;
                 NpgsqlCommand.CommandTimeout = _options.DbCommandTimeout;
-                
+
                 NpgsqlCommand.CommandText = query;
                 using var sqlDataReader = NpgsqlCommand.ExecuteReaderWithRetry(_sqlRetryOption);
                 if (sqlDataReader.FieldCount < 2 &&
@@ -866,7 +866,7 @@ namespace Database.Aniki
             using var NpgsqlConnection = _connectionFactory.CreateConnection();
             NpgsqlConnection.OpenWithRetry(_sqlRetryOption);
             cmd.Connection = NpgsqlConnection;
-            return GetListOf<T>(cmd,NpgsqlConnection);
+            return GetListOf<T>(cmd, NpgsqlConnection);
         }
 
         public List<T>? GetListOf<T>(string query, CommandType commandType)
@@ -878,7 +878,7 @@ namespace Database.Aniki
             return GetListOf<T>(NpgsqlCommand);
         }
 
-        public List<T>? GetListOf<T>(string query, CommandType commandType, NpgsqlParameter[] NpgsqlParameters)
+        public List<T>? GetListOf<T>(string query, CommandType commandType, params NpgsqlParameter[] NpgsqlParameters)
         {
             using var NpgsqlCommand = _connectionFactory.CreateCommand();
             NpgsqlCommand.CommandText = query;
@@ -949,7 +949,7 @@ namespace Database.Aniki
             NpgsqlCommand.CommandText = query;
             NpgsqlCommand.CommandType = commandType;
             NpgsqlCommand.CommandTimeout = _options.DbCommandTimeout;
-            
+
             return GetScalar(NpgsqlCommand);
         }
 
@@ -959,18 +959,18 @@ namespace Database.Aniki
             NpgsqlCommand.CommandText = query;
             NpgsqlCommand.CommandType = commandType;
             NpgsqlCommand.CommandTimeout = _options.DbCommandTimeout;
-            
+
             NpgsqlCommand.AttachParameters(NpgsqlParameters);
             return GetScalar(NpgsqlCommand);
         }
 
-        public object? GetScalar(string query, CommandType commandType, NpgsqlParameter[] NpgsqlParameters)
+        public object? GetScalar(string query, CommandType commandType, params NpgsqlParameter[] NpgsqlParameters)
         {
             using var NpgsqlCommand = _connectionFactory.CreateCommand();
             NpgsqlCommand.CommandText = query;
             NpgsqlCommand.CommandType = commandType;
             NpgsqlCommand.CommandTimeout = _options.DbCommandTimeout;
-            
+
             NpgsqlCommand.AttachParameters(NpgsqlParameters);
             return GetScalar(NpgsqlCommand);
         }
@@ -1050,7 +1050,7 @@ namespace Database.Aniki
             NpgsqlCommand.AttachParameters(NpgsqlParameters);
             return ExecuteNonQuery(NpgsqlCommand);
         }
-        public int ExecuteNonQuery(string query, CommandType commandType, NpgsqlParameter[] NpgsqlParameters)
+        public int ExecuteNonQuery(string query, CommandType commandType, params NpgsqlParameter[] NpgsqlParameters)
         {
             using var NpgsqlCommand = _connectionFactory.CreateCommand();
             NpgsqlCommand.CommandText = query;
@@ -1062,7 +1062,7 @@ namespace Database.Aniki
         #endregion
 
         #region ExecuteReader
-        public IDataReader ExecuteReader(string query, CommandType commandType)
+        public NpgsqlDataReader ExecuteReader(string query, CommandType commandType)
         {
             NpgsqlConnection? connection = null;
             try
@@ -1077,7 +1077,7 @@ namespace Database.Aniki
                 LogSqlInfo(cmd, connection);
                 return reader;
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
                 LogSqlError(query, ex);
                 connection?.CloseWithRetry(_sqlRetryOption);
@@ -1085,7 +1085,7 @@ namespace Database.Aniki
             }
         }
 
-        public IDataReader ExecuteReader(string query, CommandType commandType, NpgsqlParameter[] NpgsqlParameters)
+        public NpgsqlDataReader ExecuteReader(string query, CommandType commandType, params NpgsqlParameter[] NpgsqlParameters)
         {
             NpgsqlConnection? connection = null;
             try
@@ -1102,7 +1102,7 @@ namespace Database.Aniki
             }
         }
 
-        public IDataReader ExecuteReader(NpgsqlCommand cmd)
+        public NpgsqlDataReader ExecuteReader(NpgsqlCommand cmd)
         {
             NpgsqlConnection? connection = null;
             try
@@ -1121,7 +1121,7 @@ namespace Database.Aniki
             }
         }
 
-        public IDataReader ExecuteReader(NpgsqlCommand cmd, NpgsqlConnection connection)
+        public NpgsqlDataReader ExecuteReader(NpgsqlCommand cmd, NpgsqlConnection connection)
         {
             try
             {
@@ -1143,12 +1143,12 @@ namespace Database.Aniki
             }
         }
 
-        public IDataReader ExecuteReader(NpgsqlConnection connection, NpgsqlTransaction? transaction, CommandType commandType, string commandText, NpgsqlParameter[] commandParameters)
+        public NpgsqlDataReader ExecuteReader(NpgsqlConnection connection, NpgsqlTransaction? transaction, CommandType commandType, string commandText, params NpgsqlParameter[] commandParameters)
         {
             // Create a command and prepare it for execution
             var cmd = _connectionFactory.CreateCommand();
             cmd.CommandTimeout = _options.DbCommandTimeout;
-            
+
             cmd.CommandType = commandType;
             cmd.CommandText = commandText;
             cmd.Connection = connection;
@@ -1181,7 +1181,7 @@ namespace Database.Aniki
         #endregion
 
         #region ExecuteReaderSequential
-        public IDataReader ExecuteReaderSequential(string query, CommandType commandType)
+        public NpgsqlDataReader ExecuteReaderSequential(string query, CommandType commandType)
         {
             NpgsqlConnection? connection = null;
             try
@@ -1205,7 +1205,7 @@ namespace Database.Aniki
             }
         }
 
-        public IDataReader ExecuteReaderSequential(string query, CommandType commandType, NpgsqlParameter[] NpgsqlParameters)
+        public NpgsqlDataReader ExecuteReaderSequential(string query, CommandType commandType, params NpgsqlParameter[] NpgsqlParameters)
         {
             NpgsqlConnection? connection = null;
             try
@@ -1222,7 +1222,7 @@ namespace Database.Aniki
             }
         }
 
-        public IDataReader ExecuteReaderSequential(NpgsqlCommand cmd)
+        public NpgsqlDataReader ExecuteReaderSequential(NpgsqlCommand cmd)
         {
             NpgsqlConnection? connection = null;
             try
@@ -1241,7 +1241,7 @@ namespace Database.Aniki
             }
         }
 
-        public IDataReader ExecuteReaderSequential(NpgsqlCommand cmd, NpgsqlConnection connection)
+        public NpgsqlDataReader ExecuteReaderSequential(NpgsqlCommand cmd, NpgsqlConnection connection)
         {
             try
             {
@@ -1263,7 +1263,7 @@ namespace Database.Aniki
             }
         }
 
-        public IDataReader ExecuteReaderSequential(NpgsqlConnection connection, NpgsqlTransaction? transaction, CommandType commandType, string commandText, NpgsqlParameter[] commandParameters)
+        public NpgsqlDataReader ExecuteReaderSequential(NpgsqlConnection connection, NpgsqlTransaction? transaction, CommandType commandType, string commandText, params NpgsqlParameter[] commandParameters)
         {
             // Create a command and prepare it for execution
             var cmd = _connectionFactory.CreateCommand();

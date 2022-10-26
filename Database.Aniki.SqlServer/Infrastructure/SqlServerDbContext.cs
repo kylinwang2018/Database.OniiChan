@@ -121,7 +121,7 @@ namespace Database.Aniki
             return GetDataTable(sqlCommand);
         }
 
-        public DataTable GetDataTable(string query, CommandType commandType, SqlParameter[] sqlParameters)
+        public DataTable GetDataTable(string query, CommandType commandType, params SqlParameter[] sqlParameters)
         {
             using var sqlCommand = _connectionFactory.CreateCommand();
             sqlCommand.CommandText = query;
@@ -156,7 +156,7 @@ namespace Database.Aniki
             return DataTableHelper.DataTableToList<T>(datatable);
         }
 
-        public List<T> GetDataTable<T>(string query, CommandType commandType, SqlParameter[] sqlParameters) where T : class, new()
+        public List<T> GetDataTable<T>(string query, CommandType commandType, params SqlParameter[] sqlParameters) where T : class, new()
         {
             var datatable = GetDataTable(query, commandType, sqlParameters);
             return DataTableHelper.DataTableToList<T>(datatable);
@@ -188,7 +188,7 @@ namespace Database.Aniki
             return DataTableHelper.DataRowToT<T>(datatable);
         }
 
-        public T? GetDataRow<T>(string query, CommandType commandType, SqlParameter[] sqlParameters) where T : class, new()
+        public T? GetDataRow<T>(string query, CommandType commandType, params SqlParameter[] sqlParameters) where T : class, new()
         {
             var datatable = GetDataTable(query, commandType, sqlParameters);
             return DataTableHelper.DataRowToT<T>(datatable);
@@ -939,7 +939,7 @@ namespace Database.Aniki
             return GetListOf<T>(sqlCommand);
         }
 
-        public List<T>? GetListOf<T>(string query, CommandType commandType, SqlParameter[] sqlParameters)
+        public List<T>? GetListOf<T>(string query, CommandType commandType, params SqlParameter[] sqlParameters)
         {
             using var sqlCommand = _connectionFactory.CreateCommand();
             sqlCommand.CommandText = query;
@@ -1031,7 +1031,7 @@ namespace Database.Aniki
             return GetScalar(sqlCommand);
         }
 
-        public object GetScalar(string query, CommandType commandType, SqlParameter[] sqlParameters)
+        public object GetScalar(string query, CommandType commandType, params SqlParameter[] sqlParameters)
         {
             using var sqlCommand = _connectionFactory.CreateCommand();
             sqlCommand.CommandText = query;
@@ -1125,7 +1125,7 @@ namespace Database.Aniki
             sqlCommand.AttachParameters(sqlParameters);
             return ExecuteNonQuery(sqlCommand);
         }
-        public int ExecuteNonQuery(string query, CommandType commandType, SqlParameter[] sqlParameters)
+        public int ExecuteNonQuery(string query, CommandType commandType, params SqlParameter[] sqlParameters)
         {
             using var sqlCommand = _connectionFactory.CreateCommand();
             sqlCommand.CommandText = query;
@@ -1138,7 +1138,7 @@ namespace Database.Aniki
         #endregion
 
         #region ExecuteReader
-        public IDataReader ExecuteReader(string query, CommandType commandType)
+        public SqlDataReader ExecuteReader(string query, CommandType commandType)
         {
             SqlConnection? connection = null;
             try
@@ -1165,7 +1165,7 @@ namespace Database.Aniki
             }
         }
 
-        public IDataReader ExecuteReader(string query, CommandType commandType, SqlParameter[] sqlParameters)
+        public SqlDataReader ExecuteReader(string query, CommandType commandType, params SqlParameter[] sqlParameters)
         {
             SqlConnection? connection = null;
             try
@@ -1186,7 +1186,7 @@ namespace Database.Aniki
             }
         }
 
-        public IDataReader ExecuteReader(SqlCommand cmd)
+        public SqlDataReader ExecuteReader(SqlCommand cmd)
         {
             SqlConnection? connection = null;
             try
@@ -1208,7 +1208,7 @@ namespace Database.Aniki
             }
         }
 
-        public IDataReader ExecuteReader(SqlCommand cmd, SqlConnection connection)
+        public SqlDataReader ExecuteReader(SqlCommand cmd, SqlConnection connection)
         {
             try
             {
@@ -1233,7 +1233,7 @@ namespace Database.Aniki
             }
         }
 
-        public IDataReader ExecuteReader(SqlConnection connection, SqlTransaction? transaction, CommandType commandType, string commandText, SqlParameter[] commandParameters)
+        public SqlDataReader ExecuteReader(SqlConnection connection, SqlTransaction? transaction, CommandType commandType, string commandText, params SqlParameter[] commandParameters)
         {
             // Create a command and prepare it for execution
             var cmd = _connectionFactory.CreateCommand();
@@ -1274,7 +1274,7 @@ namespace Database.Aniki
         #endregion
 
         #region ExecuteReaderSequential
-        public IDataReader ExecuteReaderSequential(string query, CommandType commandType)
+        public SqlDataReader ExecuteReaderSequential(string query, CommandType commandType)
         {
             SqlConnection? connection = null;
             try
@@ -1301,7 +1301,7 @@ namespace Database.Aniki
             }
         }
 
-        public IDataReader ExecuteReaderSequential(string query, CommandType commandType, SqlParameter[] sqlParameters)
+        public SqlDataReader ExecuteReaderSequential(string query, CommandType commandType, params SqlParameter[] sqlParameters)
         {
             SqlConnection? connection = null;
             try
@@ -1322,7 +1322,7 @@ namespace Database.Aniki
             }
         }
 
-        public IDataReader ExecuteReaderSequential(SqlCommand cmd)
+        public SqlDataReader ExecuteReaderSequential(SqlCommand cmd)
         {
             SqlConnection? connection = null;
             try
@@ -1344,7 +1344,7 @@ namespace Database.Aniki
             }
         }
 
-        public IDataReader ExecuteReaderSequential(SqlCommand cmd, SqlConnection connection)
+        public SqlDataReader ExecuteReaderSequential(SqlCommand cmd, SqlConnection connection)
         {
             try
             {
@@ -1369,7 +1369,7 @@ namespace Database.Aniki
             }
         }
 
-        public IDataReader ExecuteReaderSequential(SqlConnection connection, SqlTransaction? transaction, CommandType commandType, string commandText, SqlParameter[] commandParameters)
+        public SqlDataReader ExecuteReaderSequential(SqlConnection connection, SqlTransaction? transaction, CommandType commandType, string commandText, params SqlParameter[] commandParameters)
         {
             // Create a command and prepare it for execution
             var cmd = _connectionFactory.CreateCommand();

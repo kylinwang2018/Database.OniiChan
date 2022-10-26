@@ -121,7 +121,7 @@ namespace Database.Aniki
             return await GetDataTableAsync(sqlCommand);
         }
 
-        public async Task<DataTable> GetDataTableAsync(string query, CommandType commandType, SqlParameter[] sqlParameters)
+        public async Task<DataTable> GetDataTableAsync(string query, CommandType commandType, params SqlParameter[] sqlParameters)
         {
             using var sqlCommand = _connectionFactory.CreateCommand();
             sqlCommand.CommandText = query;
@@ -156,7 +156,7 @@ namespace Database.Aniki
             return DataTableHelper.DataTableToList<T>(datatable);
         }
 
-        public async Task<List<T>> GetDataTableAsync<T>(string query, CommandType commandType, SqlParameter[] sqlParameters) where T : class, new()
+        public async Task<List<T>> GetDataTableAsync<T>(string query, CommandType commandType, params SqlParameter[] sqlParameters) where T : class, new()
         {
             var datatable = await GetDataTableAsync(query, commandType, sqlParameters);
             return DataTableHelper.DataTableToList<T>(datatable);
@@ -188,7 +188,7 @@ namespace Database.Aniki
             return DataTableHelper.DataRowToT<T>(datatable);
         }
 
-        public async Task<T?> GetDataRowAsync<T>(string query, CommandType commandType, SqlParameter[] sqlParameters) where T : class, new()
+        public async Task<T?> GetDataRowAsync<T>(string query, CommandType commandType, params SqlParameter[] sqlParameters) where T : class, new()
         {
             var datatable = await GetDataTableAsync(query, commandType, sqlParameters);
             return DataTableHelper.DataRowToT<T>(datatable);
@@ -939,7 +939,7 @@ namespace Database.Aniki
             return await GetListOfAsync<T>(sqlCommand);
         }
 
-        public async Task<List<T>?> GetListOfAsync<T>(string query, CommandType commandType, SqlParameter[] sqlParameters)
+        public async Task<List<T>?> GetListOfAsync<T>(string query, CommandType commandType, params SqlParameter[] sqlParameters)
         {
             using var sqlCommand = _connectionFactory.CreateCommand();
             sqlCommand.CommandText = query;
@@ -1031,7 +1031,7 @@ namespace Database.Aniki
             return await GetScalarAsync(sqlCommand);
         }
 
-        public async Task<object> GetScalarAsync(string query, CommandType commandType, SqlParameter[] sqlParameters)
+        public async Task<object> GetScalarAsync(string query, CommandType commandType, params SqlParameter[] sqlParameters)
         {
             using var sqlCommand = _connectionFactory.CreateCommand();
             sqlCommand.CommandText = query;
@@ -1124,7 +1124,7 @@ namespace Database.Aniki
             sqlCommand.AttachParameters(sqlParameters);
             return await ExecuteNonQueryAsync(sqlCommand);
         }
-        public async Task<int> ExecuteNonQueryAsync(string query, CommandType commandType, SqlParameter[] sqlParameters)
+        public async Task<int> ExecuteNonQueryAsync(string query, CommandType commandType, params SqlParameter[] sqlParameters)
         {
             using var sqlCommand = _connectionFactory.CreateCommand();
             sqlCommand.CommandText = query;
@@ -1164,7 +1164,7 @@ namespace Database.Aniki
             }
         }
 
-        public async Task<IDataReader> ExecuteReaderAsync(string query, CommandType commandType, SqlParameter[] sqlParameters)
+        public async Task<IDataReader> ExecuteReaderAsync(string query, CommandType commandType, params SqlParameter[] sqlParameters)
         {
             SqlConnection? connection = null;
             try
@@ -1231,7 +1231,7 @@ namespace Database.Aniki
             }
         }
 
-        public async Task<IDataReader> ExecuteReaderAsync(SqlConnection connection, SqlTransaction? transaction, CommandType commandType, string commandText, SqlParameter[] commandParameters)
+        public async Task<IDataReader> ExecuteReaderAsync(SqlConnection connection, SqlTransaction? transaction, CommandType commandType, string commandText, params SqlParameter[] commandParameters)
         {
             // Create a command and prepare it for execution
             var cmd = _connectionFactory.CreateCommand();
@@ -1300,7 +1300,7 @@ namespace Database.Aniki
             }
         }
 
-        public async Task<IDataReader> ExecuteReaderSequentialAsync(string query, CommandType commandType, SqlParameter[] sqlParameters)
+        public async Task<IDataReader> ExecuteReaderSequentialAsync(string query, CommandType commandType, params SqlParameter[] sqlParameters)
         {
             SqlConnection? connection = null;
             try
@@ -1367,7 +1367,7 @@ namespace Database.Aniki
             }
         }
 
-        public async Task<IDataReader> ExecuteReaderSequentialAsync(SqlConnection connection, SqlTransaction? transaction, CommandType commandType, string commandText, SqlParameter[] commandParameters)
+        public async Task<IDataReader> ExecuteReaderSequentialAsync(SqlConnection connection, SqlTransaction? transaction, CommandType commandType, string commandText, params SqlParameter[] commandParameters)
         {
             // Create a command and prepare it for execution
             var cmd = _connectionFactory.CreateCommand();

@@ -115,7 +115,7 @@ namespace Database.Aniki
             return await GetDataTableAsync(NpgsqlCommand);
         }
 
-        public async Task<DataTable> GetDataTableAsync(string query, CommandType commandType, NpgsqlParameter[] NpgsqlParameters)
+        public async Task<DataTable> GetDataTableAsync(string query, CommandType commandType, params NpgsqlParameter[] NpgsqlParameters)
         {
             using var NpgsqlCommand = _connectionFactory.CreateCommand();
             NpgsqlCommand.CommandText = query;
@@ -150,7 +150,7 @@ namespace Database.Aniki
             return DataTableHelper.DataTableToList<T>(datatable);
         }
 
-        public async Task<List<T>> GetDataTableAsync<T>(string query, CommandType commandType, NpgsqlParameter[] NpgsqlParameters) where T : class, new()
+        public async Task<List<T>> GetDataTableAsync<T>(string query, CommandType commandType, params NpgsqlParameter[] NpgsqlParameters) where T : class, new()
         {
             var datatable = await GetDataTableAsync(query, commandType, NpgsqlParameters);
             return DataTableHelper.DataTableToList<T>(datatable);
@@ -182,7 +182,7 @@ namespace Database.Aniki
             return DataTableHelper.DataRowToT<T>(datatable);
         }
 
-        public async Task<T?> GetDataRowAsync<T>(string query, CommandType commandType, NpgsqlParameter[] NpgsqlParameters) where T : class, new()
+        public async Task<T?> GetDataRowAsync<T>(string query, CommandType commandType, params NpgsqlParameter[] NpgsqlParameters) where T : class, new()
         {
             var datatable = await GetDataTableAsync(query, commandType, NpgsqlParameters);
             return DataTableHelper.DataRowToT<T>(datatable);
@@ -886,7 +886,7 @@ namespace Database.Aniki
             return await GetListOfAsync<T>(NpgsqlCommand);
         }
 
-        public async Task<List<T>?> GetListOfAsync<T>(string query, CommandType commandType, NpgsqlParameter[] NpgsqlParameters)
+        public async Task<List<T>?> GetListOfAsync<T>(string query, CommandType commandType, params NpgsqlParameter[] NpgsqlParameters)
         {
             using var NpgsqlCommand = _connectionFactory.CreateCommand();
             NpgsqlCommand.CommandText = query;
@@ -973,7 +973,7 @@ namespace Database.Aniki
             return await GetScalarAsync(NpgsqlCommand);
         }
 
-        public async Task<object> GetScalarAsync(string query, CommandType commandType, NpgsqlParameter[] NpgsqlParameters)
+        public async Task<object> GetScalarAsync(string query, CommandType commandType, params NpgsqlParameter[] NpgsqlParameters)
         {
             using var NpgsqlCommand = _connectionFactory.CreateCommand();
             NpgsqlCommand.CommandText = query;
@@ -1060,7 +1060,7 @@ namespace Database.Aniki
             NpgsqlCommand.AttachParameters(NpgsqlParameters);
             return await ExecuteNonQueryAsync(NpgsqlCommand);
         }
-        public async Task<int> ExecuteNonQueryAsync(string query, CommandType commandType, NpgsqlParameter[] NpgsqlParameters)
+        public async Task<int> ExecuteNonQueryAsync(string query, CommandType commandType, params NpgsqlParameter[] NpgsqlParameters)
         {
             using var NpgsqlCommand = _connectionFactory.CreateCommand();
             NpgsqlCommand.CommandText = query;
@@ -1072,7 +1072,7 @@ namespace Database.Aniki
         #endregion
 
         #region ExecuteReader
-        public async Task<IDataReader> ExecuteReaderAsync(string query, CommandType commandType)
+        public async Task<NpgsqlDataReader> ExecuteReaderAsync(string query, CommandType commandType)
         {
             NpgsqlConnection? connection = null;
             try
@@ -1096,7 +1096,7 @@ namespace Database.Aniki
             }
         }
 
-        public async Task<IDataReader> ExecuteReaderAsync(string query, CommandType commandType, NpgsqlParameter[] NpgsqlParameters)
+        public async Task<NpgsqlDataReader> ExecuteReaderAsync(string query, CommandType commandType, params NpgsqlParameter[] NpgsqlParameters)
         {
             NpgsqlConnection? connection = null;
             try
@@ -1114,7 +1114,7 @@ namespace Database.Aniki
             }
         }
 
-        public async Task<IDataReader> ExecuteReaderAsync(NpgsqlCommand cmd)
+        public async Task<NpgsqlDataReader> ExecuteReaderAsync(NpgsqlCommand cmd)
         {
             NpgsqlConnection? connection = null;
             try
@@ -1133,7 +1133,7 @@ namespace Database.Aniki
             }
         }
 
-        public async Task<IDataReader> ExecuteReaderAsync(NpgsqlCommand cmd, NpgsqlConnection connection)
+        public async Task<NpgsqlDataReader> ExecuteReaderAsync(NpgsqlCommand cmd, NpgsqlConnection connection)
         {
             try
             {
@@ -1155,7 +1155,7 @@ namespace Database.Aniki
             }
         }
 
-        public async Task<IDataReader> ExecuteReaderAsync(NpgsqlConnection connection, NpgsqlTransaction? transaction, CommandType commandType, string commandText, NpgsqlParameter[] commandParameters)
+        public async Task<NpgsqlDataReader> ExecuteReaderAsync(NpgsqlConnection connection, NpgsqlTransaction? transaction, CommandType commandType, string commandText, params NpgsqlParameter[] commandParameters)
         {
             // Create a command and prepare it for execution
             var cmd = _connectionFactory.CreateCommand();
@@ -1195,7 +1195,7 @@ namespace Database.Aniki
         #endregion
 
         #region ExecuteReaderSequential
-        public async Task<IDataReader> ExecuteReaderSequentialAsync(string query, CommandType commandType)
+        public async Task<NpgsqlDataReader> ExecuteReaderSequentialAsync(string query, CommandType commandType)
         {
             NpgsqlConnection? connection = null;
             try
@@ -1219,7 +1219,7 @@ namespace Database.Aniki
             }
         }
 
-        public async Task<IDataReader> ExecuteReaderSequentialAsync(string query, CommandType commandType, NpgsqlParameter[] NpgsqlParameters)
+        public async Task<NpgsqlDataReader> ExecuteReaderSequentialAsync(string query, CommandType commandType, params NpgsqlParameter[] NpgsqlParameters)
         {
             NpgsqlConnection? connection = null;
             try
@@ -1237,7 +1237,7 @@ namespace Database.Aniki
             }
         }
 
-        public async Task<IDataReader> ExecuteReaderSequentialAsync(NpgsqlCommand cmd)
+        public async Task<NpgsqlDataReader> ExecuteReaderSequentialAsync(NpgsqlCommand cmd)
         {
             NpgsqlConnection? connection = null;
             try
@@ -1256,7 +1256,7 @@ namespace Database.Aniki
             }
         }
 
-        public async Task<IDataReader> ExecuteReaderSequentialAsync(NpgsqlCommand cmd, NpgsqlConnection connection)
+        public async Task<NpgsqlDataReader> ExecuteReaderSequentialAsync(NpgsqlCommand cmd, NpgsqlConnection connection)
         {
             try
             {
@@ -1278,7 +1278,7 @@ namespace Database.Aniki
             }
         }
 
-        public async Task<IDataReader> ExecuteReaderSequentialAsync(NpgsqlConnection connection, NpgsqlTransaction? transaction, CommandType commandType, string commandText, NpgsqlParameter[] commandParameters)
+        public async Task<NpgsqlDataReader> ExecuteReaderSequentialAsync(NpgsqlConnection connection, NpgsqlTransaction? transaction, CommandType commandType, string commandText, params NpgsqlParameter[] commandParameters)
         {
             // Create a command and prepare it for execution
             var cmd = _connectionFactory.CreateCommand();
