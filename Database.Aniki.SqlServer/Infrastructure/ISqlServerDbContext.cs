@@ -8,15 +8,88 @@ namespace Database.Aniki
 {
     public interface ISqlServerDbContext
     {
+        /// <summary>
+        /// Executes a Transact-SQL statement against a new connection and returns the number of rows affected.
+        /// </summary>
+        /// <param name="cmd">A <see cref="SqlCommand"/> object that contain the sql text</param>
+        /// <returns>The number of rows affected</returns>
         int ExecuteNonQuery(SqlCommand cmd);
+
+        /// <summary>
+        /// Executes a Transact-SQL statement against the connection and returns the number of rows affected.
+        /// </summary>
+        /// <param name="cmd">A <see cref="SqlCommand"/> object that contain the sql text</param>
+        /// <param name="connection">The connection will execute that command</param>
+        /// <param name="closeWhenComplete">Close the connection when it is true</param>
+        /// <returns>The number of rows affected</returns>
         int ExecuteNonQuery(SqlCommand cmd, SqlConnection connection, bool closeWhenComplete = false);
+
+        /// <summary>
+        /// Executes a Transact-SQL statement against a new connection and returns the number of rows affected.
+        /// </summary>
+        /// <param name="query">The sql command in plain text</param>
+        /// <param name="commandType">Determine the type of the command, whether is Text or StoredProcedure</param>
+        /// <returns>The number of rows affected</returns>
         int ExecuteNonQuery(string query, CommandType commandType);
+
+        /// <summary>
+        /// Executes a Transact-SQL statement with parameters against a new connection and returns the number of rows affected.
+        /// </summary>
+        /// <param name="query">The sql command in plain text</param>
+        /// <param name="commandType">Determine the type of the command, whether is Text or StoredProcedure</param>
+        /// <param name="sqlParameters">The parameters</param>
+        /// <returns>The number of rows affected</returns>
         int ExecuteNonQuery(string query, CommandType commandType, Array sqlParameters);
+
+        /// <summary>
+        /// Executes a Transact-SQL statement with parameters against a new connection and returns the number of rows affected.
+        /// </summary>
+        /// <param name="query">The sql command in plain text</param>
+        /// <param name="commandType">Determine the type of the command, whether is Text or StoredProcedure</param>
+        /// <param name="sqlParameters">The parameters</param>
+        /// <returns>The number of rows affected</returns>
         int ExecuteNonQuery(string query, CommandType commandType, SqlParameter[] sqlParameters);
+
+        /// <summary>
+        /// Executes a Transact-SQL statement against a new connection and returns the number of rows affected.
+        /// </summary>
+        /// <param name="cmd">A <see cref="SqlCommand"/> object that contain the sql text</param>
+        /// <returns>The number of rows affected</returns>
         Task<int> ExecuteNonQueryAsync(SqlCommand cmd);
+
+        /// <summary>
+        /// Executes a Transact-SQL statement against the connection and returns the number of rows affected.
+        /// </summary>
+        /// <param name="cmd">A <see cref="SqlCommand"/> object that contain the sql text</param>
+        /// <param name="connection">The connection will execute that command</param>
+        /// <param name="closeWhenComplete">Close the connection when it is true</param>
+        /// <returns>The number of rows affected</returns>
         Task<int> ExecuteNonQueryAsync(SqlCommand cmd, SqlConnection connection, bool closeWhenComplete = false);
+
+        /// <summary>
+        /// Executes a Transact-SQL statement against a new connection and returns the number of rows affected.
+        /// </summary>
+        /// <param name="query">The sql command in plain text</param>
+        /// <param name="commandType">Determine the type of the command, whether is Text or StoredProcedure</param>
+        /// <returns>The number of rows affected</returns>
         Task<int> ExecuteNonQueryAsync(string query, CommandType commandType);
+
+        /// <summary>
+        /// Executes a Transact-SQL statement with parameters against a new connection and returns the number of rows affected.
+        /// </summary>
+        /// <param name="query">The sql command in plain text</param>
+        /// <param name="commandType">Determine the type of the command, whether is Text or StoredProcedure</param>
+        /// <param name="sqlParameters">The parameters</param>
+        /// <returns>The number of rows affected</returns>
         Task<int> ExecuteNonQueryAsync(string query, CommandType commandType, Array sqlParameters);
+
+        /// <summary>
+        /// Executes a Transact-SQL statement with parameters against a new connection and returns the number of rows affected.
+        /// </summary>
+        /// <param name="query">The sql command in plain text</param>
+        /// <param name="commandType">Determine the type of the command, whether is Text or StoredProcedure</param>
+        /// <param name="sqlParameters">The parameters</param>
+        /// <returns>The number of rows affected</returns>
         Task<int> ExecuteNonQueryAsync(string query, CommandType commandType, SqlParameter[] sqlParameters);
         IDataReader ExecuteReader(SqlCommand cmd);
         IDataReader ExecuteReader(SqlCommand cmd, SqlConnection connection);
