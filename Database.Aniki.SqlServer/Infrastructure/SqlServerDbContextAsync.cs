@@ -1137,7 +1137,7 @@ namespace Database.Aniki
         #endregion
 
         #region ExecuteReader
-        public async Task<IDataReader> ExecuteReaderAsync(string query, CommandType commandType)
+        public async Task<SqlDataReader> ExecuteReaderAsync(string query, CommandType commandType)
         {
             SqlConnection? connection = null;
             try
@@ -1164,7 +1164,7 @@ namespace Database.Aniki
             }
         }
 
-        public async Task<IDataReader> ExecuteReaderAsync(string query, CommandType commandType, params SqlParameter[] sqlParameters)
+        public async Task<SqlDataReader> ExecuteReaderAsync(string query, CommandType commandType, params SqlParameter[] sqlParameters)
         {
             SqlConnection? connection = null;
             try
@@ -1185,7 +1185,7 @@ namespace Database.Aniki
             }
         }
 
-        public async Task<IDataReader> ExecuteReaderAsync(SqlCommand cmd)
+        public async Task<SqlDataReader> ExecuteReaderAsync(SqlCommand cmd)
         {
             SqlConnection? connection = null;
             try
@@ -1207,7 +1207,7 @@ namespace Database.Aniki
             }
         }
 
-        public async Task<IDataReader> ExecuteReaderAsync(SqlCommand cmd, SqlConnection connection)
+        public async Task<SqlDataReader> ExecuteReaderAsync(SqlCommand cmd, SqlConnection connection)
         {
             try
             {
@@ -1231,7 +1231,7 @@ namespace Database.Aniki
             }
         }
 
-        public async Task<IDataReader> ExecuteReaderAsync(SqlConnection connection, SqlTransaction? transaction, CommandType commandType, string commandText, params SqlParameter[] commandParameters)
+        public async Task<SqlDataReader> ExecuteReaderAsync(SqlConnection connection, SqlTransaction? transaction, CommandType commandType, string commandText, params SqlParameter[] commandParameters)
         {
             // Create a command and prepare it for execution
             var cmd = _connectionFactory.CreateCommand();
@@ -1273,7 +1273,7 @@ namespace Database.Aniki
         #endregion
 
         #region ExecuteReader
-        public async Task<IDataReader> ExecuteReaderSequentialAsync(string query, CommandType commandType)
+        public async Task<SqlDataReader> ExecuteReaderSequentialAsync(string query, CommandType commandType)
         {
             SqlConnection? connection = null;
             try
@@ -1300,7 +1300,7 @@ namespace Database.Aniki
             }
         }
 
-        public async Task<IDataReader> ExecuteReaderSequentialAsync(string query, CommandType commandType, params SqlParameter[] sqlParameters)
+        public async Task<SqlDataReader> ExecuteReaderSequentialAsync(string query, CommandType commandType, params SqlParameter[] sqlParameters)
         {
             SqlConnection? connection = null;
             try
@@ -1321,7 +1321,7 @@ namespace Database.Aniki
             }
         }
 
-        public async Task<IDataReader> ExecuteReaderSequentialAsync(SqlCommand cmd)
+        public async Task<SqlDataReader> ExecuteReaderSequentialAsync(SqlCommand cmd)
         {
             SqlConnection? connection = null;
             try
@@ -1343,7 +1343,7 @@ namespace Database.Aniki
             }
         }
 
-        public async Task<IDataReader> ExecuteReaderSequentialAsync(SqlCommand cmd, SqlConnection connection)
+        public async Task<SqlDataReader> ExecuteReaderSequentialAsync(SqlCommand cmd, SqlConnection connection)
         {
             try
             {
@@ -1367,7 +1367,7 @@ namespace Database.Aniki
             }
         }
 
-        public async Task<IDataReader> ExecuteReaderSequentialAsync(SqlConnection connection, SqlTransaction? transaction, CommandType commandType, string commandText, params SqlParameter[] commandParameters)
+        public async Task<SqlDataReader> ExecuteReaderSequentialAsync(SqlConnection connection, SqlTransaction? transaction, CommandType commandType, string commandText, params SqlParameter[] commandParameters)
         {
             // Create a command and prepare it for execution
             var cmd = _connectionFactory.CreateCommand();
