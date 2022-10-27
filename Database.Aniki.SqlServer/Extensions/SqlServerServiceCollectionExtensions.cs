@@ -32,9 +32,9 @@ namespace Database.Aniki
         }
 
         public static IServiceCollection RegisterSqlServerRepositories(
-            this IServiceCollection serviceCollection)
+            this IServiceCollection serviceCollection, string? assemblyNameStart)
         {
-            var allAssembly = AppAssembly.GetAll();
+            var allAssembly = AppAssembly.GetAll(assemblyNameStart);
 
             serviceCollection.RegisterServiceByAttribute(ServiceLifetime.Singleton, allAssembly);
             serviceCollection.RegisterServiceByAttribute(ServiceLifetime.Scoped, allAssembly);
@@ -43,15 +43,16 @@ namespace Database.Aniki
             return serviceCollection;
         }
 
-        private static void RegisterServiceByAttribute(this IServiceCollection services, ServiceLifetime serviceLifetime, List<Assembly> allAssembly)
+        private static void RegisterServiceByAttribute(this IServiceCollection services, ServiceLifetime serviceLifetime, Assembly[] allAssembly)
         {
-            List<Type> types = allAssembly
+
+            var types = allAssembly
                 .SelectMany(t =>
-                t.GetTypes())
-                    .Where(t =>
-                        t.GetCustomAttributes(typeof(SqlServerRepoAttribute), false).Length > 0 &&
-                            t.GetCustomAttribute<SqlServerRepoAttribute>()?.Lifetime == serviceLifetime &&
-                            t.IsClass && !t.IsAbstract).ToList();
+                    t.GetTypes())
+                .Where(s=> s.GetCustomAttributes(typeof(SqlServerRepoAttribute),false).Length > 0 &&
+                            s.GetCustomAttribute<SqlServerRepoAttribute>()?.Lifetime == serviceLifetime &&
+                            s.IsClass && !s.IsAbstract);
+
             foreach (var type in types)
             {
                 Type? typeInterface = type.GetInterfaces().FirstOrDefault();

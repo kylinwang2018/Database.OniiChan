@@ -822,7 +822,7 @@ namespace Database.Aniki
         #endregion
 
         #region GetListOf<T>
-        public async Task<List<T>?> GetListOfAsync<T>(NpgsqlCommand cmd, NpgsqlConnection connection)
+        public async Task<List<T>> GetListOfAsync<T>(NpgsqlCommand cmd, NpgsqlConnection connection)
         {
             var list = new List<T>();
             var type = typeof(T);
@@ -868,7 +868,7 @@ namespace Database.Aniki
             return list;
         }
 
-        public async Task<List<T>?> GetListOfAsync<T>(NpgsqlCommand cmd)
+        public async Task<List<T>> GetListOfAsync<T>(NpgsqlCommand cmd)
         {
             using var NpgsqlConnection = _connectionFactory.CreateConnection();
             await NpgsqlConnection.OpenWithRetryAsync(_sqlRetryOption);
@@ -876,7 +876,7 @@ namespace Database.Aniki
             return await GetListOfAsync<T>(cmd, NpgsqlConnection);
         }
 
-        public async Task<List<T>?> GetListOfAsync<T>(string query, CommandType commandType)
+        public async Task<List<T>> GetListOfAsync<T>(string query, CommandType commandType)
         {
             using var NpgsqlCommand = _connectionFactory.CreateCommand();
             NpgsqlCommand.CommandText = query;
@@ -886,7 +886,7 @@ namespace Database.Aniki
             return await GetListOfAsync<T>(NpgsqlCommand);
         }
 
-        public async Task<List<T>?> GetListOfAsync<T>(string query, CommandType commandType, params NpgsqlParameter[] NpgsqlParameters)
+        public async Task<List<T>> GetListOfAsync<T>(string query, CommandType commandType, params NpgsqlParameter[] NpgsqlParameters)
         {
             using var NpgsqlCommand = _connectionFactory.CreateCommand();
             NpgsqlCommand.CommandText = query;

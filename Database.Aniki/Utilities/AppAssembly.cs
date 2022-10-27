@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Text;
@@ -8,10 +9,10 @@ namespace Database.Aniki.Utilities
 {
     public static class AppAssembly
     {
-        public static List<Assembly> GetAll()
+        public static Assembly[] GetAll(string? assemblyNameStart)
         {
 
-            var allAssemblies = AppDomain.CurrentDomain.GetAssemblies().ToList();
+            /*var allAssemblies = AppDomain.CurrentDomain.GetAssemblies().ToList();
 
             var loadedAssemblies = new HashSet<string>();
 
@@ -40,6 +41,18 @@ namespace Database.Aniki.Utilities
                     }
                 }
             }
+            */
+
+            if (assemblyNameStart == null)
+            {
+                assemblyNameStart = "";
+            }
+
+            var allAssemblies = Directory.GetFiles(AppDomain.CurrentDomain.BaseDirectory, "*.dll")
+                        .Select(x => Assembly.Load(AssemblyName.GetAssemblyName(x)))
+                        .Where(x => x.FullName.StartsWith(assemblyNameStart))
+                        .ToArray();
+
             return allAssemblies;
         }
     }

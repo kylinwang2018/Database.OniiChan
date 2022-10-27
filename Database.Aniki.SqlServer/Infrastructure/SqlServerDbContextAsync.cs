@@ -870,7 +870,7 @@ namespace Database.Aniki
         #endregion
 
         #region GetListOf<T>
-        public async Task<List<T>?> GetListOfAsync<T>(SqlCommand cmd, SqlConnection connection)
+        public async Task<List<T>> GetListOfAsync<T>(SqlCommand cmd, SqlConnection connection)
         {
             if (_options.EnableStatistics)
                 connection.StatisticsEnabled = true;
@@ -918,7 +918,7 @@ namespace Database.Aniki
             return list;
         }
 
-        public async Task<List<T>?> GetListOfAsync<T>(SqlCommand cmd)
+        public async Task<List<T>> GetListOfAsync<T>(SqlCommand cmd)
         {
             using var sqlConnection = _connectionFactory.CreateConnection();
             if (_options.EnableStatistics)
@@ -929,7 +929,7 @@ namespace Database.Aniki
             return await GetListOfAsync<T>(cmd, sqlConnection);
         }
 
-        public async Task<List<T>?> GetListOfAsync<T>(string query, CommandType commandType)
+        public async Task<List<T>> GetListOfAsync<T>(string query, CommandType commandType)
         {
             using var sqlCommand = _connectionFactory.CreateCommand();
             sqlCommand.CommandText = query;
@@ -939,7 +939,7 @@ namespace Database.Aniki
             return await GetListOfAsync<T>(sqlCommand);
         }
 
-        public async Task<List<T>?> GetListOfAsync<T>(string query, CommandType commandType, params SqlParameter[] sqlParameters)
+        public async Task<List<T>> GetListOfAsync<T>(string query, CommandType commandType, params SqlParameter[] sqlParameters)
         {
             using var sqlCommand = _connectionFactory.CreateCommand();
             sqlCommand.CommandText = query;

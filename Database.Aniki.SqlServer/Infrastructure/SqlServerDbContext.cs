@@ -870,7 +870,7 @@ namespace Database.Aniki
         #endregion
 
         #region GetListOf<T>
-        public List<T>? GetListOf<T>(SqlCommand cmd, SqlConnection connection)
+        public List<T> GetListOf<T>(SqlCommand cmd, SqlConnection connection)
         {
             if (_options.EnableStatistics)
                 connection.StatisticsEnabled = true;
@@ -918,7 +918,7 @@ namespace Database.Aniki
             return list;
         }
 
-        public List<T>? GetListOf<T>(SqlCommand cmd)
+        public List<T> GetListOf<T>(SqlCommand cmd)
         {
             using var sqlConnection = _connectionFactory.CreateConnection();
             if (_options.EnableStatistics)
@@ -929,7 +929,7 @@ namespace Database.Aniki
             return GetListOf<T>(cmd,sqlConnection);
         }
 
-        public List<T>? GetListOf<T>(string query, CommandType commandType)
+        public List<T> GetListOf<T>(string query, CommandType commandType)
         {
             using var sqlCommand = _connectionFactory.CreateCommand();
             sqlCommand.CommandText = query;
@@ -939,7 +939,7 @@ namespace Database.Aniki
             return GetListOf<T>(sqlCommand);
         }
 
-        public List<T>? GetListOf<T>(string query, CommandType commandType, params SqlParameter[] sqlParameters)
+        public List<T> GetListOf<T>(string query, CommandType commandType, params SqlParameter[] sqlParameters)
         {
             using var sqlCommand = _connectionFactory.CreateCommand();
             sqlCommand.CommandText = query;

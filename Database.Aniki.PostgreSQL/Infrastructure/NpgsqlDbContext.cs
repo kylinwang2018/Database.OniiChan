@@ -816,7 +816,7 @@ namespace Database.Aniki
         #endregion
 
         #region GetListOf<T>
-        public List<T>? GetListOf<T>(NpgsqlCommand cmd, NpgsqlConnection connection)
+        public List<T> GetListOf<T>(NpgsqlCommand cmd, NpgsqlConnection connection)
         {
             var list = new List<T>();
             var type = typeof(T);
@@ -861,7 +861,7 @@ namespace Database.Aniki
             return list;
         }
 
-        public List<T>? GetListOf<T>(NpgsqlCommand cmd)
+        public List<T> GetListOf<T>(NpgsqlCommand cmd)
         {
             using var NpgsqlConnection = _connectionFactory.CreateConnection();
             NpgsqlConnection.OpenWithRetry(_sqlRetryOption);
@@ -869,7 +869,7 @@ namespace Database.Aniki
             return GetListOf<T>(cmd, NpgsqlConnection);
         }
 
-        public List<T>? GetListOf<T>(string query, CommandType commandType)
+        public List<T> GetListOf<T>(string query, CommandType commandType)
         {
             using var NpgsqlCommand = _connectionFactory.CreateCommand();
             NpgsqlCommand.CommandText = query;
@@ -878,7 +878,7 @@ namespace Database.Aniki
             return GetListOf<T>(NpgsqlCommand);
         }
 
-        public List<T>? GetListOf<T>(string query, CommandType commandType, params NpgsqlParameter[] NpgsqlParameters)
+        public List<T> GetListOf<T>(string query, CommandType commandType, params NpgsqlParameter[] NpgsqlParameters)
         {
             using var NpgsqlCommand = _connectionFactory.CreateCommand();
             NpgsqlCommand.CommandText = query;
