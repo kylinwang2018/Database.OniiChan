@@ -189,100 +189,35 @@ namespace Database.Aniki
         #region GetDictionary
         public Dictionary<T, U>? GetDictionary<T, U>(string query, CommandType commandType)
         {
-            var dictionary = new Dictionary<T, U>();
-            try
-            {
-                using var NpgsqlConnection = _connectionFactory.CreateConnection();
-                NpgsqlConnection.OpenWithRetry(_sqlRetryOption);
-                using var NpgsqlCommand = NpgsqlConnection.CreateCommand();
-                NpgsqlCommand.CommandType = commandType;
-                NpgsqlCommand.Connection = NpgsqlConnection;
-                NpgsqlCommand.CommandTimeout = _options.DbCommandTimeout;
-                NpgsqlCommand.CommandText = query;
-                using var sqlDataReader = NpgsqlCommand.ExecuteReaderWithRetry(_sqlRetryOption); ;
-                if (sqlDataReader.FieldCount < 2)
-                    throw new DatabaseException("Query did not return at least two columns of data.");
-                while (sqlDataReader.Read())
-                {
-                    dictionary.Add((T)sqlDataReader[0], (U)sqlDataReader[1]);
-                }
-                LogSqlInfo(NpgsqlCommand, NpgsqlConnection);
-            }
-            catch (Exception ex)
-            {
-                LogSqlError(query, ex);
-                throw;
-            }
-
-            if (dictionary.Any())
-                return null;
-            else
-                return dictionary;
+            return GetDictionary<T, U>(query, commandType , 0, 1);
         }
-
-        public Dictionary<T, U>? GetDictionary<T, U>(NpgsqlCommand cmd)
+        public Dictionary<T, U>? GetDictionary<T, U>(string query, CommandType commandType, params NpgsqlParameter[] parameters)
         {
-            var dictionary = new Dictionary<T, U>();
-            try
-            {
-                using var NpgsqlConnection = _connectionFactory.CreateConnection();
-                NpgsqlConnection.OpenWithRetry(_sqlRetryOption);
-                cmd.Connection = NpgsqlConnection;
-                using var sqlDataReader = cmd.ExecuteReaderWithRetry(_sqlRetryOption);
-                if (sqlDataReader.FieldCount < 2)
-                    throw new DatabaseException("Query did not return at least two columns of data.");
-                while (sqlDataReader.Read())
-                {
-                    dictionary.Add((T)sqlDataReader[0], (U)sqlDataReader[1]);
-                }
-                LogSqlInfo(cmd, NpgsqlConnection);
-            }
-            catch (Exception ex)
-            {
-                LogSqlError(cmd, ex);
-                throw;
-            }
-
-            if (dictionary.Any())
-                return null;
-            else
-                return dictionary;
+            return GetDictionary<T, U>(query, commandType, 0, 1, parameters);
         }
 
         public Dictionary<T, U>? GetDictionary<T, U>(string query, CommandType commandType, int keyColumnIndex, int valueColumnIndex)
         {
-            var dictionary = new Dictionary<T, U>();
+            var NpgsqlCommand = _connectionFactory.CreateCommand();
+            NpgsqlCommand.CommandType = commandType;
+            NpgsqlCommand.CommandTimeout = _options.DbCommandTimeout;
+            NpgsqlCommand.CommandText = query;
+            return GetDictionary<T, U>(NpgsqlCommand, keyColumnIndex, valueColumnIndex);
+        }
 
-            try
-            {
-                using var NpgsqlConnection = _connectionFactory.CreateConnection();
-                NpgsqlConnection.OpenWithRetry(_sqlRetryOption);
-                using var NpgsqlCommand = _connectionFactory.CreateCommand();
-                NpgsqlCommand.CommandType = commandType;
-                NpgsqlCommand.Connection = NpgsqlConnection;
-                NpgsqlCommand.CommandTimeout = _options.DbCommandTimeout;
+        public Dictionary<T, U>? GetDictionary<T, U>(string query, CommandType commandType, int keyColumnIndex, int valueColumnIndex, params NpgsqlParameter[] parameters)
+        {
+            var NpgsqlCommand = _connectionFactory.CreateCommand();
+            NpgsqlCommand.CommandType = commandType;
+            NpgsqlCommand.CommandTimeout = _options.DbCommandTimeout;
+            NpgsqlCommand.CommandText = query;
+            NpgsqlCommand.AttachParameters(parameters);
+            return GetDictionary<T, U>(NpgsqlCommand, keyColumnIndex, valueColumnIndex);
+        }
 
-                NpgsqlCommand.CommandText = query;
-                using var sqlDataReader = NpgsqlCommand.ExecuteReaderWithRetry(_sqlRetryOption);
-                if (sqlDataReader.FieldCount < 2 &&
-                    !(keyColumnIndex == valueColumnIndex && sqlDataReader.FieldCount == 1))
-                    throw new DatabaseException("Query did not return at least two columns of data.");
-                while (sqlDataReader.Read())
-                {
-                    dictionary.Add((T)((object)sqlDataReader[keyColumnIndex]), (U)((object)sqlDataReader[valueColumnIndex]));
-                }
-                LogSqlInfo(NpgsqlCommand, NpgsqlConnection);
-            }
-            catch (Exception ex)
-            {
-                LogSqlError(query, ex);
-                throw;
-            }
-
-            if (dictionary.Any())
-                return null;
-            else
-                return dictionary;
+        public Dictionary<T, U>? GetDictionary<T, U>(NpgsqlCommand cmd)
+        {
+            return GetDictionary<T, U>(cmd, 0, 1);
         }
 
         public Dictionary<T, U>? GetDictionary<T, U>(NpgsqlCommand cmd, int keyColumnIndex, int valueColumnIndex)
@@ -317,100 +252,36 @@ namespace Database.Aniki
 
         public Dictionary<string, string>? GetDictionary(string query, CommandType commandType)
         {
-            var dictionary = new Dictionary<string, string>();
-            try
-            {
-                using NpgsqlConnection NpgsqlConnection = _connectionFactory.CreateConnection();
-                NpgsqlConnection.OpenWithRetry(_sqlRetryOption);
-                using var NpgsqlCommand = _connectionFactory.CreateCommand();
-                NpgsqlCommand.CommandType = commandType;
-                NpgsqlCommand.Connection = NpgsqlConnection;
-                NpgsqlCommand.CommandTimeout = _options.DbCommandTimeout;
-
-                NpgsqlCommand.CommandText = query;
-                using var sqlDataReader = NpgsqlCommand.ExecuteReaderWithRetry(_sqlRetryOption);
-                if (sqlDataReader.FieldCount < 2)
-                    throw new DatabaseException("Query did not return at least two columns of data.");
-                while (sqlDataReader.Read())
-                {
-                    dictionary.Add(sqlDataReader[0].ToString(), sqlDataReader[1].ToString());
-                }
-                LogSqlInfo(NpgsqlCommand, NpgsqlConnection);
-            }
-            catch (Exception ex)
-            {
-                LogSqlError(query, ex);
-                throw;
-            }
-
-            if (dictionary.Any())
-                return null;
-            else
-                return dictionary;
+            return GetDictionary(query, commandType, 0, 1);
         }
 
-        public Dictionary<string, string>? GetDictionary(NpgsqlCommand cmd)
+        public Dictionary<string, string>? GetDictionary(string query, CommandType commandType, params NpgsqlParameter[] parameters)
         {
-            var dictionary = new Dictionary<string, string>();
-            try
-            {
-                using var NpgsqlConnection = _connectionFactory.CreateConnection();
-                NpgsqlConnection.OpenWithRetry(_sqlRetryOption);
-                cmd.Connection = NpgsqlConnection;
-                using var sqlDataReader = cmd.ExecuteReaderWithRetry(_sqlRetryOption);
-                if (sqlDataReader.FieldCount < 2)
-                    throw new DatabaseException("Query did not return at least two columns of data.");
-                while (sqlDataReader.Read())
-                {
-                    dictionary.Add(sqlDataReader[0].ToString(), sqlDataReader[1].ToString());
-                }
-                LogSqlInfo(cmd, NpgsqlConnection);
-            }
-            catch (Exception ex)
-            {
-                LogSqlError(cmd, ex);
-                throw;
-            }
-
-            if (dictionary.Any())
-                return null;
-            else
-                return dictionary;
+            return GetDictionary(query, commandType, 0, 1, parameters);
         }
 
         public Dictionary<string, string>? GetDictionary(string query, CommandType commandType, int keyColumnIndex, int valueColumnIndex)
         {
-            var dictionary = new Dictionary<string, string>();
-            try
-            {
-                using var NpgsqlConnection = _connectionFactory.CreateConnection();
-                NpgsqlConnection.OpenWithRetry(_sqlRetryOption);
-                using var NpgsqlCommand = _connectionFactory.CreateCommand();
-                NpgsqlCommand.CommandType = commandType;
-                NpgsqlCommand.Connection = NpgsqlConnection;
-                NpgsqlCommand.CommandTimeout = _options.DbCommandTimeout;
+            var NpgsqlCommand = _connectionFactory.CreateCommand();
+            NpgsqlCommand.CommandType = commandType;
+            NpgsqlCommand.CommandTimeout = _options.DbCommandTimeout;
+            NpgsqlCommand.CommandText = query;
+            return GetDictionary(NpgsqlCommand, keyColumnIndex, valueColumnIndex);
+        }
 
-                NpgsqlCommand.CommandText = query;
-                using var sqlDataReader = NpgsqlCommand.ExecuteReaderWithRetry(_sqlRetryOption);
-                if (sqlDataReader.FieldCount < 2 &&
-                    !(keyColumnIndex == valueColumnIndex && sqlDataReader.FieldCount == 1))
-                    throw new DatabaseException("Query did not return at least two columns of data.");
-                while (sqlDataReader.Read())
-                {
-                    dictionary.Add(sqlDataReader[keyColumnIndex].ToString(), sqlDataReader[valueColumnIndex].ToString());
-                }
-                LogSqlInfo(NpgsqlCommand, NpgsqlConnection);
-            }
-            catch (Exception ex)
-            {
-                LogSqlError(query, ex);
-                throw;
-            }
+        public Dictionary<string, string>? GetDictionary(string query, CommandType commandType, int keyColumnIndex, int valueColumnIndex, params NpgsqlParameter[] parameters)
+        {
+            var NpgsqlCommand = _connectionFactory.CreateCommand();
+            NpgsqlCommand.CommandType = commandType;
+            NpgsqlCommand.CommandTimeout = _options.DbCommandTimeout;
+            NpgsqlCommand.CommandText = query;
+            NpgsqlCommand.AttachParameters(parameters);
+            return GetDictionary(NpgsqlCommand, keyColumnIndex, valueColumnIndex);
+        }
 
-            if (dictionary.Any())
-                return null;
-            else
-                return dictionary;
+        public Dictionary<string, string>? GetDictionary(NpgsqlCommand cmd)
+        {
+            return GetDictionary(cmd, 0, 1);
         }
 
         public Dictionary<string, string>? GetDictionary(NpgsqlCommand cmd, int keyColumnIndex, int valueColumnIndex)

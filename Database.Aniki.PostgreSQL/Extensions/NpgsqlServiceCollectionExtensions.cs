@@ -31,6 +31,23 @@ namespace Database.Aniki
             return serviceCollection;
         }
 
+        /// <summary>
+        /// <para>
+        /// inject all project-related repository with [PostgreRepo]
+        /// (<see cref="PostgreRepoAttribute"/>) attribute to <see cref="IServiceCollection"/>.
+        /// </para>
+        /// <para>
+        /// Make sure your repository projects has been add to your main project and its assembly
+        /// name must start as same as your main project's, otherwise it cannot find the repositories.
+        /// </para>
+        /// <para>
+        /// For example: your main project named "ExampleService", and its repository project must be
+        /// "ExampleService.Repo" or "ExampleService[anything]"
+        /// </para>
+        /// </summary>
+        /// <param name="serviceCollection"></param>
+        /// <param name="assemblyNameStart"></param>
+        /// <returns></returns>
         public static IServiceCollection RegisterPostgreRepositories(
             this IServiceCollection serviceCollection, string? assemblyNameStart)
         {

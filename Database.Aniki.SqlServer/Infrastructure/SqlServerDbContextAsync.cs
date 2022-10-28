@@ -198,110 +198,38 @@ namespace Database.Aniki
         #region GetDictionary
         public async Task<Dictionary<T, U>?> GetDictionaryAsync<T, U>(string query, CommandType commandType)
         {
-            var dictionary = new Dictionary<T, U>();
-            try
-            {
-                using var sqlConnection = _connectionFactory.CreateConnection();
-                if (_options.EnableStatistics)
-                    sqlConnection.StatisticsEnabled = true;
-                sqlConnection.RetryLogicProvider = _sqlRetryProvider;
-                await sqlConnection.OpenAsync();
-                using var sqlCommand = _connectionFactory.CreateCommand();
-                sqlCommand.CommandType = commandType;
-                sqlCommand.Connection = sqlConnection;
-                sqlCommand.CommandTimeout = _options.DbCommandTimeout;
-                sqlCommand.RetryLogicProvider = _sqlRetryProvider;
-                sqlCommand.CommandText = query;
-                using var sqlDataReader = await sqlCommand.ExecuteReaderAsync();
-                if (sqlDataReader.FieldCount < 2)
-                    throw new DatabaseException("Query did not return at least two columns of data.");
-                while (await sqlDataReader.ReadAsync())
-                {
-                    dictionary.Add((T)sqlDataReader[0], (U)sqlDataReader[1]);
-                }
-                LogSqlInfo(sqlCommand, sqlConnection);
-            }
-            catch (Exception ex)
-            {
-                LogSqlError(query, ex);
-                throw;
-            }
-
-            if (dictionary.Any())
-                return null;
-            else
-                return dictionary;
+            return await GetDictionaryAsync<T, U>(query, commandType, 0, 1);
         }
 
-        public async Task<Dictionary<T, U>?> GetDictionaryAsync<T, U>(SqlCommand cmd)
+        public async Task<Dictionary<T, U>?> GetDictionaryAsync<T, U>(string query, CommandType commandType, params SqlParameter[] sqlParameters)
         {
-            var dictionary = new Dictionary<T, U>();
-            try
-            {
-                using var sqlConnection = _connectionFactory.CreateConnection();
-                if (_options.EnableStatistics)
-                    sqlConnection.StatisticsEnabled = true;
-                sqlConnection.RetryLogicProvider = _sqlRetryProvider;
-                await sqlConnection.OpenAsync();
-                cmd.Connection = sqlConnection;
-                using var sqlDataReader = await cmd.ExecuteReaderAsync();
-                if (sqlDataReader.FieldCount < 2)
-                    throw new DatabaseException("Query did not return at least two columns of data.");
-                while (await sqlDataReader.ReadAsync())
-                {
-                    dictionary.Add((T)sqlDataReader[0], (U)sqlDataReader[1]);
-                }
-                LogSqlInfo(cmd, sqlConnection);
-            }
-            catch (Exception ex)
-            {
-                LogSqlError(cmd, ex);
-                throw;
-            }
-
-            if (dictionary.Any())
-                return null;
-            else
-                return dictionary;
+            return await GetDictionaryAsync<T, U>(query, commandType, 0, 1, sqlParameters);
         }
 
         public async Task<Dictionary<T, U>?> GetDictionaryAsync<T, U>(string query, CommandType commandType, int keyColumnIndex, int valueColumnIndex)
         {
-            var dictionary = new Dictionary<T, U>();
+            var sqlCommand = _connectionFactory.CreateCommand();
+            sqlCommand.CommandType = commandType;
+            sqlCommand.CommandTimeout = _options.DbCommandTimeout;
+            sqlCommand.RetryLogicProvider = _sqlRetryProvider;
+            sqlCommand.CommandText = query;
+            return await GetDictionaryAsync<T, U>(sqlCommand, keyColumnIndex, valueColumnIndex);
+        }
 
-            try
-            {
-                using var sqlConnection = _connectionFactory.CreateConnection();
-                if (_options.EnableStatistics)
-                    sqlConnection.StatisticsEnabled = true;
-                sqlConnection.RetryLogicProvider = _sqlRetryProvider;
-                await sqlConnection.OpenAsync();
-                using var sqlCommand = _connectionFactory.CreateCommand();
-                sqlCommand.CommandType = commandType;
-                sqlCommand.Connection = sqlConnection;
-                sqlCommand.CommandTimeout = _options.DbCommandTimeout;
-                sqlCommand.RetryLogicProvider = _sqlRetryProvider;
-                sqlCommand.CommandText = query;
-                using var sqlDataReader = await sqlCommand.ExecuteReaderAsync();
-                if (sqlDataReader.FieldCount < 2 &&
-                    !(keyColumnIndex == valueColumnIndex && sqlDataReader.FieldCount == 1))
-                    throw new DatabaseException("Query did not return at least two columns of data.");
-                while (await sqlDataReader.ReadAsync())
-                {
-                    dictionary.Add((T)((object)sqlDataReader[keyColumnIndex]), (U)((object)sqlDataReader[valueColumnIndex]));
-                }
-                LogSqlInfo(sqlCommand, sqlConnection);
-            }
-            catch (Exception ex)
-            {
-                LogSqlError(query, ex);
-                throw;
-            }
-
-            if (dictionary.Any())
-                return null;
-            else
-                return dictionary;
+        public async Task<Dictionary<T, U>?> GetDictionaryAsync<T, U>(string query, CommandType commandType, int keyColumnIndex, int valueColumnIndex, params SqlParameter[] sqlParameters)
+        {
+            var sqlCommand = _connectionFactory.CreateCommand();
+            sqlCommand.CommandType = commandType;
+            sqlCommand.CommandTimeout = _options.DbCommandTimeout;
+            sqlCommand.RetryLogicProvider = _sqlRetryProvider;
+            sqlCommand.CommandText = query;
+            sqlCommand.AttachParameters(sqlParameters);
+            return await GetDictionaryAsync<T, U>(sqlCommand, keyColumnIndex, valueColumnIndex);
+        }
+        
+        public async Task<Dictionary<T, U>?> GetDictionaryAsync<T, U>(SqlCommand cmd)
+        {
+            return await GetDictionaryAsync<T, U>(cmd, 0, 1);
         }
 
         public async Task<Dictionary<T, U>?> GetDictionaryAsync<T, U>(SqlCommand cmd, int keyColumnIndex, int valueColumnIndex)
@@ -339,109 +267,38 @@ namespace Database.Aniki
 
         public async Task<Dictionary<string, string>?> GetDictionaryAsync(string query, CommandType commandType)
         {
-            var dictionary = new Dictionary<string, string>();
-            try
-            {
-                using SqlConnection sqlConnection = _connectionFactory.CreateConnection();
-                if (_options.EnableStatistics)
-                    sqlConnection.StatisticsEnabled = true;
-                sqlConnection.RetryLogicProvider = _sqlRetryProvider;
-                await sqlConnection.OpenAsync();
-                using var sqlCommand = _connectionFactory.CreateCommand();
-                sqlCommand.CommandType = commandType;
-                sqlCommand.Connection = sqlConnection;
-                sqlCommand.CommandTimeout = _options.DbCommandTimeout;
-                sqlCommand.RetryLogicProvider = _sqlRetryProvider;
-                sqlCommand.CommandText = query;
-                using var sqlDataReader = await sqlCommand.ExecuteReaderAsync();
-                if (sqlDataReader.FieldCount < 2)
-                    throw new DatabaseException("Query did not return at least two columns of data.");
-                while (await sqlDataReader.ReadAsync())
-                {
-                    dictionary.Add(sqlDataReader[0].ToString(), sqlDataReader[1].ToString());
-                }
-                LogSqlInfo(sqlCommand, sqlConnection);
-            }
-            catch (Exception ex)
-            {
-                LogSqlError(query, ex);
-                throw;
-            }
-
-            if (dictionary.Any())
-                return null;
-            else
-                return dictionary;
+            return await GetDictionaryAsync(query,commandType, 0, 1);
         }
 
-        public async Task<Dictionary<string, string>?> GetDictionaryAsync(SqlCommand cmd)
+        public async Task<Dictionary<string, string>?> GetDictionaryAsync(string query, CommandType commandType, params SqlParameter[] sqlParameters)
         {
-            var dictionary = new Dictionary<string, string>();
-            try
-            {
-                using var sqlConnection = _connectionFactory.CreateConnection();
-                if (_options.EnableStatistics)
-                    sqlConnection.StatisticsEnabled = true;
-                sqlConnection.RetryLogicProvider = _sqlRetryProvider;
-                await sqlConnection.OpenAsync();
-                cmd.Connection = sqlConnection;
-                using var sqlDataReader = await cmd.ExecuteReaderAsync();
-                if (sqlDataReader.FieldCount < 2)
-                    throw new DatabaseException("Query did not return at least two columns of data.");
-                while (await sqlDataReader.ReadAsync())
-                {
-                    dictionary.Add(sqlDataReader[0].ToString(), sqlDataReader[1].ToString());
-                }
-                LogSqlInfo(cmd, sqlConnection);
-            }
-            catch (Exception ex)
-            {
-                LogSqlError(cmd, ex);
-                throw;
-            }
-
-            if (dictionary.Any())
-                return null;
-            else
-                return dictionary;
+            return await GetDictionaryAsync(query, commandType, 0, 1, sqlParameters);
         }
 
         public async Task<Dictionary<string, string>?> GetDictionaryAsync(string query, CommandType commandType, int keyColumnIndex, int valueColumnIndex)
         {
-            var dictionary = new Dictionary<string, string>();
-            try
-            {
-                using var sqlConnection = _connectionFactory.CreateConnection();
-                if (_options.EnableStatistics)
-                    sqlConnection.StatisticsEnabled = true;
-                sqlConnection.RetryLogicProvider = _sqlRetryProvider;
-                await sqlConnection.OpenAsync();
-                using var sqlCommand = _connectionFactory.CreateCommand();
-                sqlCommand.CommandType = commandType;
-                sqlCommand.Connection = sqlConnection;
-                sqlCommand.CommandTimeout = _options.DbCommandTimeout;
-                sqlCommand.RetryLogicProvider = _sqlRetryProvider;
-                sqlCommand.CommandText = query;
-                using var sqlDataReader = await sqlCommand.ExecuteReaderAsync();
-                if (sqlDataReader.FieldCount < 2 &&
-                    !(keyColumnIndex == valueColumnIndex && sqlDataReader.FieldCount == 1))
-                    throw new DatabaseException("Query did not return at least two columns of data.");
-                while (await sqlDataReader.ReadAsync())
-                {
-                    dictionary.Add(sqlDataReader[keyColumnIndex].ToString(), sqlDataReader[valueColumnIndex].ToString());
-                }
-                LogSqlInfo(sqlCommand, sqlConnection);
-            }
-            catch (Exception ex)
-            {
-                LogSqlError(query, ex);
-                throw;
-            }
+            var sqlCommand = _connectionFactory.CreateCommand();
+            sqlCommand.CommandType = commandType;
+            sqlCommand.CommandTimeout = _options.DbCommandTimeout;
+            sqlCommand.RetryLogicProvider = _sqlRetryProvider;
+            sqlCommand.CommandText = query;
+            return await GetDictionaryAsync(sqlCommand, keyColumnIndex, valueColumnIndex);
+        }
 
-            if (dictionary.Any())
-                return null;
-            else
-                return dictionary;
+        public async Task<Dictionary<string, string>?> GetDictionaryAsync(string query, CommandType commandType, int keyColumnIndex, int valueColumnIndex, params SqlParameter[] sqlParameters)
+        {
+            var sqlCommand = _connectionFactory.CreateCommand();
+            sqlCommand.CommandType = commandType;
+            sqlCommand.CommandTimeout = _options.DbCommandTimeout;
+            sqlCommand.RetryLogicProvider = _sqlRetryProvider;
+            sqlCommand.CommandText = query;
+            sqlCommand.AttachParameters(sqlParameters);
+            return await GetDictionaryAsync(sqlCommand, keyColumnIndex, valueColumnIndex);
+        }
+
+        public async Task<Dictionary<string, string>?> GetDictionaryAsync(SqlCommand cmd)
+        {
+            return await GetDictionaryAsync(cmd, 0, 1);
         }
 
         public async Task<Dictionary<string, string>?> GetDictionaryAsync(SqlCommand cmd, int keyColumnIndex, int valueColumnIndex)

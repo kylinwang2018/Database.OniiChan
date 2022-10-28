@@ -68,9 +68,9 @@ namespace Database.Aniki
         {
             try
             {
-                if(_options.EnableStatistics)
+                if (_options.EnableStatistics)
                     connection.StatisticsEnabled = true;
-   
+
                 var dataTable = new DataTable();
                 cmd.Connection = connection;
                 if (connection.State != ConnectionState.Open && connection.State != ConnectionState.Connecting)
@@ -198,110 +198,38 @@ namespace Database.Aniki
         #region GetDictionary
         public Dictionary<T, U>? GetDictionary<T, U>(string query, CommandType commandType)
         {
-            var dictionary = new Dictionary<T, U>();
-            try
-            {
-                using var sqlConnection = _connectionFactory.CreateConnection();
-                if (_options.EnableStatistics)
-                    sqlConnection.StatisticsEnabled = true;
-                sqlConnection.RetryLogicProvider = _sqlRetryProvider;
-                sqlConnection.Open();
-                using var sqlCommand = sqlConnection.CreateCommand();
-                sqlCommand.CommandType = commandType;
-                sqlCommand.Connection = sqlConnection;
-                sqlCommand.CommandTimeout = _options.DbCommandTimeout;
-                sqlCommand.RetryLogicProvider = _sqlRetryProvider;
-                sqlCommand.CommandText = query;
-                using var sqlDataReader = sqlCommand.ExecuteReader();
-                if (sqlDataReader.FieldCount < 2)
-                    throw new DatabaseException("Query did not return at least two columns of data.");
-                while (sqlDataReader.Read())
-                {
-                    dictionary.Add((T)sqlDataReader[0], (U)sqlDataReader[1]);
-                }
-                LogSqlInfo(sqlCommand, sqlConnection);
-            }
-            catch (Exception ex)
-            {
-                LogSqlError(query, ex);
-                throw;
-            }
-
-            if (dictionary.Any())
-                return null;
-            else
-                return dictionary;
+            return GetDictionary<T, U>(query, commandType, 0, 1);
         }
 
-        public Dictionary<T, U>? GetDictionary<T, U>(SqlCommand cmd)
+        public Dictionary<T, U>? GetDictionary<T, U>(string query, CommandType commandType, params SqlParameter[] sqlParameters)
         {
-            var dictionary = new Dictionary<T, U>();
-            try
-            {
-                using var sqlConnection = _connectionFactory.CreateConnection();
-                if (_options.EnableStatistics)
-                    sqlConnection.StatisticsEnabled = true;
-                sqlConnection.RetryLogicProvider = _sqlRetryProvider;
-                sqlConnection.Open();
-                cmd.Connection = sqlConnection;
-                using var sqlDataReader = cmd.ExecuteReader();
-                if (sqlDataReader.FieldCount < 2)
-                    throw new DatabaseException("Query did not return at least two columns of data.");
-                while (sqlDataReader.Read())
-                {
-                    dictionary.Add((T)sqlDataReader[0], (U)sqlDataReader[1]);
-                }
-                LogSqlInfo(cmd, sqlConnection);
-            }
-            catch (Exception ex)
-            {
-                LogSqlError(cmd, ex);
-                throw;
-            }
-
-            if (dictionary.Any())
-                return null;
-            else
-                return dictionary;
+            return GetDictionary<T, U>(query, commandType, 0, 1, sqlParameters);
         }
 
         public Dictionary<T, U>? GetDictionary<T, U>(string query, CommandType commandType, int keyColumnIndex, int valueColumnIndex)
         {
-            var dictionary = new Dictionary<T, U>();
+            var sqlCommand = _connectionFactory.CreateCommand();
+            sqlCommand.CommandType = commandType;
+            sqlCommand.CommandTimeout = _options.DbCommandTimeout;
+            sqlCommand.RetryLogicProvider = _sqlRetryProvider;
+            sqlCommand.CommandText = query;
+            return GetDictionary<T, U>(sqlCommand, keyColumnIndex, valueColumnIndex);
+        }
 
-            try
-            {
-                using var sqlConnection = _connectionFactory.CreateConnection();
-                if (_options.EnableStatistics)
-                    sqlConnection.StatisticsEnabled = true;
-                sqlConnection.RetryLogicProvider = _sqlRetryProvider;
-                sqlConnection.Open();
-                using var sqlCommand = _connectionFactory.CreateCommand();
-                sqlCommand.CommandType = commandType;
-                sqlCommand.Connection = sqlConnection;
-                sqlCommand.CommandTimeout = _options.DbCommandTimeout;
-                sqlCommand.RetryLogicProvider = _sqlRetryProvider;
-                sqlCommand.CommandText = query;
-                using var sqlDataReader = sqlCommand.ExecuteReader();
-                if (sqlDataReader.FieldCount < 2 &&
-                    !(keyColumnIndex == valueColumnIndex && sqlDataReader.FieldCount == 1))
-                    throw new DatabaseException("Query did not return at least two columns of data.");
-                while (sqlDataReader.Read())
-                {
-                    dictionary.Add((T)((object)sqlDataReader[keyColumnIndex]), (U)((object)sqlDataReader[valueColumnIndex]));
-                }
-                LogSqlInfo(sqlCommand, sqlConnection);
-            }
-            catch (Exception ex)
-            {
-                LogSqlError(query, ex);
-                throw;
-            }
+        public Dictionary<T, U>? GetDictionary<T, U>(string query, CommandType commandType, int keyColumnIndex, int valueColumnIndex, params SqlParameter[] sqlParameters)
+        {
+            var sqlCommand = _connectionFactory.CreateCommand();
+            sqlCommand.CommandType = commandType;
+            sqlCommand.CommandTimeout = _options.DbCommandTimeout;
+            sqlCommand.RetryLogicProvider = _sqlRetryProvider;
+            sqlCommand.CommandText = query;
+            sqlCommand.AttachParameters(sqlParameters);
+            return GetDictionary<T, U>(sqlCommand, keyColumnIndex, valueColumnIndex);
+        }
 
-            if (dictionary.Any())
-                return null;
-            else
-                return dictionary;
+        public Dictionary<T, U>? GetDictionary<T, U>(SqlCommand cmd)
+        {
+            return GetDictionary<T, U>(cmd, 0, 1);
         }
 
         public Dictionary<T, U>? GetDictionary<T, U>(SqlCommand cmd, int keyColumnIndex, int valueColumnIndex)
@@ -339,109 +267,38 @@ namespace Database.Aniki
 
         public Dictionary<string, string>? GetDictionary(string query, CommandType commandType)
         {
-            var dictionary = new Dictionary<string, string>();
-            try
-            {
-                using SqlConnection sqlConnection = _connectionFactory.CreateConnection();
-                if (_options.EnableStatistics)
-                    sqlConnection.StatisticsEnabled = true;
-                sqlConnection.RetryLogicProvider = _sqlRetryProvider;
-                sqlConnection.Open();
-                using var sqlCommand = _connectionFactory.CreateCommand();
-                sqlCommand.CommandType = commandType;
-                sqlCommand.Connection = sqlConnection;
-                sqlCommand.CommandTimeout = _options.DbCommandTimeout;
-                sqlCommand.RetryLogicProvider = _sqlRetryProvider;
-                sqlCommand.CommandText = query;
-                using var sqlDataReader = sqlCommand.ExecuteReader();
-                if (sqlDataReader.FieldCount < 2)
-                    throw new DatabaseException("Query did not return at least two columns of data.");
-                while (sqlDataReader.Read())
-                {
-                    dictionary.Add(sqlDataReader[0].ToString(), sqlDataReader[1].ToString());
-                }
-                LogSqlInfo(sqlCommand, sqlConnection);
-            }
-            catch (Exception ex)
-            {
-                LogSqlError(query, ex);
-                throw;
-            }
-
-            if (dictionary.Any())
-                return null;
-            else
-                return dictionary;
+            return GetDictionary(query, commandType, 0, 1);
         }
 
-        public Dictionary<string, string>? GetDictionary(SqlCommand cmd)
+        public Dictionary<string, string>? GetDictionary(string query, CommandType commandType, params SqlParameter[] sqlParameters)
         {
-            var dictionary = new Dictionary<string, string>();
-            try
-            {
-                using var sqlConnection = _connectionFactory.CreateConnection();
-                if (_options.EnableStatistics)
-                    sqlConnection.StatisticsEnabled = true;
-                sqlConnection.RetryLogicProvider = _sqlRetryProvider;
-                sqlConnection.Open();
-                cmd.Connection = sqlConnection;
-                using var sqlDataReader = cmd.ExecuteReader();
-                if (sqlDataReader.FieldCount < 2)
-                    throw new DatabaseException("Query did not return at least two columns of data.");
-                while (sqlDataReader.Read())
-                {
-                    dictionary.Add(sqlDataReader[0].ToString(), sqlDataReader[1].ToString());
-                }
-                LogSqlInfo(cmd, sqlConnection);
-            }
-            catch (Exception ex)
-            {
-                LogSqlError(cmd, ex);
-                throw;
-            }
-
-            if (dictionary.Any())
-                return null;
-            else
-                return dictionary;
+            return GetDictionary(query, commandType, 0, 1, sqlParameters);
         }
 
         public Dictionary<string, string>? GetDictionary(string query, CommandType commandType, int keyColumnIndex, int valueColumnIndex)
         {
-            var dictionary = new Dictionary<string, string>();
-            try
-            {
-                using var sqlConnection = _connectionFactory.CreateConnection();
-                if (_options.EnableStatistics)
-                    sqlConnection.StatisticsEnabled = true;
-                sqlConnection.RetryLogicProvider = _sqlRetryProvider;
-                sqlConnection.Open();
-                using var sqlCommand = _connectionFactory.CreateCommand();
-                sqlCommand.CommandType = commandType;
-                sqlCommand.Connection = sqlConnection;
-                sqlCommand.CommandTimeout = _options.DbCommandTimeout;
-                sqlCommand.RetryLogicProvider = _sqlRetryProvider;
-                sqlCommand.CommandText = query;
-                using var sqlDataReader = sqlCommand.ExecuteReader();
-                if (sqlDataReader.FieldCount < 2 &&
-                    !(keyColumnIndex == valueColumnIndex && sqlDataReader.FieldCount == 1))
-                    throw new DatabaseException("Query did not return at least two columns of data.");
-                while (sqlDataReader.Read())
-                {
-                    dictionary.Add(sqlDataReader[keyColumnIndex].ToString(), sqlDataReader[valueColumnIndex].ToString());
-                }
-                LogSqlInfo(sqlCommand, sqlConnection);
-            }
-            catch (Exception ex)
-            {
-                LogSqlError(query, ex);
-                throw;
-            }
+            var sqlCommand = _connectionFactory.CreateCommand();
+            sqlCommand.CommandType = commandType;
+            sqlCommand.CommandTimeout = _options.DbCommandTimeout;
+            sqlCommand.RetryLogicProvider = _sqlRetryProvider;
+            sqlCommand.CommandText = query;
+            return GetDictionary(sqlCommand, keyColumnIndex, valueColumnIndex);
+        }
 
-            if (dictionary.Any())
-                return null;
-            else
-                return dictionary;
+        public Dictionary<string, string>? GetDictionary(string query, CommandType commandType, int keyColumnIndex, int valueColumnIndex, params SqlParameter[] sqlParameters)
+        {
+            var sqlCommand = _connectionFactory.CreateCommand();
+            sqlCommand.CommandType = commandType;
+            sqlCommand.CommandTimeout = _options.DbCommandTimeout;
+            sqlCommand.RetryLogicProvider = _sqlRetryProvider;
+            sqlCommand.CommandText = query;
+            sqlCommand.AttachParameters(sqlParameters);
+            return GetDictionary(sqlCommand, keyColumnIndex, valueColumnIndex);
+        }
+
+        public Dictionary<string, string>? GetDictionary(SqlCommand cmd)
+        {
+            return GetDictionary(cmd, 0, 1);
         }
 
         public Dictionary<string, string>? GetDictionary(SqlCommand cmd, int keyColumnIndex, int valueColumnIndex)
@@ -926,7 +783,7 @@ namespace Database.Aniki
             sqlConnection.RetryLogicProvider = _sqlRetryProvider;
             sqlConnection.Open();
             cmd.Connection = sqlConnection;
-            return GetListOf<T>(cmd,sqlConnection);
+            return GetListOf<T>(cmd, sqlConnection);
         }
 
         public List<T> GetListOf<T>(string query, CommandType commandType)
@@ -980,8 +837,8 @@ namespace Database.Aniki
         public object GetScalar(SqlCommand cmd, SqlConnection connection, bool closeWhenComplete = false)
         {
             cmd.Connection = connection;
-            if(_options.EnableStatistics)
-                    connection.StatisticsEnabled = true;
+            if (_options.EnableStatistics)
+                connection.StatisticsEnabled = true;
             object result;
             try
             {
@@ -1077,9 +934,9 @@ namespace Database.Aniki
             try
             {
                 cmd.Connection = connection;
-                if(_options.EnableStatistics)
+                if (_options.EnableStatistics)
                     connection.StatisticsEnabled = true;
-   
+
                 if (connection.State != ConnectionState.Open && connection.State != ConnectionState.Connecting)
                 {
                     connection.Close();
@@ -1157,7 +1014,7 @@ namespace Database.Aniki
                 LogSqlInfo(cmd, connection);
                 return reader;
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
                 LogSqlError(query, ex);
                 connection?.Close();
@@ -1213,9 +1070,9 @@ namespace Database.Aniki
             try
             {
                 cmd.Connection = connection;
-                if(_options.EnableStatistics)
+                if (_options.EnableStatistics)
                     connection.StatisticsEnabled = true;
-   
+
                 if (connection.State != ConnectionState.Open && connection.State != ConnectionState.Connecting)
                 {
                     connection.Close();
@@ -1256,9 +1113,9 @@ namespace Database.Aniki
                     connection.Close();
                     connection.Open();
                 }
-                if(_options.EnableStatistics)
+                if (_options.EnableStatistics)
                     connection.StatisticsEnabled = true;
-   
+
                 // Create a reader
                 var reader = cmd.ExecuteReader();
                 LogSqlInfo(cmd, connection);

@@ -15,7 +15,8 @@ namespace Database.Aniki
     public static class SqlServerServiceCollectionExtensions
     {
         /// <summary>
-        /// Configures the context to connect to a Microsoft SQL Server database, must set up connection string before use it.
+        /// Configures the context to connect to a Microsoft SQL Server database, must set up 
+        /// connection string before use it.
         /// </summary>
         /// <param name="serviceCollection"></param>
         /// <returns></returns>
@@ -31,6 +32,23 @@ namespace Database.Aniki
             return serviceCollection;
         }
 
+        /// <summary>
+        /// <para>
+        /// inject all project-related repository with [SqlServerRepo]
+        /// (<see cref="SqlServerRepoAttribute"/>) attribute to <see cref="IServiceCollection"/>.
+        /// </para>
+        /// <para>
+        /// Make sure your repository projects has been add to your main project and its assembly
+        /// name must start as same as your main project's, otherwise it cannot find the repositories.
+        /// </para>
+        /// <para>
+        /// For example: your main project named "ExampleService", and its repository project must be
+        /// "ExampleService.Repo" or "ExampleService[anything]"
+        /// </para>
+        /// </summary>
+        /// <param name="serviceCollection"></param>
+        /// <param name="assemblyNameStart"></param>
+        /// <returns></returns>
         public static IServiceCollection RegisterSqlServerRepositories(
             this IServiceCollection serviceCollection, string? assemblyNameStart)
         {
