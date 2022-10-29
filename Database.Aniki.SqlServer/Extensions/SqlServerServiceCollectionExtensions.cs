@@ -20,11 +20,11 @@ namespace Database.Aniki
         /// </summary>
         /// <param name="serviceCollection"></param>
         /// <returns></returns>
-        public static IServiceCollection UseSqlServer(
-            this IServiceCollection serviceCollection)
+        public static IServiceCollection UseSqlServer<T>(
+            this IServiceCollection serviceCollection) where T : class, IDbContextOptions
         {
             // register dbprovider in service collection
-            serviceCollection.TryAddScoped<ISqlServerDbContext, SqlServerDbContext>();
+            serviceCollection.TryAddScoped<ISqlServerDbContext<T>, SqlServerDbContext<T>>();
 
             // register sql factory for create connection, command and dataAdapter
             serviceCollection.TryAddScoped<ISqlConnectionFactory, SqlConnectionFactory>();

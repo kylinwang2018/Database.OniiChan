@@ -11,7 +11,7 @@ using System.Threading.Tasks;
 
 namespace Database.Aniki
 {
-    internal partial class SqlServerDbContext : ISqlServerDbContext
+    internal partial class SqlServerDbContext<T> : ISqlServerDbContext<T> where T : class, IDbContextOptions
     {
         #region GetColumnToString
         public async Task<List<string>> GetColumnToStringAsync(SqlCommand cmd, int columnIndex = 0)

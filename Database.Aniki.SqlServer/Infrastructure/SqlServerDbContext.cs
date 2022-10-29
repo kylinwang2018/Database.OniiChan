@@ -10,7 +10,7 @@ using System.Reflection;
 
 namespace Database.Aniki
 {
-    internal partial class SqlServerDbContext : ISqlServerDbContext
+    internal partial class SqlServerDbContext<T> : ISqlServerDbContext<T> where T : class, IDbContextOptions
     {
         #region GetColumnToString
         public List<string> GetColumnToString(SqlCommand cmd, int columnIndex = 0)

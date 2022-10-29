@@ -19,11 +19,11 @@ namespace Database.Aniki
         /// </summary>
         /// <param name="serviceCollection"></param>
         /// <returns></returns>
-        public static IServiceCollection UsePostgreSql(
-            this IServiceCollection serviceCollection)
+        public static IServiceCollection UsePostgreSql<T>(
+            this IServiceCollection serviceCollection) where T : class, IDbContextOptions
         {
             // register dbprovider in service collection
-            serviceCollection.TryAddScoped<INpgsqlDbContext, NpgsqlDbContext>();
+            serviceCollection.TryAddScoped<INpgsqlDbContext<T>, NpgsqlDbContext<T>>();
 
             // register sql factory for create connection, command and dataAdapter
             serviceCollection.TryAddScoped<INpgsqlConnectionFactory, NpgsqlConnectionFactory>();

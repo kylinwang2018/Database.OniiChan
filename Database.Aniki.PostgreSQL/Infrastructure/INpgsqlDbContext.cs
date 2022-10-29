@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace Database.Aniki
 {
-    public interface INpgsqlDbContext
+    public interface INpgsqlDbContext<T> where T : class, IDbContextOptions
     {
         int ExecuteNonQuery(NpgsqlCommand cmd);
         int ExecuteNonQuery(NpgsqlCommand cmd, NpgsqlConnection connection, bool closeWhenComplete = false);

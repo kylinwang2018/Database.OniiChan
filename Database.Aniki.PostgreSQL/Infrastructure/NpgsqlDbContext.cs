@@ -10,7 +10,7 @@ using System.Reflection;
 
 namespace Database.Aniki
 {
-    internal partial class NpgsqlDbContext : INpgsqlDbContext
+    internal partial class NpgsqlDbContext<T> : INpgsqlDbContext<T> where T : class, IDbContextOptions
     {
         #region GetColumnToString
         public List<string> GetColumnToString(NpgsqlCommand cmd, int columnIndex = 0)

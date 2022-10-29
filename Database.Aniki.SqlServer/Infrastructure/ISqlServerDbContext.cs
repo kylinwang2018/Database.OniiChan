@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace Database.Aniki
 {
-    public interface ISqlServerDbContext
+    public interface ISqlServerDbContext<T> where T : class, IDbContextOptions
     {
         int ExecuteNonQuery(SqlCommand cmd);
         int ExecuteNonQuery(SqlCommand cmd, SqlConnection connection, bool closeWhenComplete = false);
