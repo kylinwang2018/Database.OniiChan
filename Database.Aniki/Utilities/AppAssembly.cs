@@ -43,12 +43,13 @@ namespace Database.Aniki.Utilities
             }
             */
 
-            if (assemblyNameStart == null)
-            {
-                assemblyNameStart = "";
-            }
+            assemblyNameStart ??= "";
 
-            var allAssemblies = Directory.GetFiles(AppDomain.CurrentDomain.BaseDirectory, "*.dll")
+            var allAssemblies = Directory
+                        .GetFiles(
+                            AppDomain.CurrentDomain.BaseDirectory, 
+                            "*.dll", 
+                            SearchOption.AllDirectories)
                         .Select(x => Assembly.Load(AssemblyName.GetAssemblyName(x)))
                         .Where(x => x.FullName.StartsWith(assemblyNameStart))
                         .ToArray();

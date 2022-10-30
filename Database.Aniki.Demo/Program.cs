@@ -13,7 +13,7 @@ builder.Services.AddDbContext<ApplicationDbOption>(options =>
         options.MaxTimeInterval = 5;
         options.DbCommandTimeout = 20;
         options.EnableStatistics = true;
-    }).UseSqlServer<ApplicationDbOption>();
+    }).UseSqlServer();
 
 var app = builder.Build();
 

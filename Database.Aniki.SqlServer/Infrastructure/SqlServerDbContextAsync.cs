@@ -1,8 +1,10 @@
 ﻿using Database.Aniki.DataManipulators;
 using Database.Aniki.Exceptions;
+using Database.Aniki.Extensions;
 using Database.Aniki.SqlServer;
 using Microsoft.Data.SqlClient;
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Data;
 using System.Linq;
@@ -11,7 +13,7 @@ using System.Threading.Tasks;
 
 namespace Database.Aniki
 {
-    internal partial class SqlServerDbContext<T> : ISqlServerDbContext<T> where T : class, IDbContextOptions
+    internal partial class SqlServerDbContext<TOption> : ISqlServerDbContext<TOption> where TOption : class, IDbContextOptions
     {
         #region GetColumnToString
         public async Task<List<string>> GetColumnToStringAsync(SqlCommand cmd, int columnIndex = 0)
@@ -370,11 +372,11 @@ namespace Database.Aniki
                             bool isEnum = propertyInfo.PropertyType.IsEnum;
                             if (isEnum)
                             {
-                                propertyInfo.SetValue(u, Enum.ToObject(propertyInfo.PropertyType, (int)sqlDataReader[propertyInfo.Name]), null);
+                                propertyInfo.SetValue(u, Enum.ToObject(propertyInfo.PropertyType, (int)sqlDataReader[propertyInfo.GetColumnName()]), null);
                             }
                             else
                             {
-                                propertyInfo.SetValue(u, Convert.ChangeType(sqlDataReader[propertyInfo.Name], Nullable.GetUnderlyingType(propertyInfo.PropertyType) ?? propertyInfo.PropertyType), null);
+                                propertyInfo.SetValue(u, Convert.ChangeType(sqlDataReader[propertyInfo.GetColumnName()], Nullable.GetUnderlyingType(propertyInfo.PropertyType) ?? propertyInfo.PropertyType), null);
                             }
                         }
                         catch
@@ -431,11 +433,11 @@ namespace Database.Aniki
                             bool isEnum = propertyInfo.PropertyType.IsEnum;
                             if (isEnum)
                             {
-                                propertyInfo.SetValue(u, Enum.ToObject(propertyInfo.PropertyType, (int)sqlDataReader[propertyInfo.Name]), null);
+                                propertyInfo.SetValue(u, Enum.ToObject(propertyInfo.PropertyType, (int)sqlDataReader[propertyInfo.GetColumnName()]), null);
                             }
                             else
                             {
-                                propertyInfo.SetValue(u, Convert.ChangeType(sqlDataReader[propertyInfo.Name], Nullable.GetUnderlyingType(propertyInfo.PropertyType) ?? propertyInfo.PropertyType), null);
+                                propertyInfo.SetValue(u, Convert.ChangeType(sqlDataReader[propertyInfo.GetColumnName()], Nullable.GetUnderlyingType(propertyInfo.PropertyType) ?? propertyInfo.PropertyType), null);
                             }
                         }
                         catch
@@ -494,9 +496,9 @@ namespace Database.Aniki
                         {
                             bool isEnum = propertyInfo.PropertyType.IsEnum;
                             if (isEnum)
-                                propertyInfo.SetValue(u, Enum.ToObject(propertyInfo.PropertyType, (int)sqlDataReader[propertyInfo.Name]), null);
+                                propertyInfo.SetValue(u, Enum.ToObject(propertyInfo.PropertyType, (int)sqlDataReader[propertyInfo.GetColumnName()]), null);
                             else
-                                propertyInfo.SetValue(u, Convert.ChangeType(sqlDataReader[propertyInfo.Name], Nullable.GetUnderlyingType(propertyInfo.PropertyType) ?? propertyInfo.PropertyType), null);
+                                propertyInfo.SetValue(u, Convert.ChangeType(sqlDataReader[propertyInfo.GetColumnName()], Nullable.GetUnderlyingType(propertyInfo.PropertyType) ?? propertyInfo.PropertyType), null);
                         }
                         catch
                         {
@@ -566,11 +568,11 @@ namespace Database.Aniki
                             bool isEnum = propertyInfo.PropertyType.IsEnum;
                             if (isEnum)
                             {
-                                propertyInfo.SetValue(u, Enum.ToObject(propertyInfo.PropertyType, (int)sqlDataReader[propertyInfo.Name]), null);
+                                propertyInfo.SetValue(u, Enum.ToObject(propertyInfo.PropertyType, (int)sqlDataReader[propertyInfo.GetColumnName()]), null);
                             }
                             else
                             {
-                                propertyInfo.SetValue(u, Convert.ChangeType(sqlDataReader[propertyInfo.Name], Nullable.GetUnderlyingType(propertyInfo.PropertyType) ?? propertyInfo.PropertyType), null);
+                                propertyInfo.SetValue(u, Convert.ChangeType(sqlDataReader[propertyInfo.GetColumnName()], Nullable.GetUnderlyingType(propertyInfo.PropertyType) ?? propertyInfo.PropertyType), null);
                             }
                         }
                         catch
@@ -602,6 +604,46 @@ namespace Database.Aniki
                 return null;
             else
                 return dictionary;
+        }
+
+        public async Task<Dictionary<T, U>?> GetDictionaryOfObjectsAsync<T, U>(string query, CommandType commandType, int keyColumnIndex) where U : class, new()
+        {
+            using var sqlCommand = _connectionFactory.CreateCommand();
+            sqlCommand.CommandText = query;
+            sqlCommand.CommandType = commandType;
+            sqlCommand.RetryLogicProvider = _sqlRetryProvider;
+            sqlCommand.CommandTimeout = _options.DbCommandTimeout;
+            return await GetDictionaryOfObjectsAsync<T, U>(sqlCommand, keyColumnIndex);
+        }
+
+        public async Task<Dictionary<T, U>?> GetDictionaryOfObjectsAsync<T, U>(string query, CommandType commandType, string keyColumnName) where U : class, new()
+        {
+            using var sqlCommand = _connectionFactory.CreateCommand();
+            sqlCommand.CommandText = query;
+            sqlCommand.CommandType = commandType;
+            sqlCommand.RetryLogicProvider = _sqlRetryProvider;
+            sqlCommand.CommandTimeout = _options.DbCommandTimeout;
+            return await GetDictionaryOfObjectsAsync<T, U>(sqlCommand, keyColumnName);
+        }
+
+        public async Task<Dictionary<T, List<U>>?> GetDictionaryOfListObjectsAsync<T, U>(string query, CommandType commandType, int keyColumnIndex) where U : class, new()
+        {
+            using var sqlCommand = _connectionFactory.CreateCommand();
+            sqlCommand.CommandText = query;
+            sqlCommand.CommandType = commandType;
+            sqlCommand.RetryLogicProvider = _sqlRetryProvider;
+            sqlCommand.CommandTimeout = _options.DbCommandTimeout;
+            return await GetDictionaryOfListObjectsAsync<T, U>(sqlCommand, keyColumnIndex);
+        }
+
+        public async Task<Dictionary<T, List<U>>?> GetDictionaryOfListObjectsAsync<T, U>(string query, CommandType commandType, string keyColumnName) where U : class, new()
+        {
+            using var sqlCommand = _connectionFactory.CreateCommand();
+            sqlCommand.CommandText = query;
+            sqlCommand.CommandType = commandType;
+            sqlCommand.RetryLogicProvider = _sqlRetryProvider;
+            sqlCommand.CommandTimeout = _options.DbCommandTimeout;
+            return await GetDictionaryOfListObjectsAsync<T, U>(sqlCommand, keyColumnName);
         }
         #endregion
 
@@ -743,20 +785,31 @@ namespace Database.Aniki
                     await connection.OpenAsync();
                 }
                 using var sqlDataReader = await cmd.ExecuteReaderAsync();
+                var objectPropertiesCache = Shared._ObjectPropertiesCache;
+                List<PropertyInfo> list2;
+                lock (objectPropertiesCache)
+                {
+                    if (!Shared._ObjectPropertiesCache.TryGetValue(type, out list2))
+                    {
+                        list2 = new List<PropertyInfo>(type.GetProperties());
+                        list2.RemoveAll((PropertyInfo item) => !item.CanWrite);
+                        Shared._ObjectPropertiesCache.Add(type, list2);
+                    }
+                }
                 while (await sqlDataReader.ReadAsync())
                 {
                     T obj = (T)Activator.CreateInstance(type);
-                    foreach (var propertyInfo in type.GetProperties())
+                    foreach (var propertyInfo in list2)
                     {
                         try
                         {
                             if (propertyInfo.PropertyType.IsEnum)
                             {
-                                propertyInfo.SetValue(obj, Enum.ToObject(propertyInfo.PropertyType, (int)sqlDataReader[propertyInfo.Name]), null);
+                                propertyInfo.SetValue(obj, Enum.ToObject(propertyInfo.PropertyType, (int)sqlDataReader[propertyInfo.GetColumnName()]), null);
                             }
                             else
                             {
-                                propertyInfo.SetValue(obj, Convert.ChangeType(sqlDataReader[propertyInfo.Name], Nullable.GetUnderlyingType(propertyInfo.PropertyType) ?? propertyInfo.PropertyType), null);
+                                propertyInfo.SetValue(obj, Convert.ChangeType(sqlDataReader[propertyInfo.GetColumnName()], Nullable.GetUnderlyingType(propertyInfo.PropertyType) ?? propertyInfo.PropertyType), null);
                             }
                         }
                         catch

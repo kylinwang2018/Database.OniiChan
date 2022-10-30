@@ -6,9 +6,9 @@ namespace Database.Aniki
 {
     public static class DbContextServiceCollectionExtensions
     {
-        public static IServiceCollection AddDbContext<T>(
+        public static DbContext<TOption> AddDbContext<TOption>(
             this IServiceCollection serviceCollection,
-            Action<T> setupAction) where T : class
+            Action<TOption> setupAction) where TOption : class
         {
             Check.NotNull(setupAction, nameof(setupAction));
 
@@ -16,7 +16,15 @@ namespace Database.Aniki
             serviceCollection.AddOptions();
             serviceCollection.Configure(setupAction);
 
-            return serviceCollection;
+            return new DbContext<TOption>
+            {
+                ServiceCollection = serviceCollection
+            };
         }
+    }
+
+    public class DbContext<TOption> where TOption : class
+    {
+        public IServiceCollection? ServiceCollection { get; set; }
     }
 }

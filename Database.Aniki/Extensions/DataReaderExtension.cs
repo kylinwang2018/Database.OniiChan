@@ -1,30 +1,25 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Data;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Database.Aniki
 {
     public static class DataReaderExtension
     {
-        public static IEnumerable<T> Select<T>(this IDataReader reader,
-                                       Func<IDataReader, T> projection)
+        /// <summary>
+        ///     Process data from a <see cref="IDataReader"/> directly.
+        /// </summary>
+        /// <typeparam name="TResult"></typeparam>
+        /// <param name="reader"></param>
+        /// <param name="projection"></param>
+        /// <returns></returns>
+        public static IEnumerable<TResult> Select<TResult>(this IDataReader reader,
+                                       Func<IDataReader, TResult> projection)
         {
             while (reader.Read())
             {
                 yield return projection(reader);
             }
         }
-
-        public static void Select(this IDataReader reader,
-                                       Func<IDataReader> projection)
-        {
-            while (reader.Read())
-            {
-                projection();
-            }
-        }
-
     }
 }

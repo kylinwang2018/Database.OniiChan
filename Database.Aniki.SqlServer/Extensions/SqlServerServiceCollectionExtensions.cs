@@ -2,10 +2,9 @@
 using Database.Aniki.Utilities;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
-using System.Collections.Generic;
-using System.Reflection;
 using System;
 using System.Linq;
+using System.Reflection;
 
 namespace Database.Aniki
 {
@@ -18,18 +17,19 @@ namespace Database.Aniki
         /// Configures the context to connect to a Microsoft SQL Server database, must set up 
         /// connection string before use it.
         /// </summary>
-        /// <param name="serviceCollection"></param>
+        /// <typeparam name="TOption"></typeparam>
+        /// <param name="dbContext"></param>
         /// <returns></returns>
-        public static IServiceCollection UseSqlServer<T>(
-            this IServiceCollection serviceCollection) where T : class, IDbContextOptions
+        public static DbContext<TOption> UseSqlServer<TOption>(
+            this DbContext<TOption> dbContext) where TOption : class, IDbContextOptions
         {
             // register dbprovider in service collection
-            serviceCollection.TryAddScoped<ISqlServerDbContext<T>, SqlServerDbContext<T>>();
+            dbContext.ServiceCollection?.TryAddScoped<ISqlServerDbContext<TOption>, SqlServerDbContext<TOption>>();
 
             // register sql factory for create connection, command and dataAdapter
-            serviceCollection.TryAddScoped<ISqlConnectionFactory, SqlConnectionFactory>();
+            dbContext.ServiceCollection?.TryAddScoped<ISqlConnectionFactory, SqlConnectionFactory>();
 
-            return serviceCollection;
+            return dbContext;
         }
 
         /// <summary>
@@ -46,19 +46,19 @@ namespace Database.Aniki
         /// "ExampleService.Repo" or "ExampleService[anything]"
         /// </para>
         /// </summary>
-        /// <param name="serviceCollection"></param>
+        /// <param name="dbContext"></param>
         /// <param name="assemblyNameStart"></param>
         /// <returns></returns>
-        public static IServiceCollection RegisterSqlServerRepositories(
-            this IServiceCollection serviceCollection, string? assemblyNameStart)
+        public static DbContext<TOption> RegisterSqlServerRepositories<TOption>(
+            this DbContext<TOption> dbContext, string? assemblyNameStart) where TOption : class, IDbContextOptions
         {
             var allAssembly = AppAssembly.GetAll(assemblyNameStart);
 
-            serviceCollection.RegisterServiceByAttribute(ServiceLifetime.Singleton, allAssembly);
-            serviceCollection.RegisterServiceByAttribute(ServiceLifetime.Scoped, allAssembly);
-            serviceCollection.RegisterServiceByAttribute(ServiceLifetime.Transient, allAssembly);
+            dbContext.ServiceCollection?.RegisterServiceByAttribute(ServiceLifetime.Singleton, allAssembly);
+            dbContext.ServiceCollection?.RegisterServiceByAttribute(ServiceLifetime.Scoped, allAssembly);
+            dbContext.ServiceCollection?.RegisterServiceByAttribute(ServiceLifetime.Transient, allAssembly);
 
-            return serviceCollection;
+            return dbContext;
         }
 
         private static void RegisterServiceByAttribute(this IServiceCollection services, ServiceLifetime serviceLifetime, Assembly[] allAssembly)
