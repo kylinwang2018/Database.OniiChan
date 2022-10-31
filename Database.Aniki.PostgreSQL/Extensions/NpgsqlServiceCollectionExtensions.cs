@@ -15,20 +15,21 @@ namespace Database.Aniki
     public static class NpgsqlServiceCollectionExtensions
     {
         /// <summary>
-        /// Configures the context to connect to a Postgre SQL database, must set up connection string before use it.
+        ///     Configures the context to connect to a Postgre SQL database, must set up connection string before use it.
         /// </summary>
-        /// <param name="serviceCollection"></param>
+        /// <typeparam name="TOption"></typeparam>
+        /// <param name="dbContext"></param>
         /// <returns></returns>
-        public static IServiceCollection UsePostgreSql(
-            this IServiceCollection serviceCollection)
+        public static DbContext<TOption> UsePostgreSql<TOption>(
+            this DbContext<TOption> dbContext) where TOption : class, IDbContextOptions
         {
             // register dbprovider in service collection
-            serviceCollection.TryAddScoped<INpgsqlDbContext, NpgsqlDbContext>();
+            dbContext.ServiceCollection?.TryAddScoped<INpgsqlDbContext<TOption>, NpgsqlDbContext<TOption>>();
 
             // register sql factory for create connection, command and dataAdapter
-            serviceCollection.TryAddScoped<INpgsqlConnectionFactory, NpgsqlConnectionFactory>();
+            dbContext.ServiceCollection?.TryAddScoped<INpgsqlConnectionFactory, NpgsqlConnectionFactory>();
 
-            return serviceCollection;
+            return dbContext;
         }
 
         /// <summary>
@@ -45,19 +46,19 @@ namespace Database.Aniki
         /// "ExampleService.Repo" or "ExampleService[anything]"
         /// </para>
         /// </summary>
-        /// <param name="serviceCollection"></param>
+        /// <param name="dbContext"></param>
         /// <param name="assemblyNameStart"></param>
         /// <returns></returns>
-        public static IServiceCollection RegisterPostgreRepositories(
-            this IServiceCollection serviceCollection, string? assemblyNameStart)
+        public static DbContext<TOption> RegisterPostgreRepositories<TOption>(
+            this DbContext<TOption> dbContext, string? assemblyNameStart) where TOption : class, IDbContextOptions
         {
             var allAssembly = AppAssembly.GetAll(assemblyNameStart);
 
-            serviceCollection.RegisterServiceByAttribute(ServiceLifetime.Singleton, allAssembly);
-            serviceCollection.RegisterServiceByAttribute(ServiceLifetime.Scoped, allAssembly);
-            serviceCollection.RegisterServiceByAttribute(ServiceLifetime.Transient, allAssembly);
+            dbContext.ServiceCollection?.RegisterServiceByAttribute(ServiceLifetime.Singleton, allAssembly);
+            dbContext.ServiceCollection?.RegisterServiceByAttribute(ServiceLifetime.Scoped, allAssembly);
+            dbContext.ServiceCollection?.RegisterServiceByAttribute(ServiceLifetime.Transient, allAssembly);
 
-            return serviceCollection;
+            return dbContext;
         }
 
         private static void RegisterServiceByAttribute(this IServiceCollection services, ServiceLifetime serviceLifetime, Assembly[] allAssembly)

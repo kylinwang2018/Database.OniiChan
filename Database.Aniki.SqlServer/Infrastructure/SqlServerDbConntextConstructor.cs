@@ -6,15 +6,16 @@ using System;
 
 namespace Database.Aniki
 {
-    internal partial class SqlServerDbContext : ISqlServerDbContext
+
+    internal partial class SqlServerDbContext<TOption> : ISqlServerDbContext<TOption> where TOption : class, IDbContextOptions
     {
         private readonly IDbContextOptions _options;
-        private readonly ILogger<SqlServerDbContext> _logger;
+        private readonly ILogger<SqlServerDbContext<TOption>> _logger;
         private readonly ISqlConnectionFactory _connectionFactory;
         private readonly SqlRetryLogicBaseProvider _sqlRetryProvider;
 
         public SqlServerDbContext(
-            IOptions<DbContextOptions> options, ILogger<SqlServerDbContext> logger,
+            IOptions<TOption> options, ILogger<SqlServerDbContext<TOption>> logger,
             ISqlConnectionFactory connectionFactory)
         {
             _options = options.Value;

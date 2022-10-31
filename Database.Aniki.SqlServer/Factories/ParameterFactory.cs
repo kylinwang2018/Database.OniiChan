@@ -7,6 +7,13 @@ namespace Database.Aniki.SqlServer
 {
     public static class ParameterFactory
     {
+        /// <summary>
+        ///     Create a new <see cref="SqlParameter"/>.
+        /// </summary>
+        /// <param name="paramName">The name of the parameter</param>
+        /// <param name="dbType">The type of the parameter</param>
+        /// <param name="value">The value of the parameter</param>
+        /// <returns></returns>
         public static SqlParameter Create(string paramName, SqlDbType dbType, object value)
         {
             SqlParameter param = new SqlParameter(paramName, dbType);
@@ -23,6 +30,14 @@ namespace Database.Aniki.SqlServer
             return param;
         }
 
+        /// <summary>
+        ///     Create a new <see cref="SqlParameter"/>.
+        /// </summary>
+        /// <param name="paramName">The name of the parameter</param>
+        /// <param name="dbType">The type of the parameter</param>
+        /// <param name="size"></param>
+        /// <param name="value">The value of the parameter</param>
+        /// <returns></returns>
         public static SqlParameter Create(string paramName, SqlDbType dbType, int size, object value)
         {
             SqlParameter param = new SqlParameter(paramName, dbType, size);

@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace Database.Aniki
 {
-    public interface ISqlServerDbContext
+    public interface ISqlServerDbContext<TOption> where TOption : class, IDbContextOptions
     {
         int ExecuteNonQuery(SqlCommand cmd);
         int ExecuteNonQuery(SqlCommand cmd, SqlConnection connection, bool closeWhenComplete = false);
@@ -102,12 +102,20 @@ namespace Database.Aniki
         Task<Dictionary<T, U>?> GetDictionaryAsync<T, U>(string query, CommandType commandType, params SqlParameter[] sqlParameters);
         Dictionary<T, List<U>>? GetDictionaryOfListObjects<T, U>(SqlCommand cmd, int keyColumnIndex) where U : class, new();
         Dictionary<T, List<U>>? GetDictionaryOfListObjects<T, U>(SqlCommand cmd, string keyColumnName) where U : class, new();
+        Dictionary<T, List<U>>? GetDictionaryOfListObjects<T, U>(string query, CommandType commandType, int keyColumnIndex) where U : class, new();
+        Dictionary<T, List<U>>? GetDictionaryOfListObjects<T, U>(string query, CommandType commandType, string keyColumnName) where U : class, new();
         Task<Dictionary<T, List<U>>?> GetDictionaryOfListObjectsAsync<T, U>(SqlCommand cmd, int keyColumnIndex) where U : class, new();
         Task<Dictionary<T, List<U>>?> GetDictionaryOfListObjectsAsync<T, U>(SqlCommand cmd, string keyColumnName) where U : class, new();
+        Task<Dictionary<T, List<U>>?> GetDictionaryOfListObjectsAsync<T, U>(string query, CommandType commandType, int keyColumnIndex) where U : class, new();
+        Task<Dictionary<T, List<U>>?> GetDictionaryOfListObjectsAsync<T, U>(string query, CommandType commandType, string keyColumnName) where U : class, new();
         Dictionary<T, U>? GetDictionaryOfObjects<T, U>(SqlCommand cmd, int keyColumnIndex) where U : class, new();
         Dictionary<T, U>? GetDictionaryOfObjects<T, U>(SqlCommand cmd, string keyColumnName) where U : class, new();
+        Dictionary<T, U>? GetDictionaryOfObjects<T, U>(string query, CommandType commandType, int keyColumnIndex) where U : class, new();
+        Dictionary<T, U>? GetDictionaryOfObjects<T, U>(string query, CommandType commandType, string keyColumnName) where U : class, new();
         Task<Dictionary<T, U>?> GetDictionaryOfObjectsAsync<T, U>(SqlCommand cmd, int keyColumnIndex) where U : class, new();
         Task<Dictionary<T, U>?> GetDictionaryOfObjectsAsync<T, U>(SqlCommand cmd, string keyColumnName) where U : class, new();
+        Task<Dictionary<T, U>?> GetDictionaryOfObjectsAsync<T, U>(string query, CommandType commandType, int keyColumnIndex) where U : class, new();
+        Task<Dictionary<T, U>?> GetDictionaryOfObjectsAsync<T, U>(string query, CommandType commandType, string keyColumnName) where U : class, new();
         List<List<string>>? GetListListString(SqlCommand cmd);
         List<List<string>>? GetListListString(SqlCommand cmd, string dateFormat);
         List<List<string>>? GetListListString(string query, CommandType commandType);

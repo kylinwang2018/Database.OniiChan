@@ -1,4 +1,5 @@
 ﻿using Database.Aniki.Collections;
+using Database.Aniki.Extensions;
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
@@ -580,11 +581,11 @@ namespace Database.Aniki.DataManipulators
                         {
                             if (item.PropertyType.IsEnum)
                             {
-                                item.SetValue(val, Enum.ToObject(item.PropertyType, (int)row[item.Name]), null);
+                                item.SetValue(val, Enum.ToObject(item.PropertyType, (int)row[item.GetColumnName()]), null);
                             }
                             else
                             {
-                                item.SetValue(val, Convert.ChangeType(row[item.Name], Nullable.GetUnderlyingType(item.PropertyType) ?? item.PropertyType), null);
+                                item.SetValue(val, Convert.ChangeType(row[item.GetColumnName()], Nullable.GetUnderlyingType(item.PropertyType) ?? item.PropertyType), null);
                             }
                         }
                         catch
@@ -629,11 +630,11 @@ namespace Database.Aniki.DataManipulators
                         {
                             if (item.PropertyType.IsEnum)
                             {
-                                item.SetValue(val, Enum.ToObject(item.PropertyType, (int)dataRow[item.Name]), null);
+                                item.SetValue(val, Enum.ToObject(item.PropertyType, (int)dataRow[item.GetColumnName()]), null);
                             }
                             else
                             {
-                                item.SetValue(val, Convert.ChangeType(dataRow[item.Name], Nullable.GetUnderlyingType(item.PropertyType) ?? item.PropertyType), null);
+                                item.SetValue(val, Convert.ChangeType(dataRow[item.GetColumnName()], Nullable.GetUnderlyingType(item.PropertyType) ?? item.PropertyType), null);
                             }
                         }
                         catch
@@ -673,7 +674,7 @@ namespace Database.Aniki.DataManipulators
                     DataRow dataRow = dt.Rows[0];
                     foreach (PropertyInfo item in value)
                     {
-                        object obj = dataRow[item.Name];
+                        object obj = dataRow[item.GetColumnName()];
                         if (obj == null)
                         {
                             continue;
@@ -683,11 +684,11 @@ namespace Database.Aniki.DataManipulators
                         {
                             if (item.PropertyType.IsEnum)
                             {
-                                item.SetValue(objectToFill, Enum.ToObject(item.PropertyType, (int)dataRow[item.Name]), null);
+                                item.SetValue(objectToFill, Enum.ToObject(item.PropertyType, (int)dataRow[item.GetColumnName()]), null);
                             }
                             else
                             {
-                                item.SetValue(objectToFill, Convert.ChangeType(dataRow[item.Name], Nullable.GetUnderlyingType(item.PropertyType) ?? item.PropertyType), null);
+                                item.SetValue(objectToFill, Convert.ChangeType(dataRow[item.GetColumnName()], Nullable.GetUnderlyingType(item.PropertyType) ?? item.PropertyType), null);
                             }
                         }
                         catch
@@ -734,11 +735,11 @@ namespace Database.Aniki.DataManipulators
                     {
                         if (item.PropertyType.IsEnum)
                         {
-                            item.SetValue(val, Enum.ToObject(item.PropertyType, (int)row[item.Name]), null);
+                            item.SetValue(val, Enum.ToObject(item.PropertyType, (int)row[item.GetColumnName()]), null);
                         }
                         else
                         {
-                            item.SetValue(val, Convert.ChangeType(row[item.Name], Nullable.GetUnderlyingType(item.PropertyType) ?? item.PropertyType), null);
+                            item.SetValue(val, Convert.ChangeType(row[item.GetColumnName()], Nullable.GetUnderlyingType(item.PropertyType) ?? item.PropertyType), null);
                         }
                     }
                     catch
@@ -777,7 +778,7 @@ namespace Database.Aniki.DataManipulators
 
                 foreach (PropertyInfo item in value)
                 {
-                    object obj = row[item.Name];
+                    object obj = row[item.GetColumnName()];
                     if (obj == null)
                     {
                         continue;
@@ -787,11 +788,11 @@ namespace Database.Aniki.DataManipulators
                     {
                         if (item.PropertyType.IsEnum)
                         {
-                            item.SetValue(objectToFill, Enum.ToObject(item.PropertyType, (int)row[item.Name]), null);
+                            item.SetValue(objectToFill, Enum.ToObject(item.PropertyType, (int)row[item.GetColumnName()]), null);
                         }
                         else
                         {
-                            item.SetValue(objectToFill, Convert.ChangeType(row[item.Name], Nullable.GetUnderlyingType(item.PropertyType) ?? item.PropertyType), null);
+                            item.SetValue(objectToFill, Convert.ChangeType(row[item.GetColumnName()], Nullable.GetUnderlyingType(item.PropertyType) ?? item.PropertyType), null);
                         }
                     }
                     catch
