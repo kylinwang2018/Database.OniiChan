@@ -10,12 +10,12 @@ namespace Database.Aniki
     {
         private readonly IDbContextOptions _options;
         private readonly ILogger<NpgsqlDbContext<TOption>> _logger;
-        private readonly INpgsqlConnectionFactory _connectionFactory;
+        private readonly INpgsqlConnectionFactory<TOption> _connectionFactory;
         private readonly NpgsqlRetryLogicOption _sqlRetryOption;
 
         public NpgsqlDbContext(
             IOptions<DbContextOptions> options, ILogger<NpgsqlDbContext<TOption>> logger,
-            INpgsqlConnectionFactory connectionFactory)
+            INpgsqlConnectionFactory<TOption> connectionFactory)
         {
             _options = options.Value;
             _logger = logger;

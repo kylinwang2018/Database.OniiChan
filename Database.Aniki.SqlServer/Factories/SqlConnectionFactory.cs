@@ -3,11 +3,11 @@ using Microsoft.Extensions.Options;
 
 namespace Database.Aniki.SqlServer
 {
-    internal class SqlConnectionFactory : ISqlConnectionFactory
+    internal class SqlConnectionFactory<TOption> : ISqlConnectionFactory<TOption> where TOption : class, IDbContextOptions
     {
         private readonly string _sqlConnectionString;
 
-        public SqlConnectionFactory(IOptions<DbContextOptions> options)
+        public SqlConnectionFactory(IOptions<TOption> options)
         {
             _sqlConnectionString = options.Value.ConnectionSting;
         }

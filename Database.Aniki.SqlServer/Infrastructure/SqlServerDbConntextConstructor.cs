@@ -11,12 +11,12 @@ namespace Database.Aniki
     {
         private readonly IDbContextOptions _options;
         private readonly ILogger<SqlServerDbContext<TOption>> _logger;
-        private readonly ISqlConnectionFactory _connectionFactory;
+        private readonly ISqlConnectionFactory<TOption> _connectionFactory;
         private readonly SqlRetryLogicBaseProvider _sqlRetryProvider;
 
         public SqlServerDbContext(
             IOptions<TOption> options, ILogger<SqlServerDbContext<TOption>> logger,
-            ISqlConnectionFactory connectionFactory)
+            ISqlConnectionFactory<TOption> connectionFactory)
         {
             _options = options.Value;
             _logger = logger;

@@ -2,7 +2,7 @@
 
 namespace Database.Aniki.SqlServer
 {
-    public interface ISqlConnectionFactory
+    public interface ISqlConnectionFactory<TOption> where TOption : class, IDbContextOptions
     {
         /// <summary>
         /// Creates a database connection to the specified database.

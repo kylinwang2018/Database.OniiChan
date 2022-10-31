@@ -3,11 +3,11 @@ using Npgsql;
 
 namespace Database.Aniki.PostgreSQL
 {
-    internal class NpgsqlConnectionFactory : INpgsqlConnectionFactory
+    internal class NpgsqlConnectionFactory<TOption> : INpgsqlConnectionFactory<TOption> where TOption : class, IDbContextOptions
     {
         private readonly string _sqlConnectionString;
 
-        public NpgsqlConnectionFactory(IOptions<DbContextOptions> options)
+        public NpgsqlConnectionFactory(IOptions<TOption> options)
         {
             _sqlConnectionString = options.Value.ConnectionSting;
         }

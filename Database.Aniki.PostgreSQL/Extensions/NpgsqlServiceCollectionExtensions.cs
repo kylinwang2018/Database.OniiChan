@@ -27,7 +27,7 @@ namespace Database.Aniki
             dbContext.ServiceCollection?.TryAddScoped<INpgsqlDbContext<TOption>, NpgsqlDbContext<TOption>>();
 
             // register sql factory for create connection, command and dataAdapter
-            dbContext.ServiceCollection?.TryAddScoped<INpgsqlConnectionFactory, NpgsqlConnectionFactory>();
+            dbContext.ServiceCollection?.TryAddScoped<INpgsqlConnectionFactory<TOption>, NpgsqlConnectionFactory<TOption>>();
 
             return dbContext;
         }
