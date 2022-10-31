@@ -11,6 +11,9 @@
     <TargetFramework>netstandard2.1</TargetFramework>
     <Nullable>enable</Nullable>
 	<AssemblyVersion>0.0.0.1</AssemblyVersion>
+	<GeneratePackageOnBuild>True</GeneratePackageOnBuild>
+	<Version>0.0.1</Version>
+	<Company>Ben Wang</Company>
   </PropertyGroup>
 
   <ItemGroup>
