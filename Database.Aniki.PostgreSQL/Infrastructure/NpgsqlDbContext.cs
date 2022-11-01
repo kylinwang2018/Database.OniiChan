@@ -156,6 +156,92 @@ namespace Database.Aniki
         }
         #endregion
 
+        #region GetDataSet
+        public DataSet GetDataSet(NpgsqlCommand cmd)
+        {
+            var dataSet = new DataSet();
+            try
+            {
+                using var sqlConnection = _connectionFactory.CreateConnection();
+                cmd.Connection = sqlConnection;
+                sqlConnection.OpenWithRetry(_sqlRetryOption);
+                using var sqlDataAdapter = _connectionFactory.CreateDataAdapter();
+                sqlDataAdapter.SelectCommand = cmd;
+                sqlDataAdapter.Fill(dataSet);
+
+                LogSqlInfo(cmd, sqlConnection);
+            }
+            catch (Exception ex)
+            {
+                LogSqlError(cmd, ex);
+                throw;
+            }
+            return dataSet;
+        }
+
+        public DataSet GetDataSet(NpgsqlCommand cmd, NpgsqlConnection connection, bool closeWhenComplete = false)
+        {
+            try
+            {
+                var dataSet = new DataSet();
+                cmd.Connection = connection;
+                if (connection.State != ConnectionState.Open && connection.State != ConnectionState.Connecting)
+                {
+                    connection.CloseWithRetry(_sqlRetryOption);
+                    connection.OpenWithRetry(_sqlRetryOption);
+                }
+                using (var sqlTransaction = connection.BeginTransaction())
+                {
+                    using var sqlDataAdapter = _connectionFactory.CreateDataAdapter();
+                    cmd.Transaction = sqlTransaction;
+                    sqlDataAdapter.SelectCommand = cmd;
+                    sqlDataAdapter.Fill(dataSet);
+                    sqlTransaction.Commit();
+                }
+                LogSqlInfo(cmd, connection);
+                if (closeWhenComplete)
+                {
+                    connection.CloseWithRetry(_sqlRetryOption);
+                }
+                return dataSet;
+            }
+            catch (Exception ex)
+            {
+                LogSqlError(cmd, ex);
+                throw;
+            }
+        }
+
+        public DataSet GetDataSet(string query, CommandType commandType)
+        {
+            using var NpgsqlCommand = _connectionFactory.CreateCommand();
+            NpgsqlCommand.CommandText = query;
+            NpgsqlCommand.CommandType = commandType;
+            NpgsqlCommand.CommandTimeout = _options.DbCommandTimeout;
+            return GetDataSet(NpgsqlCommand);
+        }
+
+        public DataSet GetDataSet(string query, CommandType commandType, Array sqlParameters)
+        {
+            using var NpgsqlCommand = _connectionFactory.CreateCommand();
+            NpgsqlCommand.CommandText = query;
+            NpgsqlCommand.CommandType = commandType;
+            NpgsqlCommand.CommandTimeout = _options.DbCommandTimeout;
+            NpgsqlCommand.AttachParameters(sqlParameters);
+            return GetDataSet(NpgsqlCommand);
+        }
+
+        public DataSet GetDataSet(string query, CommandType commandType, params NpgsqlParameter[] sqlParameters)
+        {
+            using var NpgsqlCommand = _connectionFactory.CreateCommand();
+            NpgsqlCommand.CommandText = query;
+            NpgsqlCommand.CommandType = commandType;
+            NpgsqlCommand.CommandTimeout = _options.DbCommandTimeout;
+            NpgsqlCommand.AttachParameters(sqlParameters);
+            return GetDataSet(NpgsqlCommand);
+        }
+        #endregion
+
         #region GetDataRow
         public T? GetDataRow<T>(NpgsqlCommand cmd) where T : class, new()
         {

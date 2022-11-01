@@ -56,6 +56,16 @@ namespace Database.Aniki
         Task<T?> GetDataRowAsync<T>(string query, CommandType commandType) where T : class, new();
         Task<T?> GetDataRowAsync<T>(string query, CommandType commandType, Array sqlParameters) where T : class, new();
         Task<T?> GetDataRowAsync<T>(string query, CommandType commandType, params SqlParameter[] sqlParameters) where T : class, new();
+        DataSet GetDataSet(SqlCommand cmd);
+        DataSet GetDataSet(SqlCommand cmd, SqlConnection connection, bool closeWhenComplete = false);
+        DataSet GetDataSet(string query, CommandType commandType);
+        DataSet GetDataSet(string query, CommandType commandType, Array sqlParameters);
+        DataSet GetDataSet(string query, CommandType commandType, params SqlParameter[] sqlParameters);
+        Task<DataSet> GetDataSetAsync(SqlCommand cmd);
+        Task<DataSet> GetDataSetAsync(SqlCommand cmd, SqlConnection connection, bool closeWhenComplete = false);
+        Task<DataSet> GetDataSetAsync(string query, CommandType commandType);
+        Task<DataSet> GetDataSetAsync(string query, CommandType commandType, Array sqlParameters);
+        Task<DataSet> GetDataSetAsync(string query, CommandType commandType, params SqlParameter[] sqlParameters);
         DataTable GetDataTable(SqlCommand cmd);
         DataTable GetDataTable(SqlCommand cmd, SqlConnection connection, bool closeWhenComplete = false);
         DataTable GetDataTable(string query, CommandType commandType);

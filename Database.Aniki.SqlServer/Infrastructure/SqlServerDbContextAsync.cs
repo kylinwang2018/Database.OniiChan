@@ -165,6 +165,101 @@ namespace Database.Aniki
         }
         #endregion
 
+        #region GetDataSet
+        public async Task<DataSet> GetDataSetAsync(SqlCommand cmd)
+        {
+            var dataSet = new DataSet();
+            try
+            {
+                using var sqlConnection = _connectionFactory.CreateConnection();
+                if (_options.EnableStatistics)
+                    sqlConnection.StatisticsEnabled = true;
+                cmd.Connection = sqlConnection;
+                sqlConnection.RetryLogicProvider = _sqlRetryProvider;
+                await sqlConnection.OpenAsync();
+                using var sqlDataAdapter = _connectionFactory.CreateDataAdapter();
+                sqlDataAdapter.SelectCommand = cmd;
+                sqlDataAdapter.Fill(dataSet);
+
+                LogSqlInfo(cmd, sqlConnection);
+            }
+            catch (Exception ex)
+            {
+                LogSqlError(cmd, ex);
+                throw;
+            }
+            return dataSet;
+        }
+
+        public async Task<DataSet> GetDataSetAsync(SqlCommand cmd, SqlConnection connection, bool closeWhenComplete = false)
+        {
+            try
+            {
+                if (_options.EnableStatistics)
+                    connection.StatisticsEnabled = true;
+
+                var dataSet = new DataSet();
+                cmd.Connection = connection;
+                if (connection.State != ConnectionState.Open && connection.State != ConnectionState.Connecting)
+                {
+                    await connection.CloseAsync();
+                    await connection.OpenAsync();
+                }
+                using (var sqlTransaction = connection.BeginTransaction())
+                {
+                    using var sqlDataAdapter = _connectionFactory.CreateDataAdapter();
+                    cmd.Transaction = sqlTransaction;
+                    sqlDataAdapter.SelectCommand = cmd;
+                    sqlDataAdapter.Fill(dataSet);
+                    sqlTransaction.Commit();
+                }
+                LogSqlInfo(cmd, connection);
+                if (closeWhenComplete)
+                {
+                    await connection.CloseAsync();
+                }
+                return dataSet;
+            }
+            catch (Exception ex)
+            {
+                LogSqlError(cmd, ex);
+                throw;
+            }
+        }
+
+        public async Task<DataSet> GetDataSetAsync(string query, CommandType commandType)
+        {
+            using var sqlCommand = _connectionFactory.CreateCommand();
+            sqlCommand.CommandText = query;
+            sqlCommand.CommandType = commandType;
+            sqlCommand.CommandTimeout = _options.DbCommandTimeout;
+            sqlCommand.RetryLogicProvider = _sqlRetryProvider;
+            return await GetDataSetAsync(sqlCommand);
+        }
+
+        public async Task<DataSet> GetDataSetAsync(string query, CommandType commandType, Array sqlParameters)
+        {
+            using var sqlCommand = _connectionFactory.CreateCommand();
+            sqlCommand.CommandText = query;
+            sqlCommand.CommandType = commandType;
+            sqlCommand.CommandTimeout = _options.DbCommandTimeout;
+            sqlCommand.RetryLogicProvider = _sqlRetryProvider;
+            sqlCommand.AttachParameters(sqlParameters);
+            return await GetDataSetAsync(sqlCommand);
+        }
+
+        public async Task<DataSet> GetDataSetAsync(string query, CommandType commandType, params SqlParameter[] sqlParameters)
+        {
+            using var sqlCommand = _connectionFactory.CreateCommand();
+            sqlCommand.CommandText = query;
+            sqlCommand.CommandType = commandType;
+            sqlCommand.CommandTimeout = _options.DbCommandTimeout;
+            sqlCommand.RetryLogicProvider = _sqlRetryProvider;
+            sqlCommand.AttachParameters(sqlParameters);
+            return await GetDataSetAsync(sqlCommand);
+        }
+        #endregion
+
         #region GetDataRow
         public async Task<T?> GetDataRowAsync<T>(SqlCommand cmd) where T : class, new()
         {

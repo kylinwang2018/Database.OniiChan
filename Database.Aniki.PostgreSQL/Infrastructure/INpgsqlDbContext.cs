@@ -56,6 +56,16 @@ namespace Database.Aniki
         Task<T?> GetDataRowAsync<T>(string query, CommandType commandType) where T : class, new();
         Task<T?> GetDataRowAsync<T>(string query, CommandType commandType, Array NpgsqlParameters) where T : class, new();
         Task<T?> GetDataRowAsync<T>(string query, CommandType commandType, params NpgsqlParameter[] NpgsqlParameters) where T : class, new();
+        DataSet GetDataSet(NpgsqlCommand cmd);
+        DataSet GetDataSet(NpgsqlCommand cmd, NpgsqlConnection connection, bool closeWhenComplete = false);
+        DataSet GetDataSet(string query, CommandType commandType);
+        DataSet GetDataSet(string query, CommandType commandType, Array sqlParameters);
+        DataSet GetDataSet(string query, CommandType commandType, params NpgsqlParameter[] sqlParameters);
+        Task<DataSet> GetDataSetAsync(NpgsqlCommand cmd);
+        Task<DataSet> GetDataSetAsync(NpgsqlCommand cmd, NpgsqlConnection connection, bool closeWhenComplete = false);
+        Task<DataSet> GetDataSetAsync(string query, CommandType commandType);
+        Task<DataSet> GetDataSetAsync(string query, CommandType commandType, Array sqlParameters);
+        Task<DataSet> GetDataSetAsync(string query, CommandType commandType, params NpgsqlParameter[] sqlParameters);
         DataTable GetDataTable(NpgsqlCommand cmd);
         DataTable GetDataTable(NpgsqlCommand cmd, NpgsqlConnection connection, bool closeWhenComplete = false);
         DataTable GetDataTable(string query, CommandType commandType);

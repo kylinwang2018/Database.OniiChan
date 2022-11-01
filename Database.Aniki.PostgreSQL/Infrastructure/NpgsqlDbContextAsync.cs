@@ -101,7 +101,6 @@ namespace Database.Aniki
             NpgsqlCommand.CommandText = query;
             NpgsqlCommand.CommandType = commandType;
             NpgsqlCommand.CommandTimeout = _options.DbCommandTimeout;
-
             return await GetDataTableAsync(NpgsqlCommand);
         }
 
@@ -111,7 +110,6 @@ namespace Database.Aniki
             NpgsqlCommand.CommandText = query;
             NpgsqlCommand.CommandType = commandType;
             NpgsqlCommand.CommandTimeout = _options.DbCommandTimeout;
-
             NpgsqlCommand.AttachParameters(NpgsqlParameters);
             return await GetDataTableAsync(NpgsqlCommand);
         }
@@ -122,7 +120,6 @@ namespace Database.Aniki
             NpgsqlCommand.CommandText = query;
             NpgsqlCommand.CommandType = commandType;
             NpgsqlCommand.CommandTimeout = _options.DbCommandTimeout;
-
             NpgsqlCommand.AttachParameters(NpgsqlParameters);
             return await GetDataTableAsync(NpgsqlCommand);
         }
@@ -155,6 +152,92 @@ namespace Database.Aniki
         {
             var datatable = await GetDataTableAsync(query, commandType, NpgsqlParameters);
             return DataTableHelper.DataTableToList<T>(datatable);
+        }
+        #endregion
+
+        #region GetDataSet
+        public async Task<DataSet> GetDataSetAsync(NpgsqlCommand cmd)
+        {
+            var dataSet = new DataSet();
+            try
+            {
+                using var sqlConnection = _connectionFactory.CreateConnection();
+                cmd.Connection = sqlConnection;
+                await sqlConnection.OpenWithRetryAsync(_sqlRetryOption);
+                using var sqlDataAdapter = _connectionFactory.CreateDataAdapter();
+                sqlDataAdapter.SelectCommand = cmd;
+                sqlDataAdapter.Fill(dataSet);
+
+                LogSqlInfo(cmd, sqlConnection);
+            }
+            catch (Exception ex)
+            {
+                LogSqlError(cmd, ex);
+                throw;
+            }
+            return dataSet;
+        }
+
+        public async Task<DataSet> GetDataSetAsync(NpgsqlCommand cmd, NpgsqlConnection connection, bool closeWhenComplete = false)
+        {
+            try
+            {
+                var dataSet = new DataSet();
+                cmd.Connection = connection;
+                if (connection.State != ConnectionState.Open && connection.State != ConnectionState.Connecting)
+                {
+                    await connection.CloseWithRetryAsync(_sqlRetryOption);
+                    await connection.OpenWithRetryAsync(_sqlRetryOption);
+                }
+                using (var sqlTransaction = connection.BeginTransaction())
+                {
+                    using var sqlDataAdapter = _connectionFactory.CreateDataAdapter();
+                    cmd.Transaction = sqlTransaction;
+                    sqlDataAdapter.SelectCommand = cmd;
+                    sqlDataAdapter.Fill(dataSet);
+                    sqlTransaction.Commit();
+                }
+                LogSqlInfo(cmd, connection);
+                if (closeWhenComplete)
+                {
+                    await connection.CloseWithRetryAsync(_sqlRetryOption);
+                }
+                return dataSet;
+            }
+            catch (Exception ex)
+            {
+                LogSqlError(cmd, ex);
+                throw;
+            }
+        }
+
+        public async Task<DataSet> GetDataSetAsync(string query, CommandType commandType)
+        {
+            using var NpgsqlCommand = _connectionFactory.CreateCommand();
+            NpgsqlCommand.CommandText = query;
+            NpgsqlCommand.CommandType = commandType;
+            NpgsqlCommand.CommandTimeout = _options.DbCommandTimeout;
+            return await GetDataSetAsync(NpgsqlCommand);
+        }
+
+        public async Task<DataSet> GetDataSetAsync(string query, CommandType commandType, Array sqlParameters)
+        {
+            using var NpgsqlCommand = _connectionFactory.CreateCommand();
+            NpgsqlCommand.CommandText = query;
+            NpgsqlCommand.CommandType = commandType;
+            NpgsqlCommand.CommandTimeout = _options.DbCommandTimeout;
+            NpgsqlCommand.AttachParameters(sqlParameters);
+            return await GetDataSetAsync(NpgsqlCommand);
+        }
+
+        public async Task<DataSet> GetDataSetAsync(string query, CommandType commandType, params NpgsqlParameter[] sqlParameters)
+        {
+            using var NpgsqlCommand = _connectionFactory.CreateCommand();
+            NpgsqlCommand.CommandText = query;
+            NpgsqlCommand.CommandType = commandType;
+            NpgsqlCommand.CommandTimeout = _options.DbCommandTimeout;
+            NpgsqlCommand.AttachParameters(sqlParameters);
+            return await GetDataSetAsync(NpgsqlCommand);
         }
         #endregion
 

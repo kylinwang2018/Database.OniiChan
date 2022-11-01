@@ -8,6 +8,7 @@ using System.Collections.Generic;
 using System.Data;
 using System.Linq;
 using System.Reflection;
+using System.Threading.Tasks;
 
 namespace Database.Aniki
 {
@@ -161,6 +162,101 @@ namespace Database.Aniki
         {
             var datatable = GetDataTable(query, commandType, sqlParameters);
             return DataTableHelper.DataTableToList<T>(datatable);
+        }
+        #endregion
+
+        #region GetDataSet
+        public DataSet GetDataSet(SqlCommand cmd)
+        {
+            var dataSet = new DataSet();
+            try
+            {
+                using var sqlConnection = _connectionFactory.CreateConnection();
+                if (_options.EnableStatistics)
+                    sqlConnection.StatisticsEnabled = true;
+                cmd.Connection = sqlConnection;
+                sqlConnection.RetryLogicProvider = _sqlRetryProvider;
+                sqlConnection.Open();
+                using var sqlDataAdapter = _connectionFactory.CreateDataAdapter();
+                sqlDataAdapter.SelectCommand = cmd;
+                sqlDataAdapter.Fill(dataSet);
+
+                LogSqlInfo(cmd, sqlConnection);
+            }
+            catch (Exception ex)
+            {
+                LogSqlError(cmd, ex);
+                throw;
+            }
+            return dataSet;
+        }
+
+        public DataSet GetDataSet(SqlCommand cmd, SqlConnection connection, bool closeWhenComplete = false)
+        {
+            try
+            {
+                if (_options.EnableStatistics)
+                    connection.StatisticsEnabled = true;
+
+                var dataSet = new DataSet();
+                cmd.Connection = connection;
+                if (connection.State != ConnectionState.Open && connection.State != ConnectionState.Connecting)
+                {
+                    connection.Close();
+                    connection.Open();
+                }
+                using (var sqlTransaction = connection.BeginTransaction())
+                {
+                    using var sqlDataAdapter = _connectionFactory.CreateDataAdapter();
+                    cmd.Transaction = sqlTransaction;
+                    sqlDataAdapter.SelectCommand = cmd;
+                    sqlDataAdapter.Fill(dataSet);
+                    sqlTransaction.Commit();
+                }
+                LogSqlInfo(cmd, connection);
+                if (closeWhenComplete)
+                {
+                    connection.Close();
+                }
+                return dataSet;
+            }
+            catch (Exception ex)
+            {
+                LogSqlError(cmd, ex);
+                throw;
+            }
+        }
+
+        public DataSet GetDataSet(string query, CommandType commandType)
+        {
+            using var sqlCommand = _connectionFactory.CreateCommand();
+            sqlCommand.CommandText = query;
+            sqlCommand.CommandType = commandType;
+            sqlCommand.CommandTimeout = _options.DbCommandTimeout;
+            sqlCommand.RetryLogicProvider = _sqlRetryProvider;
+            return GetDataSet(sqlCommand);
+        }
+
+        public DataSet GetDataSet(string query, CommandType commandType, Array sqlParameters)
+        {
+            using var sqlCommand = _connectionFactory.CreateCommand();
+            sqlCommand.CommandText = query;
+            sqlCommand.CommandType = commandType;
+            sqlCommand.CommandTimeout = _options.DbCommandTimeout;
+            sqlCommand.RetryLogicProvider = _sqlRetryProvider;
+            sqlCommand.AttachParameters(sqlParameters);
+            return GetDataSet(sqlCommand);
+        }
+
+        public DataSet GetDataSet(string query, CommandType commandType, params SqlParameter[] sqlParameters)
+        {
+            using var sqlCommand = _connectionFactory.CreateCommand();
+            sqlCommand.CommandText = query;
+            sqlCommand.CommandType = commandType;
+            sqlCommand.CommandTimeout = _options.DbCommandTimeout;
+            sqlCommand.RetryLogicProvider = _sqlRetryProvider;
+            sqlCommand.AttachParameters(sqlParameters);
+            return GetDataSet(sqlCommand);
         }
         #endregion
 
@@ -605,14 +701,14 @@ namespace Database.Aniki
                 return dictionary;
         }
 
-        public Dictionary<T,U>? GetDictionaryOfObjects<T, U>(string query, CommandType commandType, int keyColumnIndex) where U: class, new()
+        public Dictionary<T, U>? GetDictionaryOfObjects<T, U>(string query, CommandType commandType, int keyColumnIndex) where U : class, new()
         {
             using var sqlCommand = _connectionFactory.CreateCommand();
             sqlCommand.CommandText = query;
             sqlCommand.CommandType = commandType;
             sqlCommand.RetryLogicProvider = _sqlRetryProvider;
             sqlCommand.CommandTimeout = _options.DbCommandTimeout;
-            return GetDictionaryOfObjects<T, U>(sqlCommand,keyColumnIndex);
+            return GetDictionaryOfObjects<T, U>(sqlCommand, keyColumnIndex);
         }
 
         public Dictionary<T, U>? GetDictionaryOfObjects<T, U>(string query, CommandType commandType, string keyColumnName) where U : class, new()
