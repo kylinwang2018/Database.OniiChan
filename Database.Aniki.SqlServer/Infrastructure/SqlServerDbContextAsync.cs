@@ -323,7 +323,7 @@ namespace Database.Aniki
             sqlCommand.AttachParameters(sqlParameters);
             return await GetDictionaryAsync<T, U>(sqlCommand, keyColumnIndex, valueColumnIndex);
         }
-        
+
         public async Task<Dictionary<T, U>?> GetDictionaryAsync<T, U>(SqlCommand cmd)
         {
             return await GetDictionaryAsync<T, U>(cmd, 0, 1);
@@ -364,7 +364,7 @@ namespace Database.Aniki
 
         public async Task<Dictionary<string, string>?> GetDictionaryAsync(string query, CommandType commandType)
         {
-            return await GetDictionaryAsync(query,commandType, 0, 1);
+            return await GetDictionaryAsync(query, commandType, 0, 1);
         }
 
         public async Task<Dictionary<string, string>?> GetDictionaryAsync(string query, CommandType commandType, params SqlParameter[] sqlParameters)
@@ -1169,6 +1169,33 @@ namespace Database.Aniki
             }
         }
 
+        public async Task<SqlDataReader> ExecuteReaderAsync(string query, CommandType commandType, CommandBehavior commandBehavior)
+        {
+            SqlConnection? connection = null;
+            try
+            {
+                connection = _connectionFactory.CreateConnection();
+                connection.RetryLogicProvider = _sqlRetryProvider;
+                if (_options.EnableStatistics)
+                    connection.StatisticsEnabled = true;
+                await connection.OpenAsync();
+                var cmd = _connectionFactory.CreateCommand();
+                cmd.CommandText = query;
+                cmd.CommandType = commandType;
+                cmd.CommandTimeout = _options.DbCommandTimeout;
+                cmd.RetryLogicProvider = _sqlRetryProvider;
+                var reader = await cmd.ExecuteReaderAsync(commandBehavior);
+                LogSqlInfo(cmd, connection);
+                return reader;
+            }
+            catch (Exception ex)
+            {
+                LogSqlError(query, ex);
+                connection?.CloseAsync();
+                throw;
+            }
+        }
+
         public async Task<SqlDataReader> ExecuteReaderAsync(string query, CommandType commandType, params SqlParameter[] sqlParameters)
         {
             SqlConnection? connection = null;
@@ -1181,6 +1208,27 @@ namespace Database.Aniki
                 await connection.OpenAsync();
 
                 return await ExecuteReaderAsync(connection, null, commandType, query, sqlParameters);
+            }
+            catch (Exception ex)
+            {
+                LogSqlError(query, ex);
+                connection?.CloseAsync();
+                throw;
+            }
+        }
+
+        public async Task<SqlDataReader> ExecuteReaderAsync(string query, CommandType commandType, CommandBehavior commandBehavior, params SqlParameter[] sqlParameters)
+        {
+            SqlConnection? connection = null;
+            try
+            {
+                connection = _connectionFactory.CreateConnection();
+                connection.RetryLogicProvider = _sqlRetryProvider;
+                if (_options.EnableStatistics)
+                    connection.StatisticsEnabled = true;
+                await connection.OpenAsync();
+
+                return await ExecuteReaderAsync(connection, null, commandType, query, commandBehavior, sqlParameters);
             }
             catch (Exception ex)
             {
@@ -1212,6 +1260,28 @@ namespace Database.Aniki
             }
         }
 
+        public async Task<SqlDataReader> ExecuteReaderAsync(SqlCommand cmd, CommandBehavior commandBehavior)
+        {
+            SqlConnection? connection = null;
+            try
+            {
+                connection = _connectionFactory.CreateConnection();
+                connection.RetryLogicProvider = _sqlRetryProvider;
+                if (_options.EnableStatistics)
+                    connection.StatisticsEnabled = true;
+                await connection.OpenAsync();
+                var reader = await cmd.ExecuteReaderAsync(commandBehavior);
+                LogSqlInfo(cmd, connection);
+                return reader;
+            }
+            catch (Exception ex)
+            {
+                LogSqlError(cmd, ex);
+                connection?.CloseAsync();
+                throw;
+            }
+        }
+
         public async Task<SqlDataReader> ExecuteReaderAsync(SqlCommand cmd, SqlConnection connection)
         {
             try
@@ -1225,6 +1295,30 @@ namespace Database.Aniki
                     await connection.OpenAsync();
                 }
                 var reader = await cmd.ExecuteReaderAsync();
+                LogSqlInfo(cmd, connection);
+                return reader;
+            }
+            catch (Exception ex)
+            {
+                LogSqlError(cmd, ex);
+                connection?.CloseAsync();
+                throw;
+            }
+        }
+
+        public async Task<SqlDataReader> ExecuteReaderAsync(SqlCommand cmd, SqlConnection connection, CommandBehavior commandBehavior)
+        {
+            try
+            {
+                if (_options.EnableStatistics)
+                    connection.StatisticsEnabled = true;
+                cmd.Connection = connection;
+                if (connection.State != ConnectionState.Open && connection.State != ConnectionState.Connecting)
+                {
+                    await connection.OpenAsync();
+                    await connection.OpenAsync();
+                }
+                var reader = await cmd.ExecuteReaderAsync(commandBehavior);
                 LogSqlInfo(cmd, connection);
                 return reader;
             }
@@ -1275,104 +1369,8 @@ namespace Database.Aniki
                 throw;
             }
         }
-        #endregion
 
-        #region ExecuteReader
-        public async Task<SqlDataReader> ExecuteReaderSequentialAsync(string query, CommandType commandType)
-        {
-            SqlConnection? connection = null;
-            try
-            {
-                connection = _connectionFactory.CreateConnection();
-                connection.RetryLogicProvider = _sqlRetryProvider;
-                if (_options.EnableStatistics)
-                    connection.StatisticsEnabled = true;
-                await connection.OpenAsync();
-                var cmd = _connectionFactory.CreateCommand();
-                cmd.CommandText = query;
-                cmd.CommandType = commandType;
-                cmd.CommandTimeout = _options.DbCommandTimeout;
-                cmd.RetryLogicProvider = _sqlRetryProvider;
-                var reader = await cmd.ExecuteReaderAsync(CommandBehavior.SequentialAccess);
-                LogSqlInfo(cmd, connection);
-                return reader;
-            }
-            catch (Exception ex)
-            {
-                LogSqlError(query, ex);
-                connection?.CloseAsync();
-                throw;
-            }
-        }
-
-        public async Task<SqlDataReader> ExecuteReaderSequentialAsync(string query, CommandType commandType, params SqlParameter[] sqlParameters)
-        {
-            SqlConnection? connection = null;
-            try
-            {
-                connection = _connectionFactory.CreateConnection();
-                connection.RetryLogicProvider = _sqlRetryProvider;
-                if (_options.EnableStatistics)
-                    connection.StatisticsEnabled = true;
-                await connection.OpenAsync();
-
-                return await ExecuteReaderAsync(connection, null, commandType, query, sqlParameters);
-            }
-            catch (Exception ex)
-            {
-                LogSqlError(query, ex);
-                connection?.CloseAsync();
-                throw;
-            }
-        }
-
-        public async Task<SqlDataReader> ExecuteReaderSequentialAsync(SqlCommand cmd)
-        {
-            SqlConnection? connection = null;
-            try
-            {
-                connection = _connectionFactory.CreateConnection();
-                connection.RetryLogicProvider = _sqlRetryProvider;
-                if (_options.EnableStatistics)
-                    connection.StatisticsEnabled = true;
-                await connection.OpenAsync();
-                var reader = await cmd.ExecuteReaderAsync(CommandBehavior.SequentialAccess);
-                LogSqlInfo(cmd, connection);
-                return reader;
-            }
-            catch (Exception ex)
-            {
-                LogSqlError(cmd, ex);
-                connection?.CloseAsync();
-                throw;
-            }
-        }
-
-        public async Task<SqlDataReader> ExecuteReaderSequentialAsync(SqlCommand cmd, SqlConnection connection)
-        {
-            try
-            {
-                if (_options.EnableStatistics)
-                    connection.StatisticsEnabled = true;
-                cmd.Connection = connection;
-                if (connection.State != ConnectionState.Open && connection.State != ConnectionState.Connecting)
-                {
-                    await connection.OpenAsync();
-                    await connection.OpenAsync();
-                }
-                var reader = await cmd.ExecuteReaderAsync(CommandBehavior.SequentialAccess);
-                LogSqlInfo(cmd, connection);
-                return reader;
-            }
-            catch (Exception ex)
-            {
-                LogSqlError(cmd, ex);
-                connection?.CloseAsync();
-                throw;
-            }
-        }
-
-        public async Task<SqlDataReader> ExecuteReaderSequentialAsync(SqlConnection connection, SqlTransaction? transaction, CommandType commandType, string commandText, params SqlParameter[] commandParameters)
+        public async Task<SqlDataReader> ExecuteReaderAsync(SqlConnection connection, SqlTransaction? transaction, CommandType commandType, string commandText, CommandBehavior commandBehavior, params SqlParameter[] commandParameters)
         {
             // Create a command and prepare it for execution
             var cmd = _connectionFactory.CreateCommand();
@@ -1400,7 +1398,7 @@ namespace Database.Aniki
                 }
 
                 // Create a reader
-                var reader = await cmd.ExecuteReaderAsync(CommandBehavior.SequentialAccess);
+                var reader = await cmd.ExecuteReaderAsync(commandBehavior);
                 LogSqlInfo(cmd, connection);
                 return reader;
             }
@@ -1412,5 +1410,6 @@ namespace Database.Aniki
             }
         }
         #endregion
+
     }
 }

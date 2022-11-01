@@ -1169,6 +1169,33 @@ namespace Database.Aniki
             }
         }
 
+        public SqlDataReader ExecuteReader(string query, CommandType commandType, CommandBehavior commandBehavior)
+        {
+            SqlConnection? connection = null;
+            try
+            {
+                connection = _connectionFactory.CreateConnection();
+                connection.RetryLogicProvider = _sqlRetryProvider;
+                if (_options.EnableStatistics)
+                    connection.StatisticsEnabled = true;
+                connection.Open();
+                var cmd = _connectionFactory.CreateCommand();
+                cmd.CommandText = query;
+                cmd.CommandType = commandType;
+                cmd.CommandTimeout = _options.DbCommandTimeout;
+                cmd.RetryLogicProvider = _sqlRetryProvider;
+                var reader = cmd.ExecuteReader(commandBehavior);
+                LogSqlInfo(cmd, connection);
+                return reader;
+            }
+            catch (Exception ex)
+            {
+                LogSqlError(query, ex);
+                connection?.Close();
+                throw;
+            }
+        }
+
         public SqlDataReader ExecuteReader(string query, CommandType commandType, params SqlParameter[] sqlParameters)
         {
             SqlConnection? connection = null;
@@ -1181,6 +1208,27 @@ namespace Database.Aniki
                 connection.Open();
 
                 return ExecuteReader(connection, null, commandType, query, sqlParameters);
+            }
+            catch (Exception ex)
+            {
+                LogSqlError(query, ex);
+                connection?.Close();
+                throw;
+            }
+        }
+
+        public SqlDataReader ExecuteReader(string query, CommandType commandType, CommandBehavior commandBehavior, params SqlParameter[] sqlParameters)
+        {
+            SqlConnection? connection = null;
+            try
+            {
+                connection = _connectionFactory.CreateConnection();
+                connection.RetryLogicProvider = _sqlRetryProvider;
+                if (_options.EnableStatistics)
+                    connection.StatisticsEnabled = true;
+                connection.Open();
+
+                return ExecuteReader(connection, null, commandType, query, commandBehavior, sqlParameters);
             }
             catch (Exception ex)
             {
@@ -1212,6 +1260,28 @@ namespace Database.Aniki
             }
         }
 
+        public SqlDataReader ExecuteReader(SqlCommand cmd, CommandBehavior commandBehavior)
+        {
+            SqlConnection? connection = null;
+            try
+            {
+                connection = _connectionFactory.CreateConnection();
+                connection.RetryLogicProvider = _sqlRetryProvider;
+                if (_options.EnableStatistics)
+                    connection.StatisticsEnabled = true;
+                connection.Open();
+                var reader = cmd.ExecuteReader(commandBehavior);
+                LogSqlInfo(cmd, connection);
+                return reader;
+            }
+            catch (Exception ex)
+            {
+                LogSqlError(cmd, ex);
+                connection?.Close();
+                throw;
+            }
+        }
+
         public SqlDataReader ExecuteReader(SqlCommand cmd, SqlConnection connection)
         {
             try
@@ -1226,6 +1296,31 @@ namespace Database.Aniki
                     connection.Open();
                 }
                 var reader = cmd.ExecuteReader();
+                LogSqlInfo(cmd, connection);
+                return reader;
+            }
+            catch (Exception ex)
+            {
+                LogSqlError(cmd, ex);
+                connection?.Close();
+                throw;
+            }
+        }
+
+        public SqlDataReader ExecuteReader(SqlCommand cmd, SqlConnection connection, CommandBehavior commandBehavior)
+        {
+            try
+            {
+                cmd.Connection = connection;
+                if (_options.EnableStatistics)
+                    connection.StatisticsEnabled = true;
+
+                if (connection.State != ConnectionState.Open && connection.State != ConnectionState.Connecting)
+                {
+                    connection.Close();
+                    connection.Open();
+                }
+                var reader = cmd.ExecuteReader(commandBehavior);
                 LogSqlInfo(cmd, connection);
                 return reader;
             }
@@ -1275,105 +1370,8 @@ namespace Database.Aniki
                 throw;
             }
         }
-        #endregion
 
-        #region ExecuteReaderSequential
-        public SqlDataReader ExecuteReaderSequential(string query, CommandType commandType)
-        {
-            SqlConnection? connection = null;
-            try
-            {
-                connection = _connectionFactory.CreateConnection();
-                connection.RetryLogicProvider = _sqlRetryProvider;
-                if (_options.EnableStatistics)
-                    connection.StatisticsEnabled = true;
-                connection.Open();
-                var cmd = _connectionFactory.CreateCommand();
-                cmd.CommandText = query;
-                cmd.CommandType = commandType;
-                cmd.CommandTimeout = _options.DbCommandTimeout;
-                cmd.RetryLogicProvider = _sqlRetryProvider;
-                var reader = cmd.ExecuteReader(CommandBehavior.SequentialAccess);
-                LogSqlInfo(cmd, connection);
-                return reader;
-            }
-            catch (Exception ex)
-            {
-                LogSqlError(query, ex);
-                connection?.Close();
-                throw;
-            }
-        }
-
-        public SqlDataReader ExecuteReaderSequential(string query, CommandType commandType, params SqlParameter[] sqlParameters)
-        {
-            SqlConnection? connection = null;
-            try
-            {
-                connection = _connectionFactory.CreateConnection();
-                connection.RetryLogicProvider = _sqlRetryProvider;
-                if (_options.EnableStatistics)
-                    connection.StatisticsEnabled = true;
-                connection.Open();
-
-                return ExecuteReaderSequential(connection, null, commandType, query, sqlParameters);
-            }
-            catch (Exception ex)
-            {
-                LogSqlError(query, ex);
-                connection?.Close();
-                throw;
-            }
-        }
-
-        public SqlDataReader ExecuteReaderSequential(SqlCommand cmd)
-        {
-            SqlConnection? connection = null;
-            try
-            {
-                connection = _connectionFactory.CreateConnection();
-                connection.RetryLogicProvider = _sqlRetryProvider;
-                if (_options.EnableStatistics)
-                    connection.StatisticsEnabled = true;
-                connection.Open();
-                var reader = cmd.ExecuteReader(CommandBehavior.SequentialAccess);
-                LogSqlInfo(cmd, connection);
-                return reader;
-            }
-            catch (Exception ex)
-            {
-                LogSqlError(cmd, ex);
-                connection?.Close();
-                throw;
-            }
-        }
-
-        public SqlDataReader ExecuteReaderSequential(SqlCommand cmd, SqlConnection connection)
-        {
-            try
-            {
-                cmd.Connection = connection;
-                if (_options.EnableStatistics)
-                    connection.StatisticsEnabled = true;
-
-                if (connection.State != ConnectionState.Open && connection.State != ConnectionState.Connecting)
-                {
-                    connection.Close();
-                    connection.Open();
-                }
-                var reader = cmd.ExecuteReader(CommandBehavior.SequentialAccess);
-                LogSqlInfo(cmd, connection);
-                return reader;
-            }
-            catch (Exception ex)
-            {
-                LogSqlError(cmd, ex);
-                connection?.Close();
-                throw;
-            }
-        }
-
-        public SqlDataReader ExecuteReaderSequential(SqlConnection connection, SqlTransaction? transaction, CommandType commandType, string commandText, params SqlParameter[] commandParameters)
+        public SqlDataReader ExecuteReader(SqlConnection connection, SqlTransaction? transaction, CommandType commandType, string commandText, CommandBehavior commandBehavior, params SqlParameter[] commandParameters)
         {
             // Create a command and prepare it for execution
             var cmd = _connectionFactory.CreateCommand();
@@ -1400,7 +1398,7 @@ namespace Database.Aniki
                     connection.StatisticsEnabled = true;
 
                 // Create a reader
-                var reader = cmd.ExecuteReader(CommandBehavior.SequentialAccess);
+                var reader = cmd.ExecuteReader(commandBehavior);
                 LogSqlInfo(cmd, connection);
                 return reader;
             }
@@ -1412,5 +1410,6 @@ namespace Database.Aniki
             }
         }
         #endregion
+
     }
 }

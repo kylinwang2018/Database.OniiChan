@@ -97,6 +97,22 @@ namespace Database.Aniki.PostgreSQL
             }
         }
 
+        public static NpgsqlDataReader ExecuteReaderWithRetry(this NpgsqlCommand command, NpgsqlRetryLogicOption retryLogicOption, CommandBehavior commandBehavior)
+        {
+            int retry = 0;
+            while (true)
+            {
+                try
+                {
+                    return command.ExecuteReader(commandBehavior);
+                }
+                catch (Exception ex)
+                {
+                    HandleNpgsqlExcpetion(ex, retry++, retryLogicOption);
+                }
+            }
+        }
+
         public static async Task<NpgsqlDataReader> ExecuteReaderWithRetryAsync(this NpgsqlCommand command, NpgsqlRetryLogicOption retryLogicOption)
         {
             int retry = 0;
@@ -112,33 +128,15 @@ namespace Database.Aniki.PostgreSQL
                 }
             }
         }
-        #endregion
 
-        #region Command ExecuteReaderSequential
-        public static NpgsqlDataReader ExecuteReaderSequentialWithRetry(this NpgsqlCommand command, NpgsqlRetryLogicOption retryLogicOption)
+        public static async Task<NpgsqlDataReader> ExecuteReaderWithRetryAsync(this NpgsqlCommand command, NpgsqlRetryLogicOption retryLogicOption, CommandBehavior commandBehavior)
         {
             int retry = 0;
             while (true)
             {
                 try
                 {
-                    return command.ExecuteReader(CommandBehavior.SequentialAccess);
-                }
-                catch (Exception ex)
-                {
-                    HandleNpgsqlExcpetion(ex, retry++, retryLogicOption);
-                }
-            }
-        }
-
-        public static async Task<NpgsqlDataReader> ExecuteReaderSequentialWithRetryAsync(this NpgsqlCommand command, NpgsqlRetryLogicOption retryLogicOption)
-        {
-            int retry = 0;
-            while (true)
-            {
-                try
-                {
-                    return await command.ExecuteReaderAsync(CommandBehavior.SequentialAccess);
+                    return await command.ExecuteReaderAsync(commandBehavior);
                 }
                 catch (Exception ex)
                 {

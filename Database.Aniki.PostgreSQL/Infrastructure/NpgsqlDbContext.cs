@@ -1091,6 +1091,29 @@ namespace Database.Aniki
             }
         }
 
+        public NpgsqlDataReader ExecuteReader(string query, CommandType commandType, CommandBehavior commandBehavior)
+        {
+            NpgsqlConnection? connection = null;
+            try
+            {
+                connection = _connectionFactory.CreateConnection();
+                connection.OpenWithRetry(_sqlRetryOption);
+                var cmd = _connectionFactory.CreateCommand();
+                cmd.CommandText = query;
+                cmd.CommandType = commandType;
+                cmd.CommandTimeout = _options.DbCommandTimeout;
+                var reader = cmd.ExecuteReaderWithRetry(_sqlRetryOption, commandBehavior);
+                LogSqlInfo(cmd, connection);
+                return reader;
+            }
+            catch (Exception ex)
+            {
+                LogSqlError(query, ex);
+                connection?.CloseWithRetry(_sqlRetryOption);
+                throw;
+            }
+        }
+
         public NpgsqlDataReader ExecuteReader(string query, CommandType commandType, params NpgsqlParameter[] NpgsqlParameters)
         {
             NpgsqlConnection? connection = null;
@@ -1099,6 +1122,23 @@ namespace Database.Aniki
                 connection = _connectionFactory.CreateConnection();
                 connection.OpenWithRetry(_sqlRetryOption);
                 return ExecuteReader(connection, null, commandType, query, NpgsqlParameters);
+            }
+            catch (Exception ex)
+            {
+                LogSqlError(query, ex);
+                connection?.CloseWithRetry(_sqlRetryOption);
+                throw;
+            }
+        }
+
+        public NpgsqlDataReader ExecuteReader(string query, CommandType commandType, CommandBehavior commandBehavior, params NpgsqlParameter[] NpgsqlParameters)
+        {
+            NpgsqlConnection? connection = null;
+            try
+            {
+                connection = _connectionFactory.CreateConnection();
+                connection.OpenWithRetry(_sqlRetryOption);
+                return ExecuteReader(connection, null, commandType, query, commandBehavior, NpgsqlParameters);
             }
             catch (Exception ex)
             {
@@ -1127,6 +1167,25 @@ namespace Database.Aniki
             }
         }
 
+        public NpgsqlDataReader ExecuteReader(NpgsqlCommand cmd, CommandBehavior commandBehavior)
+        {
+            NpgsqlConnection? connection = null;
+            try
+            {
+                connection = _connectionFactory.CreateConnection();
+                connection.OpenWithRetry(_sqlRetryOption);
+                var reader = cmd.ExecuteReaderWithRetry(_sqlRetryOption, commandBehavior);
+                LogSqlInfo(cmd, connection);
+                return reader;
+            }
+            catch (Exception ex)
+            {
+                LogSqlError(cmd, ex);
+                connection?.CloseWithRetry(_sqlRetryOption);
+                throw;
+            }
+        }
+
         public NpgsqlDataReader ExecuteReader(NpgsqlCommand cmd, NpgsqlConnection connection)
         {
             try
@@ -1138,6 +1197,28 @@ namespace Database.Aniki
                     connection.OpenWithRetry(_sqlRetryOption);
                 }
                 var reader = cmd.ExecuteReaderWithRetry(_sqlRetryOption);
+                LogSqlInfo(cmd, connection);
+                return reader;
+            }
+            catch (Exception ex)
+            {
+                LogSqlError(cmd, ex);
+                connection?.CloseWithRetry(_sqlRetryOption);
+                throw;
+            }
+        }
+
+        public NpgsqlDataReader ExecuteReader(NpgsqlCommand cmd, NpgsqlConnection connection, CommandBehavior commandBehavior)
+        {
+            try
+            {
+                cmd.Connection = connection;
+                if (connection.State != ConnectionState.Open && connection.State != ConnectionState.Connecting)
+                {
+                    connection.CloseWithRetry(_sqlRetryOption);
+                    connection.OpenWithRetry(_sqlRetryOption);
+                }
+                var reader = cmd.ExecuteReaderWithRetry(_sqlRetryOption, commandBehavior);
                 LogSqlInfo(cmd, connection);
                 return reader;
             }
@@ -1184,92 +1265,8 @@ namespace Database.Aniki
                 throw;
             }
         }
-        #endregion
 
-        #region ExecuteReaderSequential
-        public NpgsqlDataReader ExecuteReaderSequential(string query, CommandType commandType)
-        {
-            NpgsqlConnection? connection = null;
-            try
-            {
-                connection = _connectionFactory.CreateConnection();
-                connection.OpenWithRetry(_sqlRetryOption);
-                var cmd = _connectionFactory.CreateCommand();
-                cmd.CommandText = query;
-                cmd.CommandType = commandType;
-                cmd.CommandTimeout = _options.DbCommandTimeout;
-
-                var reader = cmd.ExecuteReaderSequentialWithRetry(_sqlRetryOption);
-                LogSqlInfo(cmd, connection);
-                return reader;
-            }
-            catch (Exception ex)
-            {
-                LogSqlError(query, ex);
-                connection?.CloseWithRetry(_sqlRetryOption);
-                throw;
-            }
-        }
-
-        public NpgsqlDataReader ExecuteReaderSequential(string query, CommandType commandType, params NpgsqlParameter[] NpgsqlParameters)
-        {
-            NpgsqlConnection? connection = null;
-            try
-            {
-                connection = _connectionFactory.CreateConnection();
-                connection.OpenWithRetry(_sqlRetryOption);
-                return ExecuteReader(connection, null, commandType, query, NpgsqlParameters);
-            }
-            catch (Exception ex)
-            {
-                LogSqlError(query, ex);
-                connection?.CloseWithRetry(_sqlRetryOption);
-                throw;
-            }
-        }
-
-        public NpgsqlDataReader ExecuteReaderSequential(NpgsqlCommand cmd)
-        {
-            NpgsqlConnection? connection = null;
-            try
-            {
-                connection = _connectionFactory.CreateConnection();
-                connection.OpenWithRetry(_sqlRetryOption);
-                var reader = cmd.ExecuteReaderSequentialWithRetry(_sqlRetryOption);
-                LogSqlInfo(cmd, connection);
-                return reader;
-            }
-            catch (Exception ex)
-            {
-                LogSqlError(cmd, ex);
-                connection?.CloseWithRetry(_sqlRetryOption);
-                throw;
-            }
-        }
-
-        public NpgsqlDataReader ExecuteReaderSequential(NpgsqlCommand cmd, NpgsqlConnection connection)
-        {
-            try
-            {
-                cmd.Connection = connection;
-                if (connection.State != ConnectionState.Open && connection.State != ConnectionState.Connecting)
-                {
-                    connection.CloseWithRetry(_sqlRetryOption);
-                    connection.OpenWithRetry(_sqlRetryOption);
-                }
-                var reader = cmd.ExecuteReaderSequentialWithRetry(_sqlRetryOption);
-                LogSqlInfo(cmd, connection);
-                return reader;
-            }
-            catch (Exception ex)
-            {
-                LogSqlError(cmd, ex);
-                connection?.CloseWithRetry(_sqlRetryOption);
-                throw;
-            }
-        }
-
-        public NpgsqlDataReader ExecuteReaderSequential(NpgsqlConnection connection, NpgsqlTransaction? transaction, CommandType commandType, string commandText, params NpgsqlParameter[] commandParameters)
+        public NpgsqlDataReader ExecuteReader(NpgsqlConnection connection, NpgsqlTransaction? transaction, CommandType commandType, string commandText, CommandBehavior commandBehavior, params NpgsqlParameter[] commandParameters)
         {
             // Create a command and prepare it for execution
             var cmd = _connectionFactory.CreateCommand();
@@ -1292,9 +1289,8 @@ namespace Database.Aniki
                     connection.CloseWithRetry(_sqlRetryOption);
                     connection.OpenWithRetry(_sqlRetryOption);
                 }
-
                 // Create a reader
-                var reader = cmd.ExecuteReaderSequentialWithRetry(_sqlRetryOption);
+                var reader = cmd.ExecuteReaderWithRetry(_sqlRetryOption, commandBehavior);
                 LogSqlInfo(cmd, connection);
                 return reader;
             }
@@ -1306,5 +1302,6 @@ namespace Database.Aniki
             }
         }
         #endregion
+
     }
 }
