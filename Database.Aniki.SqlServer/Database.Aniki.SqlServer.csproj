@@ -10,9 +10,9 @@
   <PropertyGroup>
     <TargetFramework>netstandard2.1</TargetFramework>
     <Nullable>enable</Nullable>
-	<AssemblyVersion>0.0.0.1</AssemblyVersion>
+	<AssemblyVersion>0.0.0.2</AssemblyVersion>
 	<GeneratePackageOnBuild>True</GeneratePackageOnBuild>
-	<Version>0.0.1</Version>
+	<Version>0.0.2</Version>
 	<Company>Ben Wang</Company>
   </PropertyGroup>
 
