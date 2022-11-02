@@ -1,15 +1,13 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
+﻿using Microsoft.Extensions.Options;
 
 namespace Database.Aniki
 {
     internal partial class SqlServerDbContext<TOption> : ISqlServerDbContext<TOption> where TOption : class, IDbContextOptions
     {
-        public string? ConnectionString { 
+        public IOptions<TOption> Options { 
             get
             {
-                return _options.ConnectionSting;
+                return _option;
             }}
     }
 }

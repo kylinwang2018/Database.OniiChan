@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Microsoft.Extensions.Options;
+using System;
 using System.Collections.Generic;
 using System.Text;
 
@@ -6,11 +7,11 @@ namespace Database.Aniki
 {
     internal partial class NpgsqlDbContext<TOption> : INpgsqlDbContext<TOption> where TOption : class, IDbContextOptions
     {
-        public string? ConnectionString
+        public IOptions<TOption> Options
         {
             get
             {
-                return _options.ConnectionSting;
+                return _option;
             }
         }
     }

@@ -1,6 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Text;
 
 namespace Database.Aniki
 {
@@ -29,12 +27,27 @@ namespace Database.Aniki
         /// <summary>
         /// Gets or sets the string used to open a SQL Server database.
         /// </summary>
-        public string ConnectionSting { get; set; } = "";
-        public string? DbProviderName { get; set; }
+        public string ConnectionSting
+        {
+            get
+            {
+                return _connectionString;
+            }
+            set
+            {
+                if (isInitialized)
+                    throw new FieldAccessException("Connection string cannot be modified after initialized.");
+                _connectionString = value;
+                isInitialized = true;
+            }
+        }
 
         /// <summary>
         /// Log database execution time and network travel time
         /// </summary>
         public bool EnableStatistics { get; set;}
+
+        private bool isInitialized = false;
+        private string _connectionString = string.Empty;
     }
 }

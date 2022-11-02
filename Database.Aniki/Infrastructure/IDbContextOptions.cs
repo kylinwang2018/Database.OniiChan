@@ -11,7 +11,6 @@
         /// Specifies the wait time before terminating the attempt to execute a query and generating an error.
         /// </summary>
         int DbCommandTimeout { get; set; }
-        string? DbProviderName { get; set; }
 
         /// <summary>
         /// Preferred gap time to delay before retry

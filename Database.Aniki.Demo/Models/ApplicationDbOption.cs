@@ -2,5 +2,6 @@
 {
     public class ApplicationDbOption : DbContextOptions
     {
+        public int MyProperty { get; set; }
     }
 }

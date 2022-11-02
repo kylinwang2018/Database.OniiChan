@@ -9,6 +9,7 @@ namespace Database.Aniki
 
     internal partial class SqlServerDbContext<TOption> : ISqlServerDbContext<TOption> where TOption : class, IDbContextOptions
     {
+        private readonly IOptions<TOption> _option;
         private readonly IDbContextOptions _options;
         private readonly ILogger<SqlServerDbContext<TOption>> _logger;
         private readonly ISqlConnectionFactory<TOption> _connectionFactory;
@@ -18,6 +19,7 @@ namespace Database.Aniki
             IOptions<TOption> options, ILogger<SqlServerDbContext<TOption>> logger,
             ISqlConnectionFactory<TOption> connectionFactory)
         {
+            _option = options;
             _options = options.Value;
             _logger = logger;
             _connectionFactory = connectionFactory;

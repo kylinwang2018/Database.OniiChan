@@ -1,4 +1,5 @@
 ﻿using Microsoft.Data.SqlClient;
+using Microsoft.Extensions.Options;
 using System;
 using System.Collections.Generic;
 using System.Data;
@@ -152,6 +153,6 @@ namespace Database.Aniki
         Task<object> GetScalarAsync(string query, CommandType commandType);
         Task<object> GetScalarAsync(string query, CommandType commandType, Array sqlParameters);
         Task<object> GetScalarAsync(string query, CommandType commandType, params SqlParameter[] sqlParameters);
-        string? ConnectionString{ get; }
+        IOptions<TOption> Options { get; }
     }
 }
