@@ -5,7 +5,7 @@
     <Nullable>enable</Nullable>
 	<GeneratePackageOnBuild>True</GeneratePackageOnBuild>
 	<GenerateDocumentationFile>true</GenerateDocumentationFile>
-	<Version>0.0.5</Version>
+	<Version>0.0.6</Version>
 	  <Authors>Ben Wang</Authors>
 	  <Company>HashcodeStudio</Company>
 	  <Copyright>Copyright Ben Wang 2022</Copyright>

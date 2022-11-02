@@ -54,8 +54,7 @@ namespace Database.Aniki.Utilities
             var allAssemblies = Directory
                         .GetFiles(
                             AppDomain.CurrentDomain.BaseDirectory, 
-                            "*.dll", 
-                            SearchOption.AllDirectories)
+                            "*.dll")
                         .Select(x => Assembly.Load(AssemblyName.GetAssemblyName(x)))
                         .Where(x => x.FullName.StartsWith(assemblyNameStart))
                         .ToArray();
