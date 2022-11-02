@@ -7,11 +7,11 @@ namespace Database.Aniki
 {
     internal partial class NpgsqlDbContext<TOption> : INpgsqlDbContext<TOption> where TOption : class, IDbContextOptions
     {
-        public IOptions<TOption> Options
+        public TOption Options
         {
             get
             {
-                return _option;
+                return _option.Value;
             }
         }
     }

@@ -1,5 +1,10 @@
 ﻿namespace Database.Aniki
 {
+    /// <summary>
+    /// The options to be used by a DbContext. 
+    /// You normally override <see cref="DbContextOptions"/> to
+    /// create instances of this class and it is not designed to be directly constructed in your application code.
+    /// </summary>
     public interface IDbContextOptions
     {
         /// <summary>

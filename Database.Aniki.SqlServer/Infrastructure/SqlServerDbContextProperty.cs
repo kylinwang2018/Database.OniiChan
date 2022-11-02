@@ -4,10 +4,10 @@ namespace Database.Aniki
 {
     internal partial class SqlServerDbContext<TOption> : ISqlServerDbContext<TOption> where TOption : class, IDbContextOptions
     {
-        public IOptions<TOption> Options { 
+        public TOption Options { 
             get
             {
-                return _option;
+                return _option.Value;
             }}
     }
 }

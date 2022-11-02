@@ -1,14 +1,20 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
-using System.Text;
 
 namespace Database.Aniki.Utilities
 {
+    /// <summary>
+    /// The helper class that get all assembly you want.
+    /// </summary>
     public static class AppAssembly
     {
+        /// <summary>
+        /// Get All assemblys which the dll file starts with the spcific word.
+        /// </summary>
+        /// <param name="assemblyNameStart">The name start with</param>
+        /// <returns>All <see cref="Assembly"/> from the folder</returns>
         public static Assembly[] GetAll(string? assemblyNameStart)
         {
 

@@ -11,7 +11,9 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Database.Aniki.PostgreSQL",
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Database.Aniki.Demo", "Database.Aniki.Demo\Database.Aniki.Demo.csproj", "{274D6B17-714F-4941-9857-589A3B3D6A96}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Database.Aniki.Test", "Database.Aniki.Test\Database.Aniki.Test.csproj", "{3B68B49F-B0DC-436B-92C3-3CED4CA02CB3}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Database.Aniki.Test", "Database.Aniki.Test\Database.Aniki.Test.csproj", "{3B68B49F-B0DC-436B-92C3-3CED4CA02CB3}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Database.Aniki.MongoDb", "Database.Aniki.MongoDb\Database.Aniki.MongoDb.csproj", "{A5081E97-060B-446D-9026-00C102AC3E88}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -39,6 +41,10 @@ Global
 		{3B68B49F-B0DC-436B-92C3-3CED4CA02CB3}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{3B68B49F-B0DC-436B-92C3-3CED4CA02CB3}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{3B68B49F-B0DC-436B-92C3-3CED4CA02CB3}.Release|Any CPU.Build.0 = Release|Any CPU
+		{A5081E97-060B-446D-9026-00C102AC3E88}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A5081E97-060B-446D-9026-00C102AC3E88}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A5081E97-060B-446D-9026-00C102AC3E88}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A5081E97-060B-446D-9026-00C102AC3E88}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

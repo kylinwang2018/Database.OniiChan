@@ -153,6 +153,6 @@ namespace Database.Aniki
         Task<object> GetScalarAsync(string query, CommandType commandType);
         Task<object> GetScalarAsync(string query, CommandType commandType, Array sqlParameters);
         Task<object> GetScalarAsync(string query, CommandType commandType, params SqlParameter[] sqlParameters);
-        IOptions<TOption> Options { get; }
+        TOption Options { get; }
     }
 }

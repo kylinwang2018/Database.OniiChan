@@ -2,6 +2,11 @@
 
 namespace Database.Aniki
 {
+    /// <summary>
+    /// The options to be used by a DbContext. 
+    /// You normally override this <see cref="DbContextOptions"/> to
+    /// create instances of this class and it is not designed to be directly constructed in your application code.
+    /// </summary>
     public class DbContextOptions : IDbContextOptions
     {
         /// <summary>
@@ -35,10 +40,10 @@ namespace Database.Aniki
             }
             set
             {
-                if (isInitialized)
+                if (isConnectionStringInitialized)
                     throw new FieldAccessException("Connection string cannot be modified after initialized.");
                 _connectionString = value;
-                isInitialized = true;
+                isConnectionStringInitialized = true;
             }
         }
 
@@ -47,7 +52,7 @@ namespace Database.Aniki
         /// </summary>
         public bool EnableStatistics { get; set;}
 
-        private bool isInitialized = false;
+        private bool isConnectionStringInitialized = false;
         private string _connectionString = string.Empty;
     }
 }
