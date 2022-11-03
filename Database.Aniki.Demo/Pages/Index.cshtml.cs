@@ -1,4 +1,4 @@
-﻿using Database.Aniki.Demo.Models;
+﻿using Database.Aniki.Repo.MsSql;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.Data.SqlClient;
@@ -9,18 +9,18 @@ namespace Database.Aniki.Demo.Pages
     public class IndexModel : PageModel
     {
         private readonly ILogger<IndexModel> _logger;
-        private readonly ISqlServerDbContext<ApplicationDbOption> _dbContext;
+        private readonly IRepo _repo;
 
         public IndexModel(
-            ILogger<IndexModel> logger, ISqlServerDbContext<ApplicationDbOption> dbContext)
+            ILogger<IndexModel> logger, IRepo repo)
         {
             _logger = logger;
-            _dbContext = dbContext;
+            _repo = repo;
         }
 
         public async Task OnGetAsync()
         {
-            var result = await _dbContext.GetListOfAsync<User>("select * from ir_empl", CommandType.Text);
+            var result = await _repo.GetUsersAsync();
             Console.WriteLine(result);
         }
     }

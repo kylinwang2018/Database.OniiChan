@@ -25,9 +25,9 @@ namespace Database.Aniki
             this DbContext<TOption> dbContext) where TOption : class, IMongoDbContextOptions
         {
             // register dbprovider in service collection
-            dbContext.ServiceCollection?.TryAddScoped<IMongoDbContext<TOption>, MongoDbContext<TOption>>();
+            dbContext.ServiceCollection?.TryAddSingleton<IMongoDbContext<TOption>, MongoDbContext<TOption>>();
 
-            dbContext.ServiceCollection?.TryAddScoped<IMongoDbConnectionFactory<TOption>, MongoDbConnectionFactory<TOption>>();
+            dbContext.ServiceCollection?.TryAddSingleton<IMongoDbConnectionFactory<TOption>, MongoDbConnectionFactory<TOption>>();
 
             return dbContext;
         }

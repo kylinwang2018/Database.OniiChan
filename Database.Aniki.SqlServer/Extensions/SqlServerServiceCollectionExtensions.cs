@@ -24,10 +24,10 @@ namespace Database.Aniki
             this DbContext<TOption> dbContext) where TOption : class, IDbContextOptions
         {
             // register dbprovider in service collection
-            dbContext.ServiceCollection?.TryAddScoped<ISqlServerDbContext<TOption>, SqlServerDbContext<TOption>>();
+            dbContext.ServiceCollection?.TryAddSingleton<ISqlServerDbContext<TOption>, SqlServerDbContext<TOption>>();
 
             // register sql factory for create connection, command and dataAdapter
-            dbContext.ServiceCollection?.TryAddScoped<ISqlConnectionFactory<TOption>, SqlConnectionFactory<TOption>>();
+            dbContext.ServiceCollection?.TryAddSingleton<ISqlConnectionFactory<TOption>, SqlConnectionFactory<TOption>>();
 
             return dbContext;
         }

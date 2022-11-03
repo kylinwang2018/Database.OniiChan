@@ -13,7 +13,9 @@ builder.Services.AddDbContext<ApplicationDbOption>(options =>
         options.MaxTimeInterval = 5;
         options.DbCommandTimeout = 20;
         options.EnableStatistics = true;
-    }).UseSqlServer();
+    })
+    .UseSqlServer()
+    .RegisterSqlServerRepositories("Database.Aniki.Demo");
 
 var app = builder.Build();
 

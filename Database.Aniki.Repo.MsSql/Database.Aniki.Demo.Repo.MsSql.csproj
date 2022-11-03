@@ -1,17 +1,14 @@
-<Project Sdk="Microsoft.NET.Sdk.Web">
+<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <TargetFramework>net6.0</TargetFramework>
-    <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
-	  <IsPackable>false</IsPackable>
+    <Nullable>enable</Nullable>
   </PropertyGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\Database.Aniki.Repo.Interface\Database.Aniki.Demo.Repo.Interface.csproj" />
-    <ProjectReference Include="..\Database.Aniki.Repo.MsSql\Database.Aniki.Demo.Repo.MsSql.csproj" />
     <ProjectReference Include="..\Database.Aniki.SqlServer\Database.Aniki.SqlServer.csproj" />
-    <ProjectReference Include="..\Database.Aniki\Database.Aniki.csproj" />
   </ItemGroup>
 
 </Project>

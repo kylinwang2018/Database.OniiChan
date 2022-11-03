@@ -13,7 +13,13 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Database.Aniki.Demo", "Data
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Database.Aniki.Test", "Database.Aniki.Test\Database.Aniki.Test.csproj", "{3B68B49F-B0DC-436B-92C3-3CED4CA02CB3}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Database.Aniki.MongoDb", "Database.Aniki.MongoDb\Database.Aniki.MongoDb.csproj", "{A5081E97-060B-446D-9026-00C102AC3E88}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Database.Aniki.MongoDb", "Database.Aniki.MongoDb\Database.Aniki.MongoDb.csproj", "{A5081E97-060B-446D-9026-00C102AC3E88}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Database.Aniki.Demo.Repo.Interface", "Database.Aniki.Repo.Interface\Database.Aniki.Demo.Repo.Interface.csproj", "{575C0D3E-70FC-4E77-91E9-8FDBB9318DBC}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Demo", "Demo", "{565DABF4-1C43-4D7F-AAE8-8DB1C289331A}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Database.Aniki.Demo.Repo.MsSql", "Database.Aniki.Repo.MsSql\Database.Aniki.Demo.Repo.MsSql.csproj", "{7491399E-EAF3-45CA-B16E-A10ADE836B51}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -45,9 +51,22 @@ Global
 		{A5081E97-060B-446D-9026-00C102AC3E88}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{A5081E97-060B-446D-9026-00C102AC3E88}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{A5081E97-060B-446D-9026-00C102AC3E88}.Release|Any CPU.Build.0 = Release|Any CPU
+		{575C0D3E-70FC-4E77-91E9-8FDBB9318DBC}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{575C0D3E-70FC-4E77-91E9-8FDBB9318DBC}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{575C0D3E-70FC-4E77-91E9-8FDBB9318DBC}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{575C0D3E-70FC-4E77-91E9-8FDBB9318DBC}.Release|Any CPU.Build.0 = Release|Any CPU
+		{7491399E-EAF3-45CA-B16E-A10ADE836B51}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{7491399E-EAF3-45CA-B16E-A10ADE836B51}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{7491399E-EAF3-45CA-B16E-A10ADE836B51}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{7491399E-EAF3-45CA-B16E-A10ADE836B51}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{274D6B17-714F-4941-9857-589A3B3D6A96} = {565DABF4-1C43-4D7F-AAE8-8DB1C289331A}
+		{575C0D3E-70FC-4E77-91E9-8FDBB9318DBC} = {565DABF4-1C43-4D7F-AAE8-8DB1C289331A}
+		{7491399E-EAF3-45CA-B16E-A10ADE836B51} = {565DABF4-1C43-4D7F-AAE8-8DB1C289331A}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {045A3B7E-719F-4177-ACE2-28DA4F27D593}
