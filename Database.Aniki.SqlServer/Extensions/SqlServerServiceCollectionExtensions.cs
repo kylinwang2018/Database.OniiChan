@@ -47,12 +47,12 @@ namespace Database.Aniki
         /// </para>
         /// </summary>
         /// <param name="dbContext"></param>
-        /// <param name="assemblyNameStart"></param>
+        /// <param name="assemblyName"></param>
         /// <returns></returns>
         public static DbContext<TOption> RegisterSqlServerRepositories<TOption>(
-            this DbContext<TOption> dbContext, string? assemblyNameStart) where TOption : class, IDbContextOptions
+            this DbContext<TOption> dbContext, params string[] assemblyName) where TOption : class, IDbContextOptions
         {
-            var allAssembly = AppAssembly.GetAll(assemblyNameStart);
+            var allAssembly = AppAssembly.GetAll(assemblyName);
 
             dbContext.ServiceCollection?.RegisterServiceByAttribute(ServiceLifetime.Singleton, allAssembly);
             dbContext.ServiceCollection?.RegisterServiceByAttribute(ServiceLifetime.Scoped, allAssembly);
@@ -67,6 +67,7 @@ namespace Database.Aniki
             var types = allAssembly
                 .SelectMany(t =>
                     t.GetTypes())
+                .Where(t => !t.IsInterface && !t.IsSealed && !t.IsAbstract)
                 .Where(s=> s.GetCustomAttributes(typeof(SqlServerRepoAttribute),false).Length > 0 &&
                             s.GetCustomAttribute<SqlServerRepoAttribute>()?.Lifetime == serviceLifetime &&
                             s.IsClass && !s.IsAbstract);

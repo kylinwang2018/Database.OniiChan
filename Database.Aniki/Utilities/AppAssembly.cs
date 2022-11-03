@@ -1,8 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using System.Windows.Input;
 
 namespace Database.Aniki.Utilities
 {
@@ -14,22 +16,16 @@ namespace Database.Aniki.Utilities
         /// <summary>
         /// Get All assemblys which the dll file starts with the spcific word.
         /// </summary>
-        /// <param name="assemblyNameStart">The name start with</param>
+        /// <param name="assemblyName">The name start with</param>
         /// <returns>All <see cref="Assembly"/> from the folder</returns>
-        public static Assembly[] GetAll(string? assemblyNameStart)
+        public static Assembly[] GetAll(params string[] assemblyName)
         {
-            assemblyNameStart ??= "";
-            var allAssemblies = Directory
-                        .GetFiles(
-                            AppDomain.CurrentDomain.BaseDirectory,
-                            $"{assemblyNameStart}*.dll");
-
             var loadedAssemblies = new List<Assembly>();
-            foreach (var assemblie in allAssemblies)
+            foreach (var assembly in assemblyName)
             {
                 try
                 {
-                    loadedAssemblies.Add(Assembly.Load(AssemblyName.GetAssemblyName(assemblie)));
+                    loadedAssemblies.Add(Assembly.Load(assembly));
                 }
                 catch { }
             }

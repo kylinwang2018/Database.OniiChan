@@ -47,12 +47,12 @@ namespace Database.Aniki
         /// </para>
         /// </summary>
         /// <param name="dbContext"></param>
-        /// <param name="assemblyNameStart"></param>
+        /// <param name="assemblyName"></param>
         /// <returns></returns>
         public static DbContext<TOption> RegisterPostgreRepositories<TOption>(
-            this DbContext<TOption> dbContext, string? assemblyNameStart) where TOption : class, IDbContextOptions
+            this DbContext<TOption> dbContext, params string[] assemblyName) where TOption : class, IDbContextOptions
         {
-            var allAssembly = AppAssembly.GetAll(assemblyNameStart);
+            var allAssembly = AppAssembly.GetAll(assemblyName);
 
             dbContext.ServiceCollection?.RegisterServiceByAttribute(ServiceLifetime.Singleton, allAssembly);
             dbContext.ServiceCollection?.RegisterServiceByAttribute(ServiceLifetime.Scoped, allAssembly);
@@ -66,6 +66,7 @@ namespace Database.Aniki
             List<Type> types = allAssembly
                 .SelectMany(t => 
                 t.GetTypes())
+                .Where(t => !t.IsInterface && !t.IsSealed && !t.IsAbstract)
                     .Where(t => 
                         t.GetCustomAttributes(typeof(PostgreRepoAttribute), false).Length > 0 && 
                             t.GetCustomAttribute<PostgreRepoAttribute>()?.Lifetime == serviceLifetime && 

@@ -15,7 +15,7 @@ builder.Services.AddDbContext<ApplicationDbOption>(options =>
         options.EnableStatistics = true;
     })
     .UseSqlServer()
-    .RegisterSqlServerRepositories("Database.Aniki.Demo");
+    .RegisterSqlServerRepositories("Database.Aniki.Demo.Repo.MsSql");
 
 var app = builder.Build();
 

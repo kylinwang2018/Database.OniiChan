@@ -50,9 +50,9 @@ namespace Database.Aniki
         /// <param name="assemblyNameStart"></param>
         /// <returns></returns>
         public static DbContext<TOption> RegisterMongoDbRepositories<TOption>(
-            this DbContext<TOption> dbContext, string? assemblyNameStart) where TOption : class, IMongoDbContextOptions
+            this DbContext<TOption> dbContext, params string[] assemblyName) where TOption : class, IDbContextOptions
         {
-            var allAssembly = AppAssembly.GetAll(assemblyNameStart);
+            var allAssembly = AppAssembly.GetAll(assemblyName);
 
             dbContext.ServiceCollection?.RegisterServiceByAttribute(ServiceLifetime.Singleton, allAssembly);
             dbContext.ServiceCollection?.RegisterServiceByAttribute(ServiceLifetime.Scoped, allAssembly);
@@ -66,6 +66,7 @@ namespace Database.Aniki
             List<Type> types = allAssembly
                 .SelectMany(t =>
                 t.GetTypes())
+                .Where(t => !t.IsInterface && !t.IsSealed && !t.IsAbstract)
                     .Where(t =>
                         t.GetCustomAttributes(typeof(MongoDbRepoAttribute), false).Length > 0 &&
                             t.GetCustomAttribute<MongoDbRepoAttribute>()?.Lifetime == serviceLifetime &&
