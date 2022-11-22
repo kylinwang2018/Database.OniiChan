@@ -54,14 +54,12 @@ namespace Database.Aniki
         {
             var allAssembly = AppAssembly.GetAll(assemblyName);
 
-            dbContext.ServiceCollection?.RegisterServiceByAttribute(ServiceLifetime.Singleton, allAssembly);
-            dbContext.ServiceCollection?.RegisterServiceByAttribute(ServiceLifetime.Scoped, allAssembly);
-            dbContext.ServiceCollection?.RegisterServiceByAttribute(ServiceLifetime.Transient, allAssembly);
+            dbContext.ServiceCollection?.RegisterServiceByAttribute(allAssembly);
 
             return dbContext;
         }
 
-        private static void RegisterServiceByAttribute(this IServiceCollection services, ServiceLifetime serviceLifetime, Assembly[] allAssembly)
+        private static void RegisterServiceByAttribute(this IServiceCollection services, Assembly[] allAssembly)
         {
 
             var types = allAssembly
@@ -69,11 +67,11 @@ namespace Database.Aniki
                     t.GetTypes())
                 .Where(t => !t.IsInterface && !t.IsSealed && !t.IsAbstract)
                 .Where(s=> s.GetCustomAttributes(typeof(SqlServerRepoAttribute),false).Length > 0 &&
-                            s.GetCustomAttribute<SqlServerRepoAttribute>()?.Lifetime == serviceLifetime &&
                             s.IsClass && !s.IsAbstract);
 
             foreach (var type in types)
             {
+                var serviceLifetime = type.GetCustomAttribute<SqlServerRepoAttribute>().Lifetime;
                 Type? typeInterface = type.GetInterfaces().FirstOrDefault();
                 if (typeInterface != null)
                 {

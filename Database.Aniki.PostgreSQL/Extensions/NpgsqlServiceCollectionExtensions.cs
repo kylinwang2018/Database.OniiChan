@@ -54,14 +54,12 @@ namespace Database.Aniki
         {
             var allAssembly = AppAssembly.GetAll(assemblyName);
 
-            dbContext.ServiceCollection?.RegisterServiceByAttribute(ServiceLifetime.Singleton, allAssembly);
-            dbContext.ServiceCollection?.RegisterServiceByAttribute(ServiceLifetime.Scoped, allAssembly);
-            dbContext.ServiceCollection?.RegisterServiceByAttribute(ServiceLifetime.Transient, allAssembly);
+            dbContext.ServiceCollection?.RegisterServiceByAttribute(allAssembly);
 
             return dbContext;
         }
 
-        private static void RegisterServiceByAttribute(this IServiceCollection services, ServiceLifetime serviceLifetime, Assembly[] allAssembly)
+        private static void RegisterServiceByAttribute(this IServiceCollection services, Assembly[] allAssembly)
         {
             List<Type> types = allAssembly
                 .SelectMany(t => 
@@ -69,10 +67,10 @@ namespace Database.Aniki
                 .Where(t => !t.IsInterface && !t.IsSealed && !t.IsAbstract)
                     .Where(t => 
                         t.GetCustomAttributes(typeof(PostgresRepoAttribute), false).Length > 0 && 
-                            t.GetCustomAttribute<PostgresRepoAttribute>()?.Lifetime == serviceLifetime && 
                             t.IsClass && !t.IsAbstract).ToList();
             foreach (var type in types)
             {
+                var serviceLifetime = type.GetCustomAttribute<PostgresRepoAttribute>().Lifetime;
                 Type? typeInterface = type.GetInterfaces().FirstOrDefault();
                 if (typeInterface != null)
                 {
