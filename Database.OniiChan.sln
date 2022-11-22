@@ -7,7 +7,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Database.Aniki", "Database.
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Database.Aniki.SqlServer", "Database.Aniki.SqlServer\Database.Aniki.SqlServer.csproj", "{D9E49EBA-2A8E-4022-85D6-18A36E6827AF}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Database.Aniki.PostgreSQL", "Database.Aniki.PostgreSQL\Database.Aniki.PostgreSQL.csproj", "{0A64FBFE-620F-4D38-8602-8F9951046F42}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Database.Aniki.PostgresSQL", "Database.Aniki.PostgreSQL\Database.Aniki.PostgresSQL.csproj", "{0A64FBFE-620F-4D38-8602-8F9951046F42}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Database.Aniki.Demo", "Database.Aniki.Demo\Database.Aniki.Demo.csproj", "{274D6B17-714F-4941-9857-589A3B3D6A96}"
 EndProject
@@ -15,11 +15,11 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Database.Aniki.Test", "Data
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Database.Aniki.MongoDb", "Database.Aniki.MongoDb\Database.Aniki.MongoDb.csproj", "{A5081E97-060B-446D-9026-00C102AC3E88}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Database.Aniki.Demo.Repo.Interface", "Database.Aniki.Repo.Interface\Database.Aniki.Demo.Repo.Interface.csproj", "{575C0D3E-70FC-4E77-91E9-8FDBB9318DBC}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Database.Aniki.Demo.Repo.Interface", "Database.Aniki.Repo.Interface\Database.Aniki.Demo.Repo.Interface.csproj", "{575C0D3E-70FC-4E77-91E9-8FDBB9318DBC}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Demo", "Demo", "{565DABF4-1C43-4D7F-AAE8-8DB1C289331A}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Database.Aniki.Demo.Repo.MsSql", "Database.Aniki.Repo.MsSql\Database.Aniki.Demo.Repo.MsSql.csproj", "{7491399E-EAF3-45CA-B16E-A10ADE836B51}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Database.Aniki.Demo.Repo.MsSql", "Database.Aniki.Repo.MsSql\Database.Aniki.Demo.Repo.MsSql.csproj", "{7491399E-EAF3-45CA-B16E-A10ADE836B51}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

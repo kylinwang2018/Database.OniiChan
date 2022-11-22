@@ -4,7 +4,7 @@ using System.Data;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace Database.Aniki.PostgreSQL
+namespace Database.Aniki.PostgresSQL
 {
     public static class NpgsqlConnectionExtension
     {

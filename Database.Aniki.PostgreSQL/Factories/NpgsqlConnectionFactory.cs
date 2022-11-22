@@ -1,7 +1,7 @@
 ﻿using Microsoft.Extensions.Options;
 using Npgsql;
 
-namespace Database.Aniki.PostgreSQL
+namespace Database.Aniki.PostgresSQL
 {
     internal class NpgsqlConnectionFactory<TOption> : INpgsqlConnectionFactory<TOption> where TOption : class, IDbContextOptions
     {

@@ -1,4 +1,4 @@
-﻿using Database.Aniki.PostgreSQL;
+﻿using Database.Aniki.PostgresSQL;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Npgsql;

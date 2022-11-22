@@ -2,7 +2,7 @@
 using System;
 using System.Data;
 
-namespace Database.Aniki.PostgreSQL
+namespace Database.Aniki.PostgresSQL
 {
     internal static class ParameterAttacher
     {

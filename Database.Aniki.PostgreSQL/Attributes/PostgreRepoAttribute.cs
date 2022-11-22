@@ -3,14 +3,14 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 
-namespace Database.Aniki.PostgreSQL
+namespace Database.Aniki.PostgresSQL
 {
     /// <summary>
     /// Add this attribute to any class with its interface will be automatically dependency injected to
     /// <see cref="IServiceCollection"/> after use RegisterPostgreRepositories method.
     /// </summary>
     [AttributeUsage(AttributeTargets.Class)]
-    public class PostgreRepoAttribute : Attribute
+    public class PostgresRepoAttribute : Attribute
     {
         /// <summary>
         /// Specifies the lifetime of a service in an <see cref="IServiceCollection"/>.

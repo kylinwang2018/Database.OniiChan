@@ -1,6 +1,6 @@
 ﻿using Npgsql;
 
-namespace Database.Aniki.PostgreSQL
+namespace Database.Aniki.PostgresSQL
 {
     public interface INpgsqlConnectionFactory<TOption> where TOption : class, IDbContextOptions
     {

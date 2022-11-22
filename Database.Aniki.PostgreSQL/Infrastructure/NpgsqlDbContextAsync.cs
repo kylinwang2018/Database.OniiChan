@@ -1,7 +1,7 @@
 ﻿using Database.Aniki.DataManipulators;
 using Database.Aniki.Exceptions;
 using Database.Aniki.Extensions;
-using Database.Aniki.PostgreSQL;
+using Database.Aniki.PostgresSQL;
 using Npgsql;
 using System;
 using System.Collections.Generic;

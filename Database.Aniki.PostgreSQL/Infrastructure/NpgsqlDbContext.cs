@@ -1,14 +1,13 @@
 ﻿using Database.Aniki.DataManipulators;
 using Database.Aniki.Exceptions;
 using Database.Aniki.Extensions;
-using Database.Aniki.PostgreSQL;
+using Database.Aniki.PostgresSQL;
 using Npgsql;
 using System;
 using System.Collections.Generic;
 using System.Data;
 using System.Linq;
 using System.Reflection;
-using System.Threading.Tasks;
 
 namespace Database.Aniki
 {

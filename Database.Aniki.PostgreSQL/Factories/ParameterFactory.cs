@@ -4,7 +4,7 @@ using System;
 using System.Data;
 using System.Data.SqlTypes;
 
-namespace Database.Aniki.PostgreSQL
+namespace Database.Aniki.PostgresSQL
 {
     public static class ParameterFactory
     {

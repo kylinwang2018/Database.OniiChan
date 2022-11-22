@@ -1,11 +1,11 @@
-﻿using Database.Aniki.PostgreSQL;
+﻿using Database.Aniki.PostgresSQL;
 using Database.Aniki.Utilities;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
-using System.Collections.Generic;
-using System.Reflection;
 using System;
+using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
 
 namespace Database.Aniki
 {
@@ -35,7 +35,7 @@ namespace Database.Aniki
         /// <summary>
         /// <para>
         /// inject all project-related repository with [PostgreRepo]
-        /// (<see cref="PostgreRepoAttribute"/>) attribute to <see cref="IServiceCollection"/>.
+        /// (<see cref="PostgresRepoAttribute"/>) attribute to <see cref="IServiceCollection"/>.
         /// </para>
         /// <para>
         /// Make sure your repository projects has been add to your main project and its assembly
@@ -68,8 +68,8 @@ namespace Database.Aniki
                 t.GetTypes())
                 .Where(t => !t.IsInterface && !t.IsSealed && !t.IsAbstract)
                     .Where(t => 
-                        t.GetCustomAttributes(typeof(PostgreRepoAttribute), false).Length > 0 && 
-                            t.GetCustomAttribute<PostgreRepoAttribute>()?.Lifetime == serviceLifetime && 
+                        t.GetCustomAttributes(typeof(PostgresRepoAttribute), false).Length > 0 && 
+                            t.GetCustomAttribute<PostgresRepoAttribute>()?.Lifetime == serviceLifetime && 
                             t.IsClass && !t.IsAbstract).ToList();
             foreach (var type in types)
             {

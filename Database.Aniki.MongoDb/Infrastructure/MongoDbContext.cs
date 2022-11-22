@@ -1,9 +1,5 @@
 ﻿using Microsoft.Extensions.Options;
-using MongoDB.Bson;
 using MongoDB.Driver;
-using System;
-using System.Threading;
-using System.Threading.Tasks;
 
 namespace Database.Aniki.MongoDb
 {
