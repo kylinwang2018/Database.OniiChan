@@ -2,7 +2,9 @@
 
 namespace Database.Aniki.PostgresSQL
 {
-    public interface INpgsqlConnectionFactory<TOption> where TOption : class, IDbContextOptions
+    public interface INpgsqlConnectionFactory<out TDbContext, TOption>
+        where TDbContext : class, IDbContext
+        where TOption : class, IDbContextOptions
     {
         /// <summary>
         /// Creates a database connection to the specified database.

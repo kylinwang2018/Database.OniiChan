@@ -5,13 +5,13 @@ using System.Text;
 
 namespace Database.Aniki
 {
-    internal partial class NpgsqlDbContext<TOption> : INpgsqlDbContext<TOption> where TOption : class, IDbContextOptions
+    public partial class NpgsqlDbContext : IDbContext
     {
-        public TOption Options
+        public RelationalDbOptions Options
         {
             get
             {
-                return _option.Value;
+                return _options;
             }
         }
     }

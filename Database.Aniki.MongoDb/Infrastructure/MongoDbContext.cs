@@ -1,22 +1,23 @@
-﻿using Microsoft.Extensions.Options;
+﻿using Database.Aniki.MongoDb;
+using Microsoft.Extensions.Options;
 using MongoDB.Driver;
 
-namespace Database.Aniki.MongoDb
+namespace Database.Aniki
 {
-    internal class MongoDbContext<TOption> : IMongoDbContext<TOption> where TOption : class, IMongoDbContextOptions
+    public class MongoDbContext : IDbContext
     {
-        private readonly TOption _options;
-        private readonly IMongoDbConnectionFactory<TOption> _mongoDbConnectionFactory;
+        protected readonly MongoDbContextOptions _options;
+        protected readonly IMongoDbConnectionFactory<MongoDbContext, MongoDbContextOptions> _mongoDbConnectionFactory;
 
         public MongoDbContext(
-            IOptions<TOption> options,
-            IMongoDbConnectionFactory<TOption> mongoDbConnectionFactory)
+            IOptionsMonitor<MongoDbContextOptions> options,
+            IMongoDbConnectionFactory<MongoDbContext, MongoDbContextOptions> mongoDbConnectionFactory)
         {
-            _options = options.Value;
+            _options = options.Get((this.GetType()).ToString());
             _mongoDbConnectionFactory = mongoDbConnectionFactory;
         }
 
-        public TOption Options
+        public MongoDbContextOptions Options
         {
             get
             {

@@ -2,12 +2,12 @@
 
 namespace Database.Aniki
 {
-    internal partial class SqlServerDbContext<TOption> : ISqlServerDbContext<TOption> where TOption : class, IDbContextOptions
+    public partial class SqlServerDbContext : IDbContext
     {
-        public TOption Options { 
+        public RelationalDbOptions Options { 
             get
             {
-                return _option.Value;
+                return _options;
             }}
     }
 }

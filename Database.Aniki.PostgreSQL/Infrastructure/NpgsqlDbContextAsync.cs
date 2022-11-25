@@ -12,7 +12,7 @@ using System.Threading.Tasks;
 
 namespace Database.Aniki
 {
-    internal partial class NpgsqlDbContext<TOption> : INpgsqlDbContext<TOption> where TOption : class, IDbContextOptions
+    public partial class NpgsqlDbContext : IDbContext
     {
         #region GetColumnToString
         public async Task<List<string>> GetColumnToStringAsync(NpgsqlCommand cmd, int columnIndex = 0)

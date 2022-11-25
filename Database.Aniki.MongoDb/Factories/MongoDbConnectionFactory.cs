@@ -5,15 +5,17 @@ using MongoDB.Driver;
 
 namespace Database.Aniki.MongoDb
 {
-    internal class MongoDbConnectionFactory<TOption> : IMongoDbConnectionFactory<TOption> where TOption : class, IMongoDbContextOptions
+    internal class MongoDbConnectionFactory<TDbContext, TOption> : IMongoDbConnectionFactory<TDbContext, TOption>
+        where TDbContext : class, IDbContext
+        where TOption : class, IMongoDbContextOptions
     {
         private readonly string _connectionString;
         private readonly string _databaseName;
 
-        public MongoDbConnectionFactory(IOptions<TOption> options)
+        public MongoDbConnectionFactory(IOptionsMonitor<TOption> options)
         {
-            _connectionString = options.Value.ConnectionSting;
-            _databaseName = options.Value.DatabaseName;
+            _connectionString = options.Get(typeof(TDbContext).ToString()).ConnectionSting;
+            _databaseName = options.Get(typeof(TDbContext).ToString()).DatabaseName;
         }
 
         public IMongoClient CreateClient()

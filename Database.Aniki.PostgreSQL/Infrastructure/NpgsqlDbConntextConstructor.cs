@@ -6,20 +6,18 @@ using System;
 
 namespace Database.Aniki
 {
-    internal partial class NpgsqlDbContext<TOption> : INpgsqlDbContext<TOption> where TOption : class, IDbContextOptions
+    public partial class NpgsqlDbContext : IDbContext
     {
-        private readonly IOptions<TOption> _option;
-        private readonly IDbContextOptions _options;
-        private readonly ILogger<NpgsqlDbContext<TOption>> _logger;
-        private readonly INpgsqlConnectionFactory<TOption> _connectionFactory;
         private readonly NpgsqlRetryLogicOption _sqlRetryOption;
+        protected readonly RelationalDbOptions _options;
+        protected readonly ILogger<NpgsqlDbContext> _logger;
+        protected readonly INpgsqlConnectionFactory<NpgsqlDbContext, RelationalDbOptions> _connectionFactory;
 
         public NpgsqlDbContext(
-            IOptions<TOption> options, ILogger<NpgsqlDbContext<TOption>> logger,
-            INpgsqlConnectionFactory<TOption> connectionFactory)
+            IOptionsMonitor<RelationalDbOptions> options, ILogger<NpgsqlDbContext> logger,
+            INpgsqlConnectionFactory<NpgsqlDbContext, RelationalDbOptions> connectionFactory)
         {
-            _option = options;
-            _options = options.Value;
+            _options = options.Get((this.GetType()).ToString());
             _logger = logger;
             _connectionFactory = connectionFactory;
             _sqlRetryOption = new NpgsqlRetryLogicOption()

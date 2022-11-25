@@ -5,12 +5,13 @@
     <Nullable>enable</Nullable>
 	<GeneratePackageOnBuild>True</GeneratePackageOnBuild>
 	<GenerateDocumentationFile>true</GenerateDocumentationFile>
-	<Version>0.0.8</Version>
+	<Version>0.0.10</Version>
 	  <Authors>Ben Wang</Authors>
 	  <Company>HashcodeStudio</Company>
 	  <Copyright>Copyright Ben Wang 2022</Copyright>
 	  <PackageTags>Database;SqlServer;Postgre</PackageTags>
 	  <PackageLicenseExpression>MIT</PackageLicenseExpression>
+	  <Description>Database Aniki's Sql Server support library</Description>
   </PropertyGroup>
 
   <ItemGroup>

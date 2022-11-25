@@ -15,21 +15,31 @@ namespace Database.Aniki
     public static class NpgsqlServiceCollectionExtensions
     {
         /// <summary>
-        ///     Configures the context to connect to a Postgre SQL database, must set up connection string before use it.
+        ///     Configures the context to connect to a PostgreSql database, must set up 
+        ///     connection string before use it.
         /// </summary>
-        /// <typeparam name="TOption"></typeparam>
-        /// <param name="dbContext"></param>
+        /// <typeparam name="TDbContext"></typeparam>
+        /// <param name="services"></param>
+        /// <param name="setupAction"></param>
         /// <returns></returns>
-        public static DbContext<TOption> UsePostgreSql<TOption>(
-            this DbContext<TOption> dbContext) where TOption : class, IDbContextOptions
+        public static DbContext<TDbContext> AddPostgresDbContext<TDbContext>(
+            this IServiceCollection services, Action<RelationalDbOptions> setupAction)
+            where TDbContext : NpgsqlDbContext
         {
+
+            services.AddOptions();
+            services.Configure(typeof(TDbContext).ToString(), setupAction);
+
             // register dbprovider in service collection
-            dbContext.ServiceCollection?.TryAddSingleton<INpgsqlDbContext<TOption>, NpgsqlDbContext<TOption>>();
+            services.TryAddSingleton(typeof(TDbContext));
 
             // register sql factory for create connection, command and dataAdapter
-            dbContext.ServiceCollection?.TryAddSingleton<INpgsqlConnectionFactory<TOption>, NpgsqlConnectionFactory<TOption>>();
+            services.TryAddSingleton<INpgsqlConnectionFactory<TDbContext, RelationalDbOptions>, INpgsqlConnectionFactory<TDbContext, RelationalDbOptions>>();
 
-            return dbContext;
+            return new DbContext<TDbContext>
+            {
+                ServiceCollection = services
+            };
         }
 
         /// <summary>
@@ -49,8 +59,9 @@ namespace Database.Aniki
         /// <param name="dbContext"></param>
         /// <param name="assemblyName"></param>
         /// <returns></returns>
-        public static DbContext<TOption> RegisterPostgreRepositories<TOption>(
-            this DbContext<TOption> dbContext, params string[] assemblyName) where TOption : class, IDbContextOptions
+        public static DbContext<TDbContext> RegisterPostgreRepositories<TDbContext>(
+            this DbContext<TDbContext> dbContext, params string[] assemblyName) 
+            where TDbContext : class, IDbContext
         {
             var allAssembly = AppAssembly.GetAll(assemblyName);
 

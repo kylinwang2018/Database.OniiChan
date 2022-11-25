@@ -1,4 +1,5 @@
 using Database.Aniki;
+using Database.Aniki.Demo;
 using Database.Aniki.Demo.Models;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -6,7 +7,8 @@ var builder = WebApplication.CreateBuilder(args);
 // Add services to the container.
 builder.Services.AddRazorPages();
 
-builder.Services.AddDbContext<ApplicationDbOption>(options =>
+builder.Services.AddSqlServerDbContext<ApplicationDbContext>(
+    options =>
     {
         options.ConnectionSting = "Server=192.168.1.26\\SQl2019; Database=CloudNativeCopy; UID=demo; PWD=DemoPassword; MultipleActiveResultSets=true;TrustServerCertificate=true";
         options.NumberOfTries = 6;
@@ -14,7 +16,6 @@ builder.Services.AddDbContext<ApplicationDbOption>(options =>
         options.DbCommandTimeout = 20;
         options.EnableStatistics = true;
     })
-    .UseSqlServer()
     .RegisterSqlServerRepositories("Database.Aniki.Demo.Repo.MsSql");
 
 var app = builder.Build();

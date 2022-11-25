@@ -3,13 +3,15 @@ using Npgsql;
 
 namespace Database.Aniki.PostgresSQL
 {
-    internal class NpgsqlConnectionFactory<TOption> : INpgsqlConnectionFactory<TOption> where TOption : class, IDbContextOptions
+    internal class NpgsqlConnectionFactory<TDbContext,TOption> : INpgsqlConnectionFactory<TDbContext, TOption>
+        where TDbContext : class, IDbContext
+        where TOption : class, IDbContextOptions
     {
         private readonly string _sqlConnectionString;
 
-        public NpgsqlConnectionFactory(IOptions<TOption> options)
+        public NpgsqlConnectionFactory(IOptionsMonitor<TOption> options)
         {
-            _sqlConnectionString = options.Value.ConnectionSting;
+            _sqlConnectionString = options.Get(typeof(TDbContext).ToString()).ConnectionSting;
         }
 
         public NpgsqlCommand CreateCommand()

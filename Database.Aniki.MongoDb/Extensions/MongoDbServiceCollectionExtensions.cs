@@ -15,21 +15,33 @@ namespace Database.Aniki
     /// </summary>
     public static class MongoDbServiceCollectionExtensions
     {
+
         /// <summary>
-        ///     Configures the context to connect to a MongoDb database, must set up connection string before use it.
+        ///     Configures the context to connect to a MongoDb database, must set up 
+        ///     connection string before use it.
         /// </summary>
-        /// <typeparam name="TOption"></typeparam>
-        /// <param name="dbContext"></param>
+        /// <typeparam name="TDbContext"></typeparam>
+        /// <param name="services"></param>
+        /// <param name="setupAction"></param>
         /// <returns></returns>
-        public static DbContext<TOption> UseMongoDb<TOption>(
-            this DbContext<TOption> dbContext) where TOption : class, IMongoDbContextOptions
+        public static DbContext<TDbContext> AddMongoDbContext<TDbContext>(
+            this IServiceCollection services, Action<MongoDbContextOptions> setupAction)
+            where TDbContext : MongoDbContext
         {
+
+            services.AddOptions();
+            services.Configure(typeof(TDbContext).ToString(), setupAction);
+
             // register dbprovider in service collection
-            dbContext.ServiceCollection?.TryAddSingleton<IMongoDbContext<TOption>, MongoDbContext<TOption>>();
+            services.TryAddSingleton(typeof(TDbContext));
 
-            dbContext.ServiceCollection?.TryAddSingleton<IMongoDbConnectionFactory<TOption>, MongoDbConnectionFactory<TOption>>();
+            // register sql factory for create connection, command and dataAdapter
+            services.TryAddSingleton<IMongoDbConnectionFactory<TDbContext, MongoDbContextOptions>, IMongoDbConnectionFactory<TDbContext, MongoDbContextOptions>>();
 
-            return dbContext;
+            return new DbContext<TDbContext>
+            {
+                ServiceCollection = services
+            };
         }
 
         /// <summary>
@@ -49,8 +61,8 @@ namespace Database.Aniki
         /// <param name="dbContext"></param>
         /// <param name="assemblyName"></param>
         /// <returns></returns>
-        public static DbContext<TOption> RegisterMongoDbRepositories<TOption>(
-            this DbContext<TOption> dbContext, params string[] assemblyName) where TOption : class, IDbContextOptions
+        public static DbContext<TDbContext> RegisterMongoDbRepositories<TDbContext>(
+            this DbContext<TDbContext> dbContext, params string[] assemblyName) where TDbContext : class, IDbContext
         {
             var allAssembly = AppAssembly.GetAll(assemblyName);
 

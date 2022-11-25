@@ -7,9 +7,9 @@ namespace Database.Aniki.Repo.MsSql
     [SqlServerRepo]
     internal class Repo : IRepo
     {
-        private readonly ISqlServerDbContext<ApplicationDbOption> _dbContext;
+        private readonly ApplicationDbContext _dbContext;
 
-        public Repo(ISqlServerDbContext<ApplicationDbOption> dbContext)
+        public Repo(ApplicationDbContext dbContext)
         {
             _dbContext = dbContext;
         }
