@@ -7,7 +7,7 @@ namespace Database.Aniki.MongoDb
 {
     internal class MongoDbConnectionFactory<TDbContext, TOption> : IMongoDbConnectionFactory<TDbContext, TOption>
         where TDbContext : class, IDbContext
-        where TOption : class, IMongoDbContextOptions
+        where TOption : class, IMongoDbOptions
     {
         private readonly string _connectionString;
         private readonly string _databaseName;

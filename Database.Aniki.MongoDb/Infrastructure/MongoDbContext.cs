@@ -6,18 +6,18 @@ namespace Database.Aniki
 {
     public class MongoDbContext : IDbContext
     {
-        protected readonly MongoDbContextOptions _options;
-        protected readonly IMongoDbConnectionFactory<MongoDbContext, MongoDbContextOptions> _mongoDbConnectionFactory;
+        protected readonly MongoDbOptions _options;
+        protected readonly IMongoDbConnectionFactory<MongoDbContext, MongoDbOptions> _mongoDbConnectionFactory;
 
         public MongoDbContext(
-            IOptionsMonitor<MongoDbContextOptions> options,
-            IMongoDbConnectionFactory<MongoDbContext, MongoDbContextOptions> mongoDbConnectionFactory)
+            IOptionsMonitor<MongoDbOptions> options,
+            IMongoDbConnectionFactory<MongoDbContext, MongoDbOptions> mongoDbConnectionFactory)
         {
             _options = options.Get((this.GetType()).ToString());
             _mongoDbConnectionFactory = mongoDbConnectionFactory;
         }
 
-        public MongoDbContextOptions Options
+        public MongoDbOptions Options
         {
             get
             {
