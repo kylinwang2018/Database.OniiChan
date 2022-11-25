@@ -34,7 +34,7 @@ namespace Database.Aniki
             services.TryAddSingleton(typeof(TDbContext));
 
             // register sql factory for create connection, command and dataAdapter
-            services.TryAddSingleton<INpgsqlConnectionFactory<TDbContext, RelationalDbOptions>, INpgsqlConnectionFactory<TDbContext, RelationalDbOptions>>();
+            services.TryAddSingleton<INpgsqlConnectionFactory<TDbContext, RelationalDbOptions>, NpgsqlConnectionFactory<TDbContext, RelationalDbOptions>>();
 
             return new DbContext<TDbContext>
             {
