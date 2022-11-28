@@ -1,12 +1,11 @@
 ﻿using Database.Aniki.PostgresSQL;
 using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Options;
 using Npgsql;
 using System;
 
 namespace Database.Aniki
 {
-    public partial class NpgsqlDbContext : IDbContext
+    public partial class NpgsqlDbContext : INpgsqlDbContext
     {
         private readonly NpgsqlRetryLogicOption _sqlRetryOption;
         protected readonly RelationalDbOptions _options;
@@ -14,12 +13,11 @@ namespace Database.Aniki
         protected readonly INpgsqlConnectionFactory<NpgsqlDbContext, RelationalDbOptions> _connectionFactory;
 
         public NpgsqlDbContext(
-            IOptionsMonitor<RelationalDbOptions> options, ILogger<NpgsqlDbContext> logger,
-            INpgsqlConnectionFactory<NpgsqlDbContext, RelationalDbOptions> connectionFactory)
+            INpgsqlDbOptions<NpgsqlDbContext> npgsqlDbOptions)
         {
-            _options = options.Get((this.GetType()).ToString());
-            _logger = logger;
-            _connectionFactory = connectionFactory;
+            _options = npgsqlDbOptions.Options.Get((this.GetType()).ToString());
+            _logger = npgsqlDbOptions.Logger;
+            _connectionFactory = npgsqlDbOptions.ConnectionFactory;
             _sqlRetryOption = new NpgsqlRetryLogicOption()
             {
                 NumberOfTries = _options.NumberOfTries,

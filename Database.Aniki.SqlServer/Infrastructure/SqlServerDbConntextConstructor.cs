@@ -6,7 +6,7 @@ using System;
 
 namespace Database.Aniki
 {
-    public partial class SqlServerDbContext : IDbContext 
+    public partial class SqlServerDbContext : ISqlServerDbContext
     {
         protected readonly SqlRetryLogicBaseProvider _sqlRetryProvider;
         protected readonly RelationalDbOptions _options;
@@ -14,12 +14,11 @@ namespace Database.Aniki
         protected readonly ISqlConnectionFactory<IDbContext, RelationalDbOptions> _connectionFactory;
 
         public SqlServerDbContext(
-            IOptionsMonitor<RelationalDbOptions> options, ILogger<SqlServerDbContext> logger,
-            ISqlConnectionFactory<SqlServerDbContext, RelationalDbOptions> connectionFactory)
+            ISqlServerOptions<SqlServerDbContext> sqlServerOptions)
         {
-            _options = options.Get((this.GetType()).ToString());
-            _logger = logger;
-            _connectionFactory = connectionFactory;
+            _options = sqlServerOptions.Options.Get((this.GetType()).ToString());
+            _logger = sqlServerOptions.Logger;
+            _connectionFactory = sqlServerOptions.ConnectionFactory;
             _sqlRetryProvider = SqlConfigurableRetryFactory
                 .CreateExponentialRetryProvider(new SqlRetryLogicOption()
                 {

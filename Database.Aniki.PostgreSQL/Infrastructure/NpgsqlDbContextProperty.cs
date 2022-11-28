@@ -5,7 +5,7 @@ using System.Text;
 
 namespace Database.Aniki
 {
-    public partial class NpgsqlDbContext : IDbContext
+    public partial class NpgsqlDbContext : INpgsqlDbContext
     {
         public RelationalDbOptions Options
         {

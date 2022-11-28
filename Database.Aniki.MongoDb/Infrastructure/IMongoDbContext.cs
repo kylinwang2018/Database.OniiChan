@@ -3,9 +3,8 @@ using MongoDB.Driver;
 
 namespace Database.Aniki
 {
-    public interface IMongoDbContext<TOption> where TOption : class, IMongoDbOptions
+    public interface IMongoDbContext : IDbContext
     {
-        TOption Options { get; }
-        IMongoDatabase Database { get; }
+
     }
 }

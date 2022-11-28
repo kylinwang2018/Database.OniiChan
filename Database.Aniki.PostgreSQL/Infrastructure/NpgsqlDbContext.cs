@@ -11,7 +11,7 @@ using System.Reflection;
 
 namespace Database.Aniki
 {
-    public partial class NpgsqlDbContext : IDbContext
+    public partial class NpgsqlDbContext : INpgsqlDbContext
     {
         #region GetColumnToString
         public List<string> GetColumnToString(NpgsqlCommand cmd, int columnIndex = 0)

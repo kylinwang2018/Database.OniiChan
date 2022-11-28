@@ -25,7 +25,7 @@ namespace Database.Aniki
         /// <param name="setupAction"></param>
         /// <returns></returns>
         public static DbContext<TDbContext> AddMongoDbContext<TDbContext>(
-            this IServiceCollection services, Action<MongoDbOptions> setupAction)
+            this IServiceCollection services, Action<MongoDbContextOptions> setupAction)
             where TDbContext : MongoDbContext
         {
 
@@ -36,7 +36,9 @@ namespace Database.Aniki
             services.TryAddSingleton(typeof(TDbContext));
 
             // register sql factory for create connection, command and dataAdapter
-            services.TryAddSingleton<IMongoDbConnectionFactory<TDbContext, MongoDbOptions>, MongoDbConnectionFactory<TDbContext, MongoDbOptions>>();
+            services.TryAddSingleton<IMongoDbConnectionFactory<TDbContext, MongoDbContextOptions>, MongoDbConnectionFactory<TDbContext, MongoDbContextOptions>>();
+
+            services.TryAddSingleton<IMongoDbOptions<TDbContext>, MongoDbOptions<TDbContext>>();
 
             return new DbContext<TDbContext>
             {

@@ -12,7 +12,7 @@ using System.Threading.Tasks;
 
 namespace Database.Aniki
 {
-    public partial class SqlServerDbContext : IDbContext
+    public partial class SqlServerDbContext : ISqlServerDbContext
     {
         #region GetColumnToString
         public List<string> GetColumnToString(SqlCommand cmd, int columnIndex = 0)

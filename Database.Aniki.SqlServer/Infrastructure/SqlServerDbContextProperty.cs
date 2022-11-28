@@ -2,7 +2,7 @@
 
 namespace Database.Aniki
 {
-    public partial class SqlServerDbContext : IDbContext
+    public partial class SqlServerDbContext : ISqlServerDbContext
     {
         public RelationalDbOptions Options { 
             get

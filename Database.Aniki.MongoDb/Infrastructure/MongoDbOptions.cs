@@ -1,35 +1,24 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
+using Database.Aniki.MongoDb;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 
-namespace Database.Aniki.MongoDb
+namespace Database.Aniki
 {
-    /// <summary>
-    /// The options to be used by a DbContext. 
-    /// You normally override this <see cref="MongoDbOptions"/> to
-    /// create instances of this class and it is not designed to be directly constructed in your application code.
-    /// </summary>
-    public class MongoDbOptions : DbContextOptions, IMongoDbOptions
+    internal class MongoDbOptions<TDbContext> : IMongoDbOptions<TDbContext> where TDbContext : class, IMongoDbContext
     {
-        /// <summary>
-        /// The name of your MongoDb database you are going to use.
-        /// </summary>
-        public string DatabaseName
+        public MongoDbOptions(
+            IOptionsMonitor<MongoDbContextOptions> options,
+            IMongoDbConnectionFactory<TDbContext, MongoDbContextOptions> connectionFactory,
+            ILogger<TDbContext> logger
+            )
         {
-            get
-            {
-                return _databaseName;
-            }
-            set
-            {
-                if (isDatabaseNameInitialized)
-                    throw new FieldAccessException("DatabaseName cannot be modified after initialized.");
-                _databaseName = value;
-                isDatabaseNameInitialized = true;
-            }
+            Options = options;
+            Logger = logger;
+            ConnectionFactory = connectionFactory;
         }
 
-        private string _databaseName = string.Empty;
-        private bool isDatabaseNameInitialized = false;
+        public IOptionsMonitor<MongoDbContextOptions> Options { get; }
+        public ILogger<TDbContext> Logger { get; }
+        public IMongoDbConnectionFactory<TDbContext, MongoDbContextOptions> ConnectionFactory { get; }
     }
 }

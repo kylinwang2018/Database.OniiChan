@@ -6,8 +6,8 @@ using MongoDB.Driver;
 namespace Database.Aniki.MongoDb
 {
     internal class MongoDbConnectionFactory<TDbContext, TOption> : IMongoDbConnectionFactory<TDbContext, TOption>
-        where TDbContext : class, IDbContext
-        where TOption : class, IMongoDbOptions
+        where TDbContext : class, IMongoDbContext
+        where TOption : class, IMongoDbContextOptions
     {
         private readonly string _connectionString;
         private readonly string _databaseName;

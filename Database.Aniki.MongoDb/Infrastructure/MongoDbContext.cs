@@ -1,23 +1,24 @@
 ﻿using Database.Aniki.MongoDb;
-using Microsoft.Extensions.Options;
+using Microsoft.Extensions.Logging;
 using MongoDB.Driver;
 
 namespace Database.Aniki
 {
-    public class MongoDbContext : IDbContext
+    public class MongoDbContext : IMongoDbContext
     {
-        protected readonly MongoDbOptions _options;
-        protected readonly IMongoDbConnectionFactory<MongoDbContext, MongoDbOptions> _mongoDbConnectionFactory;
+        protected readonly MongoDbContextOptions _options;
+        protected readonly IMongoDbConnectionFactory<MongoDbContext, MongoDbContextOptions> _connectionFactory;
+        private readonly ILogger<MongoDbContext> _logger;
 
         public MongoDbContext(
-            IOptionsMonitor<MongoDbOptions> options,
-            IMongoDbConnectionFactory<MongoDbContext, MongoDbOptions> mongoDbConnectionFactory)
+            IMongoDbOptions<MongoDbContext> mongoDbOptions)
         {
-            _options = options.Get((this.GetType()).ToString());
-            _mongoDbConnectionFactory = mongoDbConnectionFactory;
+            _options = mongoDbOptions.Options.Get((this.GetType()).ToString());
+            _connectionFactory = mongoDbOptions.ConnectionFactory;
+            _logger = mongoDbOptions.Logger;
         }
 
-        public MongoDbOptions Options
+        public MongoDbContextOptions Options
         {
             get
             {
@@ -29,7 +30,7 @@ namespace Database.Aniki
         {
             get
             {
-                return _mongoDbConnectionFactory.ConnectDatabase();
+                return _connectionFactory.ConnectDatabase();
             }
         }
     }
