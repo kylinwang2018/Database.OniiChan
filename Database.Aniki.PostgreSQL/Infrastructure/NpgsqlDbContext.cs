@@ -1078,6 +1078,7 @@ namespace Database.Aniki
                 cmd.CommandText = query;
                 cmd.CommandType = commandType;
                 cmd.CommandTimeout = _options.DbCommandTimeout;
+                cmd.Connection = connection;
                 var reader = cmd.ExecuteReaderWithRetry(_sqlRetryOption);
                 LogSqlInfo(cmd, connection);
                 return reader;
@@ -1101,6 +1102,7 @@ namespace Database.Aniki
                 cmd.CommandText = query;
                 cmd.CommandType = commandType;
                 cmd.CommandTimeout = _options.DbCommandTimeout;
+                cmd.Connection = connection;
                 var reader = cmd.ExecuteReaderWithRetry(_sqlRetryOption, commandBehavior);
                 LogSqlInfo(cmd, connection);
                 return reader;

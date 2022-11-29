@@ -1153,6 +1153,7 @@ namespace Database.Aniki
                     connection.StatisticsEnabled = true;
                 connection.Open();
                 var cmd = _connectionFactory.CreateCommand();
+                cmd.Connection = connection;
                 cmd.CommandText = query;
                 cmd.CommandType = commandType;
                 cmd.CommandTimeout = _options.DbCommandTimeout;
@@ -1180,6 +1181,7 @@ namespace Database.Aniki
                     connection.StatisticsEnabled = true;
                 connection.Open();
                 var cmd = _connectionFactory.CreateCommand();
+                cmd.Connection = connection;
                 cmd.CommandText = query;
                 cmd.CommandType = commandType;
                 cmd.CommandTimeout = _options.DbCommandTimeout;

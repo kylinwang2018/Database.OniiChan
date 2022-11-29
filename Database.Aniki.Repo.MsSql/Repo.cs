@@ -16,7 +16,16 @@ namespace Database.Aniki.Repo.MsSql
 
         public async Task<List<User>> GetUsersAsync()
         {
-            return await _dbContext.GetListOfAsync<User>("select * from ir_empl", CommandType.Text);
+            using var dr = await _dbContext.ExecuteReaderAsync(
+            "spVSOC_ResetAllQueue",
+            CommandType.StoredProcedure
+            );
+            if (await dr.ReadAsync())
+            {
+                string output = Convert.ToString(dr["output"]);
+            }
+
+            return null;
         }
     }
 }
