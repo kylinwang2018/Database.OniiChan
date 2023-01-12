@@ -1091,7 +1091,7 @@ namespace Database.Aniki
             }
         }
 
-        public NpgsqlDataReader ExecuteReader(string query, CommandType commandType, CommandBehavior commandBehavior)
+        public NpgsqlDataReader ExecuteReader(string query, CommandType commandType, CommandBehavior commandBehavior, out NpgsqlConnection sqlConnection)
         {
             NpgsqlConnection? connection = null;
             try
@@ -1105,6 +1105,7 @@ namespace Database.Aniki
                 cmd.Connection = connection;
                 var reader = cmd.ExecuteReaderWithRetry(_sqlRetryOption, commandBehavior);
                 LogSqlInfo(cmd, connection);
+                sqlConnection = connection;
                 return reader;
             }
             catch (Exception ex)
@@ -1132,13 +1133,14 @@ namespace Database.Aniki
             }
         }
 
-        public NpgsqlDataReader ExecuteReader(string query, CommandType commandType, CommandBehavior commandBehavior, params NpgsqlParameter[] NpgsqlParameters)
+        public NpgsqlDataReader ExecuteReader(string query, CommandType commandType, CommandBehavior commandBehavior, out NpgsqlConnection sqlConnection, params NpgsqlParameter[] NpgsqlParameters)
         {
             NpgsqlConnection? connection = null;
             try
             {
                 connection = _connectionFactory.CreateConnection();
                 connection.OpenWithRetry(_sqlRetryOption);
+                sqlConnection  = connection;
                 return ExecuteReader(connection, null, commandType, query, commandBehavior, NpgsqlParameters);
             }
             catch (Exception ex)

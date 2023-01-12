@@ -1158,7 +1158,7 @@ namespace Database.Aniki
                 cmd.CommandType = commandType;
                 cmd.CommandTimeout = _options.DbCommandTimeout;
                 cmd.RetryLogicProvider = _sqlRetryProvider;
-                var reader = cmd.ExecuteReader();
+                var reader = cmd.ExecuteReader(CommandBehavior.CloseConnection);
                 LogSqlInfo(cmd, connection);
                 return reader;
             }
@@ -1170,7 +1170,7 @@ namespace Database.Aniki
             }
         }
 
-        public SqlDataReader ExecuteReader(string query, CommandType commandType, CommandBehavior commandBehavior)
+        public SqlDataReader ExecuteReader(string query, CommandType commandType, CommandBehavior commandBehavior, out SqlConnection sqlConnection)
         {
             SqlConnection? connection = null;
             try
@@ -1188,6 +1188,7 @@ namespace Database.Aniki
                 cmd.RetryLogicProvider = _sqlRetryProvider;
                 var reader = cmd.ExecuteReader(commandBehavior);
                 LogSqlInfo(cmd, connection);
+                sqlConnection = connection;
                 return reader;
             }
             catch (Exception ex)
@@ -1219,7 +1220,7 @@ namespace Database.Aniki
             }
         }
 
-        public SqlDataReader ExecuteReader(string query, CommandType commandType, CommandBehavior commandBehavior, params SqlParameter[] sqlParameters)
+        public SqlDataReader ExecuteReader(string query, CommandType commandType, CommandBehavior commandBehavior, out SqlConnection sqlConnection, params SqlParameter[] sqlParameters)
         {
             SqlConnection? connection = null;
             try
@@ -1229,7 +1230,7 @@ namespace Database.Aniki
                 if (_options.EnableStatistics)
                     connection.StatisticsEnabled = true;
                 connection.Open();
-
+                sqlConnection = connection;
                 return ExecuteReader(connection, null, commandType, query, commandBehavior, sqlParameters);
             }
             catch (Exception ex)
@@ -1250,7 +1251,7 @@ namespace Database.Aniki
                 if (_options.EnableStatistics)
                     connection.StatisticsEnabled = true;
                 connection.Open();
-                var reader = cmd.ExecuteReader();
+                var reader = cmd.ExecuteReader(CommandBehavior.CloseConnection);
                 LogSqlInfo(cmd, connection);
                 return reader;
             }

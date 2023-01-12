@@ -1158,7 +1158,7 @@ namespace Database.Aniki
                 cmd.CommandType = commandType;
                 cmd.CommandTimeout = _options.DbCommandTimeout;
                 cmd.RetryLogicProvider = _sqlRetryProvider;
-                var reader = await cmd.ExecuteReaderAsync();
+                var reader = await cmd.ExecuteReaderAsync(CommandBehavior.CloseConnection);
                 LogSqlInfo(cmd, connection);
                 return reader;
             }
@@ -1170,7 +1170,7 @@ namespace Database.Aniki
             }
         }
 
-        public async Task<SqlDataReader> ExecuteReaderAsync(string query, CommandType commandType, CommandBehavior commandBehavior)
+        public Task<SqlDataReader> ExecuteReaderAsync(string query, CommandType commandType, CommandBehavior commandBehavior, out SqlConnection sqlConnection)
         {
             SqlConnection? connection = null;
             try
@@ -1179,15 +1179,16 @@ namespace Database.Aniki
                 connection.RetryLogicProvider = _sqlRetryProvider;
                 if (_options.EnableStatistics)
                     connection.StatisticsEnabled = true;
-                await connection.OpenAsync();
+                Task.WaitAll(connection.OpenAsync());
                 var cmd = _connectionFactory.CreateCommand();
                 cmd.Connection = connection;
                 cmd.CommandText = query;
                 cmd.CommandType = commandType;
                 cmd.CommandTimeout = _options.DbCommandTimeout;
                 cmd.RetryLogicProvider = _sqlRetryProvider;
-                var reader = await cmd.ExecuteReaderAsync(commandBehavior);
+                var reader = cmd.ExecuteReaderAsync(commandBehavior);
                 LogSqlInfo(cmd, connection);
+                sqlConnection = connection;
                 return reader;
             }
             catch (Exception ex)
@@ -1198,7 +1199,7 @@ namespace Database.Aniki
             }
         }
 
-        public async Task<SqlDataReader> ExecuteReaderAsync(string query, CommandType commandType, params SqlParameter[] sqlParameters)
+        public Task<SqlDataReader> ExecuteReaderAsync(string query, CommandType commandType, out SqlConnection sqlConnection, params SqlParameter[] sqlParameters)
         {
             SqlConnection? connection = null;
             try
@@ -1207,9 +1208,9 @@ namespace Database.Aniki
                 connection.RetryLogicProvider = _sqlRetryProvider;
                 if (_options.EnableStatistics)
                     connection.StatisticsEnabled = true;
-                await connection.OpenAsync();
-
-                return await ExecuteReaderAsync(connection, null, commandType, query, sqlParameters);
+                Task.WaitAll(connection.OpenAsync());
+                sqlConnection = connection;
+                return ExecuteReaderAsync(connection, null, commandType, query, sqlParameters);
             }
             catch (Exception ex)
             {
@@ -1219,7 +1220,7 @@ namespace Database.Aniki
             }
         }
 
-        public async Task<SqlDataReader> ExecuteReaderAsync(string query, CommandType commandType, CommandBehavior commandBehavior, params SqlParameter[] sqlParameters)
+        public Task<SqlDataReader> ExecuteReaderAsync(string query, CommandType commandType, CommandBehavior commandBehavior, out SqlConnection sqlConnection, params SqlParameter[] sqlParameters)
         {
             SqlConnection? connection = null;
             try
@@ -1228,9 +1229,9 @@ namespace Database.Aniki
                 connection.RetryLogicProvider = _sqlRetryProvider;
                 if (_options.EnableStatistics)
                     connection.StatisticsEnabled = true;
-                await connection.OpenAsync();
-
-                return await ExecuteReaderAsync(connection, null, commandType, query, commandBehavior, sqlParameters);
+                Task.WaitAll(connection.OpenAsync());
+                sqlConnection = connection;
+                return ExecuteReaderAsync(connection, null, commandType, query, commandBehavior, sqlParameters);
             }
             catch (Exception ex)
             {

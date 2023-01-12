@@ -1096,20 +1096,21 @@ namespace Database.Aniki
             }
         }
 
-        public async Task<NpgsqlDataReader> ExecuteReaderAsync(string query, CommandType commandType, CommandBehavior commandBehavior)
+        public Task<NpgsqlDataReader> ExecuteReaderAsync(string query, CommandType commandType, CommandBehavior commandBehavior, out NpgsqlConnection sqlConnection)
         {
             NpgsqlConnection? connection = null;
             try
             {
                 connection = _connectionFactory.CreateConnection();
-                await connection.OpenWithRetryAsync(_sqlRetryOption);
+                Task.WaitAll(connection.OpenWithRetryAsync(_sqlRetryOption));
                 var cmd = _connectionFactory.CreateCommand();
                 cmd.CommandText = query;
                 cmd.CommandType = commandType;
                 cmd.CommandTimeout = _options.DbCommandTimeout;
                 cmd.Connection = connection;
-                var reader = await cmd.ExecuteReaderWithRetryAsync(_sqlRetryOption, commandBehavior);
+                var reader = cmd.ExecuteReaderWithRetryAsync(_sqlRetryOption, commandBehavior);
                 LogSqlInfo(cmd, connection);
+                sqlConnection = connection;
                 return reader;
             }
             catch (Exception ex)
@@ -1138,15 +1139,15 @@ namespace Database.Aniki
             }
         }
 
-        public async Task<NpgsqlDataReader> ExecuteReaderAsync(string query, CommandType commandType, CommandBehavior commandBehavior, params NpgsqlParameter[] NpgsqlParameters)
+        public Task<NpgsqlDataReader> ExecuteReaderAsync(string query, CommandType commandType, CommandBehavior commandBehavior, out NpgsqlConnection sqlConnection, params NpgsqlParameter[] NpgsqlParameters)
         {
             NpgsqlConnection? connection = null;
             try
             {
                 connection = _connectionFactory.CreateConnection();
-                await connection.OpenWithRetryAsync(_sqlRetryOption);
-
-                return await ExecuteReaderAsync(connection, null, commandType, query, commandBehavior, NpgsqlParameters);
+                Task.WaitAll(connection.OpenWithRetryAsync(_sqlRetryOption));
+                sqlConnection = connection;
+                return ExecuteReaderAsync(connection, null, commandType, query, commandBehavior, NpgsqlParameters);
             }
             catch (Exception ex)
             {

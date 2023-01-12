@@ -10,7 +10,7 @@ builder.Services.AddRazorPages();
 builder.Services.AddSqlServerDbContext<ApplicationDbContext>(
     options =>
     {
-        options.ConnectionSting = "Server=192.168.1.26\\SQl2019; Database=CloudNativeCopy; UID=demo; PWD=DemoPassword; MultipleActiveResultSets=true;TrustServerCertificate=true";
+        options.ConnectionSting = "Server=(localdb)\\MSSQLLocalDB; Database=NoEntityFrameWorkDemo; MultipleActiveResultSets=true;TrustServerCertificate=true;Min Pool Size=5";
         options.NumberOfTries = 6;
         options.MaxTimeInterval = 5;
         options.DbCommandTimeout = 20;

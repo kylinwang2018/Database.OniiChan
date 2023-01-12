@@ -1,6 +1,7 @@
 ﻿using Database.Aniki.Demo.Models;
 using Database.Aniki.SqlServer;
 using System.Data;
+using Microsoft.Data.SqlClient;
 
 namespace Database.Aniki.Repo.MsSql
 {
@@ -16,15 +17,18 @@ namespace Database.Aniki.Repo.MsSql
 
         public async Task<List<User>> GetUsersAsync()
         {
-            using var dr = await _dbContext.ExecuteReaderAsync(
-            "spVSOC_ResetAllQueue",
-            CommandType.StoredProcedure
-            );
-            if (await dr.ReadAsync())
+            for (int i = 0; i < 20; i++)
             {
-                string output = Convert.ToString(dr["output"]);
+                await using var dr = await _dbContext.ExecuteReaderAsync(
+                    "Select * from [dbo].[User]",
+                    CommandType.Text
+                );
+                if (await dr.ReadAsync())
+                {
+                    Console.WriteLine(dr[1]);
+                }
+                
             }
-
             return null;
         }
     }

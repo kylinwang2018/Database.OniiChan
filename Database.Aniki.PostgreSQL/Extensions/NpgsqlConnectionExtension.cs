@@ -88,7 +88,7 @@ namespace Database.Aniki.PostgresSQL
             {
                 try
                 {
-                    return command.ExecuteReader();
+                    return command.ExecuteReader(CommandBehavior.CloseConnection);
                 }
                 catch (Exception ex)
                 {
@@ -120,7 +120,7 @@ namespace Database.Aniki.PostgresSQL
             {
                 try
                 {
-                    return await command.ExecuteReaderAsync();
+                    return await command.ExecuteReaderAsync(CommandBehavior.CloseConnection);
                 }
                 catch (Exception ex)
                 {
