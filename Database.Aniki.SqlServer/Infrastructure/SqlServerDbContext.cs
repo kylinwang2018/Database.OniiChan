@@ -1362,7 +1362,7 @@ namespace Database.Aniki
                     connection.StatisticsEnabled = true;
 
                 // Create a reader
-                var reader = cmd.ExecuteReader();
+                var reader = cmd.ExecuteReader(CommandBehavior.CloseConnection);
                 LogSqlInfo(cmd, connection);
                 return reader;
             }

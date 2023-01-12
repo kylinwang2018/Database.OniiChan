@@ -1199,7 +1199,7 @@ namespace Database.Aniki
             }
         }
 
-        public Task<SqlDataReader> ExecuteReaderAsync(string query, CommandType commandType, out SqlConnection sqlConnection, params SqlParameter[] sqlParameters)
+        public Task<SqlDataReader> ExecuteReaderAsync(string query, CommandType commandType, params SqlParameter[] sqlParameters)
         {
             SqlConnection? connection = null;
             try
@@ -1209,7 +1209,6 @@ namespace Database.Aniki
                 if (_options.EnableStatistics)
                     connection.StatisticsEnabled = true;
                 Task.WaitAll(connection.OpenAsync());
-                sqlConnection = connection;
                 return ExecuteReaderAsync(connection, null, commandType, query, sqlParameters);
             }
             catch (Exception ex)
@@ -1361,7 +1360,7 @@ namespace Database.Aniki
                 }
 
                 // Create a reader
-                var reader = await cmd.ExecuteReaderAsync();
+                var reader = await cmd.ExecuteReaderAsync(CommandBehavior.CloseConnection);
                 LogSqlInfo(cmd, connection);
                 return reader;
             }
